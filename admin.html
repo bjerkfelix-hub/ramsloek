@@ -3,388 +3,591 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin – Nesodden Ramsløk</title>
+  <title>Ramsløk Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     :root {
-      --green: #2d6a4f;
-      --green-light: #52b788;
-      --green-pale: #d8f3dc;
-      --text: #1b1b1b;
-      --muted: #6b7280;
-      --border: #e5e7eb;
-      --white: #ffffff;
-      --yellow: #fef3c7;
-      --yellow-border: #fcd34d;
-      --red-pale: #fee2e2;
-      --red-border: #fca5a5;
+      --bg: #0b0d0e;
+      --surface: #161b22;
+      --surface2: #1c2128;
+      --border: #30363d;
+      --border2: #21262d;
+      --purple: #8b5cf6;
+      --purple-dim: #3b1f6e;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --green: #3fb950;
+      --green-dim: #0d3320;
+      --yellow: #d29922;
+      --yellow-dim: #3d2c00;
+      --red: #f85149;
+      --red-dim: #3d1515;
+      --radius: 8px;
     }
+
     body {
-      font-family: sans-serif;
-      background: #f9fafb;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
       color: var(--text);
       min-height: 100vh;
+      font-size: 14px;
     }
+
+    a { color: var(--purple); text-decoration: none; }
+    a:hover { text-decoration: underline; }
 
     /* ── LOGIN ── */
     #loginScreen {
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
-      padding: 2rem;
+      background: radial-gradient(ellipse at 50% 0%, #1a0a3a 0%, var(--bg) 60%);
     }
-    .login-box {
-      background: var(--white);
+
+    .login-card {
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 14px;
+      border-radius: 12px;
       padding: 2.5rem;
       width: 100%;
-      max-width: 360px;
-      text-align: center;
+      max-width: 380px;
     }
-    .login-box h1 { font-family: Georgia, serif; color: var(--green); font-size: 1.4rem; margin-bottom: 0.4rem; }
-    .login-box p { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.8rem; }
-    .login-box input {
-      width: 100%;
-      padding: 0.7rem 1rem;
-      border: 1px solid var(--border);
+
+    .login-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 2rem;
+    }
+    .login-logo-icon {
+      width: 32px; height: 32px;
+      background: var(--purple);
       border-radius: 8px;
-      font-size: 0.95rem;
-      margin-bottom: 1rem;
-      outline: none;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
     }
-    .login-box input:focus { border-color: var(--green-light); }
-    .login-box button {
+    .login-logo-text { font-size: 1rem; font-weight: 700; color: var(--text); }
+
+    .login-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 0.3rem; }
+    .login-sub { font-size: 0.82rem; color: var(--muted); margin-bottom: 1.8rem; }
+
+    .field-group { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1rem; }
+    .field-group label { font-size: 0.8rem; font-weight: 500; color: var(--muted); }
+    .field-group input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.6rem 0.9rem;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .field-group input:focus { border-color: var(--purple); }
+
+    .login-btn {
       width: 100%;
-      background: var(--green);
+      background: var(--purple);
       color: white;
       border: none;
-      border-radius: 8px;
-      padding: 0.75rem;
-      font-size: 0.95rem;
+      border-radius: var(--radius);
+      padding: 0.65rem;
+      font-family: inherit;
+      font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: opacity 0.15s;
+      margin-top: 0.5rem;
     }
-    .login-box button:hover { background: #1f4e38; }
+    .login-btn:hover { opacity: 0.88; }
+
     .login-error {
-      color: #dc2626;
-      font-size: 0.82rem;
-      margin-top: 0.6rem;
+      font-size: 0.8rem;
+      color: var(--red);
+      margin-top: 0.8rem;
       display: none;
+      text-align: center;
     }
 
-    /* ── ADMIN ── */
-    #adminScreen { display: none; }
+    /* ── APP LAYOUT ── */
+    #adminScreen { display: none; min-height: 100vh; flex-direction: row; }
+    #adminScreen.visible { display: flex; }
 
-    header {
-      background: var(--white);
+    /* Sidebar */
+    .sidebar {
+      width: 220px;
+      min-height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 10;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 1.2rem 1.2rem 1rem;
+      border-bottom: 1px solid var(--border2);
+    }
+    .sidebar-logo-icon {
+      width: 28px; height: 28px;
+      background: var(--purple);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+    .sidebar-logo-text { font-size: 0.9rem; font-weight: 700; color: var(--text); }
+
+    .sidebar-section {
+      padding: 1rem 0.8rem 0.4rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .sidebar-nav { flex: 1; padding: 0 0.6rem; }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.55rem 0.8rem;
+      border-radius: var(--radius);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.15s;
+      margin-bottom: 2px;
+    }
+    .nav-item:hover { background: var(--surface2); color: var(--text); }
+    .nav-item.active { background: var(--purple-dim); color: var(--purple); }
+    .nav-item .nav-icon { font-size: 0.95rem; width: 18px; text-align: center; }
+    .nav-badge {
+      margin-left: auto;
+      background: var(--red);
+      color: white;
+      border-radius: 999px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 0.1rem 0.5rem;
+      min-width: 1.4rem;
+      text-align: center;
+    }
+
+    .sidebar-footer {
+      padding: 1rem 0.8rem;
+      border-top: 1px solid var(--border2);
+    }
+    .user-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.5rem 0.6rem;
+      border-radius: var(--radius);
+    }
+    .avatar {
+      width: 28px; height: 28px;
+      background: linear-gradient(135deg, var(--purple), #c026d3);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+    .user-info { flex: 1; overflow: hidden; }
+    .user-name { font-size: 0.82rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-role { font-size: 0.72rem; color: var(--muted); }
+    .logout-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0.2rem;
+      border-radius: 4px;
+      transition: color 0.15s;
+    }
+    .logout-btn:hover { color: var(--red); }
+
+    /* Main */
+    .main {
+      margin-left: 220px;
+      flex: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      height: 52px;
+      background: var(--surface);
       border-bottom: 1px solid var(--border);
-      padding: 0 2rem;
-      height: 58px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      padding: 0 1.8rem;
+      position: sticky;
+      top: 0;
+      z-index: 5;
     }
-    .header-title { font-family: Georgia, serif; color: var(--green); font-size: 1rem; font-weight: bold; }
-    .header-actions { display: flex; gap: 0.8rem; align-items: center; }
+    .topbar-title { font-size: 0.95rem; font-weight: 600; color: var(--text); }
+    .topbar-actions { display: flex; gap: 0.6rem; }
     .btn-sm {
+      font-family: inherit;
       font-size: 0.8rem;
-      font-weight: 600;
+      font-weight: 500;
       padding: 0.4rem 0.9rem;
-      border-radius: 6px;
-      border: none;
+      border-radius: var(--radius);
       cursor: pointer;
-      transition: background 0.15s;
+      transition: opacity 0.15s;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
     }
-    .btn-green { background: var(--green); color: white; }
-    .btn-green:hover { background: #1f4e38; }
-    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
-    .btn-ghost:hover { background: #f3f4f6; }
+    .btn-sm:hover { opacity: 0.8; }
+    .btn-sm.purple { background: var(--purple); border-color: var(--purple); color: white; }
 
-    main { max-width: 960px; margin: 0 auto; padding: 2rem; }
+    .content { padding: 1.8rem; flex: 1; }
 
-    /* ── STATS ── */
-    .stats-row {
-      display: flex;
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
       gap: 1rem;
-      flex-wrap: wrap;
-      margin-bottom: 2rem;
+      margin-bottom: 1.8rem;
     }
     .stat-card {
-      background: var(--white);
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1rem 1.4rem;
-      flex: 1;
-      min-width: 120px;
+      border-radius: var(--radius);
+      padding: 1rem 1.2rem;
     }
-    .stat-card .num { font-size: 1.6rem; font-weight: 700; color: var(--green); }
-    .stat-card .lbl { font-size: 0.75rem; color: var(--muted); margin-top: 0.2rem; }
+    .stat-card .num { font-size: 1.6rem; font-weight: 700; color: var(--text); }
+    .stat-card .num.yellow { color: var(--yellow); }
+    .stat-card .num.green { color: var(--green); }
+    .stat-card .num.red { color: var(--red); }
+    .stat-card .lbl { font-size: 0.72rem; color: var(--muted); margin-top: 0.2rem; }
 
-    /* ── FILTER TABS ── */
-    .filter-tabs {
+    /* Filter bar */
+    .filter-bar {
       display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1.4rem;
+      gap: 0.4rem;
+      margin-bottom: 1.2rem;
       flex-wrap: wrap;
     }
-    .tab {
-      font-size: 0.82rem;
-      font-weight: 600;
-      padding: 0.4rem 1rem;
+    .filter-pill {
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 500;
+      padding: 0.35rem 0.9rem;
       border-radius: 999px;
       border: 1px solid var(--border);
-      background: var(--white);
+      background: transparent;
       color: var(--muted);
       cursor: pointer;
       transition: all 0.15s;
     }
-    .tab.active, .tab:hover { background: var(--green-pale); border-color: var(--green-light); color: var(--green); }
+    .filter-pill:hover { border-color: var(--purple); color: var(--purple); }
+    .filter-pill.active { background: var(--purple-dim); border-color: var(--purple); color: var(--purple); }
 
-    /* ── ADD ORDER FORM ── */
-    .add-order-panel {
-      background: var(--white);
+    /* Order cards */
+    .card-list { display: flex; flex-direction: column; gap: 0.8rem; }
+
+    .order-card {
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
+      border-radius: var(--radius);
+      padding: 1.2rem 1.4rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      transition: border-color 0.15s;
+    }
+    .order-card:hover { border-color: #484f58; }
+    .order-card.status-venter { border-left: 3px solid var(--yellow); }
+    .order-card.status-bekreftet { border-left: 3px solid var(--green); }
+    .order-card.status-avbestilt { border-left: 3px solid var(--red); opacity: 0.65; }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .card-name { font-size: 0.95rem; font-weight: 600; color: var(--text); }
+    .card-time { font-size: 0.72rem; color: var(--muted); font-family: 'Courier New', monospace; margin-top: 0.2rem; }
+
+    .status-pill {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.7rem;
+      border-radius: 999px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .pill-venter { background: var(--yellow-dim); color: var(--yellow); border: 1px solid #5a4300; }
+    .pill-bekreftet { background: var(--green-dim); color: var(--green); border: 1px solid #0f4d1a; }
+    .pill-avbestilt { background: var(--red-dim); color: var(--red); border: 1px solid #5a1a1a; }
+    .pill-ny { background: var(--yellow-dim); color: var(--yellow); border: 1px solid #5a4300; }
+    .pill-lest { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+
+    .card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.2rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .card-meta strong { color: var(--text); }
+    .card-meta a { color: var(--purple); }
+
+    .card-note {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      padding: 0.6rem 0.9rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .card-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .action-btn {
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 500;
+      padding: 0.35rem 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      border: 1px solid;
+    }
+    .action-btn:hover { opacity: 0.75; }
+    .btn-confirm { background: var(--green-dim); color: var(--green); border-color: #0f4d1a; }
+    .btn-cancel-order { background: var(--red-dim); color: var(--red); border-color: #5a1a1a; }
+    .btn-email { background: var(--purple-dim); color: var(--purple); border-color: #3b1f6e; text-decoration: none; display: inline-flex; align-items: center; }
+    .btn-delete { background: transparent; color: var(--muted); border-color: var(--border); }
+    .btn-delete:hover { color: var(--red); border-color: var(--red); opacity: 1; }
+
+    /* Add form panel */
+    .add-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.4rem;
+      margin-bottom: 1.2rem;
       display: none;
     }
-    .add-order-panel h3 { font-size: 0.95rem; color: var(--green); margin-bottom: 1rem; }
-    .form-grid {
+    .add-panel h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 1rem; color: var(--text); }
+    .add-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 0.8rem;
       margin-bottom: 1rem;
     }
-    .form-grid .form-group { display: flex; flex-direction: column; gap: 0.3rem; }
-    .form-grid label { font-size: 0.78rem; font-weight: 600; color: var(--text); }
-    .form-grid input, .form-grid select, .form-grid textarea {
-      font-size: 0.85rem;
-      padding: 0.5rem 0.7rem;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      outline: none;
-    }
-    .form-grid input:focus, .form-grid select:focus { border-color: var(--green-light); }
+    .add-grid .field-group { margin-bottom: 0; }
 
-    /* ── ORDER CARDS ── */
-    #orderList { display: flex; flex-direction: column; gap: 1rem; }
-
-    .order-card {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.4rem 1.6rem;
-      transition: box-shadow 0.15s;
-    }
-    .order-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
-    .order-card.status-bekreftet { border-left: 4px solid var(--green-light); }
-    .order-card.status-avbestilt { border-left: 4px solid #fca5a5; opacity: 0.7; }
-    .order-card.status-venter { border-left: 4px solid #fcd34d; }
-
-    .order-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      flex-wrap: wrap;
-      margin-bottom: 0.8rem;
-    }
-    .order-name { font-size: 1rem; font-weight: 700; color: var(--text); }
-    .order-time { font-size: 0.75rem; color: var(--muted); }
-
-    .status-badge {
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      padding: 0.25rem 0.7rem;
-      border-radius: 999px;
-    }
-    .badge-venter { background: var(--yellow); color: #92400e; border: 1px solid var(--yellow-border); }
-    .badge-bekreftet { background: var(--green-pale); color: var(--green); border: 1px solid #b7e4c7; }
-    .badge-avbestilt { background: var(--red-pale); color: #991b1b; border: 1px solid var(--red-border); }
-
-    .order-details {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 0.5rem 1.5rem;
-      font-size: 0.85rem;
-      color: var(--muted);
-      margin-bottom: 1rem;
-    }
-    .order-details span strong { color: var(--text); }
-    .order-note-text {
-      font-size: 0.82rem;
-      color: var(--muted);
-      background: #f9fafb;
-      border-radius: 6px;
-      padding: 0.5rem 0.8rem;
-      margin-bottom: 0.9rem;
-      font-style: italic;
-    }
-
-    .order-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
-    .btn-confirm {
-      font-size: 0.82rem; font-weight: 600; padding: 0.4rem 1rem;
-      border-radius: 6px; border: none; cursor: pointer;
-      background: var(--green-pale); color: var(--green); transition: background 0.15s;
-    }
-    .btn-confirm:hover { background: #b7e4c7; }
-    .btn-cancel {
-      font-size: 0.82rem; font-weight: 600; padding: 0.4rem 1rem;
-      border-radius: 6px; border: none; cursor: pointer;
-      background: var(--red-pale); color: #991b1b; transition: background 0.15s;
-    }
-    .btn-cancel:hover { background: #fecaca; }
-    .btn-email {
-      font-size: 0.82rem; font-weight: 600; padding: 0.4rem 1rem;
-      border-radius: 6px; border: 1px solid var(--border); cursor: pointer;
-      background: white; color: var(--muted); text-decoration: none;
-      display: inline-block; transition: background 0.15s;
-    }
-    .btn-email:hover { background: #f3f4f6; }
-    .btn-delete {
-      font-size: 0.82rem; font-weight: 600; padding: 0.4rem 0.7rem;
-      border-radius: 6px; border: 1px solid var(--border); cursor: pointer;
-      background: white; color: #d1d5db; transition: color 0.15s;
-    }
-    .btn-delete:hover { color: #dc2626; border-color: #fca5a5; }
-
+    /* Empty state */
     .empty-state {
       text-align: center;
       padding: 4rem 2rem;
       color: var(--muted);
-      font-size: 0.9rem;
     }
-    .empty-state .icon { font-size: 2.5rem; margin-bottom: 0.8rem; }
+    .empty-state .icon { font-size: 2rem; margin-bottom: 0.8rem; }
+    .empty-state p { font-size: 0.875rem; }
+
+    @media (max-width: 700px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; }
+    }
   </style>
 </head>
 <body>
 
 <!-- LOGIN -->
 <div id="loginScreen">
-  <div class="login-box">
-    <h1>Nesodden Ramsløk</h1>
-    <p>Admin-panel for ordrehåndtering</p>
-    <input type="password" id="passwordInput" placeholder="Passord" onkeydown="if(event.key==='Enter')login()" />
-    <button onclick="login()">Logg inn</button>
-    <p class="login-error" id="loginError">Feil passord. Prøv igjen.</p>
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">🌿</div>
+      <span class="login-logo-text">Ramsløk Admin</span>
+    </div>
+    <div class="login-title">Logg inn</div>
+    <div class="login-sub">Bare for autoriserte brukere</div>
+    <div class="field-group">
+      <label>Brukernavn</label>
+      <input type="text" id="usernameInput" placeholder="Brukernavn" onkeydown="if(event.key==='Enter')document.getElementById('passwordInput').focus()" />
+    </div>
+    <div class="field-group">
+      <label>Passord</label>
+      <input type="password" id="passwordInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()" />
+    </div>
+    <button class="login-btn" onclick="login()">Logg inn</button>
+    <div class="login-error" id="loginError">Feil brukernavn eller passord.</div>
   </div>
 </div>
 
-<!-- ADMIN -->
+<!-- ADMIN APP -->
 <div id="adminScreen">
-  <header>
-    <span class="header-title">Ramsløk Admin</span>
-    <div class="header-actions">
-      <button class="btn-sm btn-ghost" onclick="toggleAddForm()">+ Legg til ordre manuelt</button>
-      <button class="btn-sm btn-ghost" onclick="logout()">Logg ut</button>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🌿</div>
+      <span class="sidebar-logo-text">Ramsløk</span>
     </div>
-  </header>
 
-  <main>
-    <!-- Stats -->
-    <div class="stats-row" id="statsRow"></div>
-
-    <!-- Add order panel -->
-    <div class="add-order-panel" id="addOrderPanel">
-      <h3>Legg til ordre manuelt</h3>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Fullt navn *</label>
-          <input type="text" id="a_name" placeholder="Ola Nordmann" />
-        </div>
-        <div class="form-group">
-          <label>Telefon *</label>
-          <input type="tel" id="a_phone" placeholder="400 00 000" />
-        </div>
-        <div class="form-group">
-          <label>E-post</label>
-          <input type="email" id="a_email" placeholder="ola@example.com" />
-        </div>
-        <div class="form-group">
-          <label>Produkt *</label>
-          <select id="a_product">
-            <option value="Ramsløkblader">Ramsløkblader</option>
-            <option value="Blader + løk/stilk">Blader + løk/stilk</option>
-            <option value="Familiepose (500g)">Familiepose (500g)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Mengde *</label>
-          <input type="text" id="a_amount" placeholder="f.eks. 200g" />
-        </div>
-        <div class="form-group">
-          <label>Levering</label>
-          <select id="a_delivery">
-            <option value="Henting på Nesodden">Henting på Nesodden</option>
-            <option value="Levering">Levering</option>
-          </select>
-        </div>
-        <div class="form-group" style="grid-column: 1/-1;">
-          <label>Kommentar</label>
-          <input type="text" id="a_note" placeholder="Valgfritt…" />
-        </div>
+    <div class="sidebar-section">Navigasjon</div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" id="nav-bestillinger" onclick="setView('bestillinger', this)">
+        <span class="nav-icon">📦</span> Bestillinger
       </div>
-      <button class="btn-sm btn-green" onclick="addOrderManually()">Lagre ordre</button>
-      <button class="btn-sm btn-ghost" style="margin-left:0.5rem;" onclick="toggleAddForm()">Avbryt</button>
+      <div class="nav-item" id="nav-henvendelser" onclick="setView('henvendelser', this)">
+        <span class="nav-icon">💬</span> Henvendelser
+        <span class="nav-badge" id="inquiryBadge" style="display:none;">0</span>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-row">
+        <div class="avatar">FW</div>
+        <div class="user-info">
+          <div class="user-name">FelixWilliam</div>
+          <div class="user-role">Admin</div>
+        </div>
+        <button class="logout-btn" onclick="logout()" title="Logg ut">↩</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title" id="topbarTitle">Bestillinger</span>
+      <div class="topbar-actions">
+        <button class="btn-sm" onclick="toggleAddForm()">+ Legg til manuelt</button>
+        <button class="btn-sm purple" onclick="renderAll()">↻ Oppdater</button>
+      </div>
     </div>
 
-    <!-- View tabs -->
-    <div class="filter-tabs" style="margin-bottom:0.5rem;">
-      <div class="tab active" onclick="setView('bestillinger', this)">📦 Bestillinger</div>
-      <div class="tab" onclick="setView('henvendelser', this)">💬 Henvendelser</div>
+    <div class="content">
+      <!-- Stats -->
+      <div class="stats-grid" id="statsRow"></div>
+
+      <!-- Add order panel -->
+      <div class="add-panel" id="addOrderPanel">
+        <h3>Legg til ordre manuelt</h3>
+        <div class="add-grid">
+          <div class="field-group"><label>Navn *</label><input type="text" id="a_name" placeholder="Ola Nordmann" /></div>
+          <div class="field-group"><label>Telefon *</label><input type="tel" id="a_phone" placeholder="400 00 000" /></div>
+          <div class="field-group"><label>E-post</label><input type="email" id="a_email" placeholder="ola@example.com" /></div>
+          <div class="field-group">
+            <label>Produkt</label>
+            <select id="a_product" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.8rem;color:var(--text);font-family:inherit;font-size:0.85rem;outline:none;">
+              <option value="Ramsløkblader">Ramsløkblader</option>
+              <option value="Blader + løk/stilk">Blader + løk/stilk</option>
+              <option value="Familiepose (500g)">Familiepose (500g)</option>
+            </select>
+          </div>
+          <div class="field-group"><label>Mengde</label><input type="text" id="a_amount" placeholder="f.eks. 200g" /></div>
+          <div class="field-group">
+            <label>Levering</label>
+            <select id="a_delivery" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.8rem;color:var(--text);font-family:inherit;font-size:0.85rem;outline:none;">
+              <option value="Henting på Nesodden (lørdag)">Henting Nesodden</option>
+              <option value="Henting i Oslo">Henting Oslo</option>
+              <option value="Levering i sentrale Oslo (+75 kr)">Levering Oslo</option>
+            </select>
+          </div>
+          <div class="field-group" style="grid-column:1/-1;"><label>Kommentar</label><input type="text" id="a_note" placeholder="Valgfritt…" /></div>
+        </div>
+        <button class="btn-sm purple" onclick="addOrderManually()">Lagre ordre</button>
+        <button class="btn-sm" style="margin-left:0.4rem;" onclick="toggleAddForm()">Avbryt</button>
+      </div>
+
+      <!-- Filter pills (orders only) -->
+      <div class="filter-bar" id="orderFilterBar">
+        <button class="filter-pill active" onclick="setFilter('alle', this)">Alle</button>
+        <button class="filter-pill" onclick="setFilter('venter', this)">Venter</button>
+        <button class="filter-pill" onclick="setFilter('bekreftet', this)">Bekreftet</button>
+        <button class="filter-pill" onclick="setFilter('avbestilt', this)">Avbestilt</button>
+      </div>
+
+      <!-- Lists -->
+      <div class="card-list" id="orderList"></div>
+      <div class="card-list" id="inquiryList" style="display:none;"></div>
     </div>
-
-    <!-- Filter tabs (orders) -->
-    <div class="filter-tabs" id="orderFilterTabs">
-      <div class="tab active" onclick="setFilter('alle', this)">Alle</div>
-      <div class="tab" onclick="setFilter('venter', this)">Venter</div>
-      <div class="tab" onclick="setFilter('bekreftet', this)">Bekreftet</div>
-      <div class="tab" onclick="setFilter('avbestilt', this)">Avbestilt</div>
-    </div>
-
-    <!-- Order list -->
-    <div id="orderList"></div>
-
-    <!-- Inquiry list -->
-    <div id="inquiryList" style="display:none;"></div>
-  </main>
+  </div>
 </div>
 
 <script>
-  // ── CONFIG ──
-  const ADMIN_PASSWORD = 'ramsloek2025'; // Endre dette til ditt eget passord
+  const USERS = {
+    'FelixWilliam':    { password: 'ramsloek2025', role: 'admin',      initials: 'FW', display: 'FelixWilliam' },
+    'SverreFredriksen':{ password: 'ramsloek2025', role: 'leveranser', initials: 'SF', display: 'Sverre' }
+  };
+  let currentUser = null;
 
   // ── AUTH ──
   function login() {
-    const pw = document.getElementById('passwordInput').value;
-    if (pw === ADMIN_PASSWORD) {
+    const username = document.getElementById('usernameInput').value.trim();
+    const pw       = document.getElementById('passwordInput').value;
+    const user     = USERS[username];
+    if (user && user.password === pw) {
       sessionStorage.setItem('admin_auth', '1');
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('adminScreen').style.display = 'block';
-      renderAll();
+      sessionStorage.setItem('admin_user', username);
+      currentUser = { ...user, username };
+      showAdmin();
     } else {
       document.getElementById('loginError').style.display = 'block';
     }
   }
 
+  function showAdmin() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('adminScreen').classList.add('visible');
+    // Tilpass UI til brukerrolle
+    document.querySelector('.avatar').textContent = currentUser.initials;
+    document.querySelector('.user-name').textContent = currentUser.display;
+    document.querySelector('.user-role').textContent = currentUser.role === 'admin' ? 'Admin' : 'Leveranser';
+    if (currentUser.role === 'leveranser') {
+      // Sverre ser bare bekreftet/venter og leveranse-fokus
+      document.getElementById('nav-henvendelser').style.display = 'none';
+      document.querySelector('.topbar-actions').innerHTML = '<button class="btn-sm purple" onclick="renderAll()">↻ Oppdater</button>';
+      document.getElementById('topbarTitle').textContent = 'Leveranser';
+      // Forhåndsvelg "bekreftet" filter
+      currentFilter = 'bekreftet';
+      document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+      document.querySelector('.filter-pill[onclick*="bekreftet"]')?.classList.add('active');
+    }
+    renderAll();
+  }
+
   function logout() {
     sessionStorage.removeItem('admin_auth');
+    sessionStorage.removeItem('admin_user');
     location.reload();
   }
 
-  // Auto-login if session active
-  if (sessionStorage.getItem('admin_auth') === '1') {
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('adminScreen').style.display = 'block';
+  const savedUser = sessionStorage.getItem('admin_user');
+  if (sessionStorage.getItem('admin_auth') === '1' && savedUser && USERS[savedUser]) {
+    currentUser = { ...USERS[savedUser], username: savedUser };
+    showAdmin();
   }
 
-  // ── DATA & STATE ──
+  // ── STATE ──
   let currentFilter = 'alle';
   let currentView = 'bestillinger';
 
@@ -394,161 +597,133 @@
   }
 
   // ── API ──
-  async function apiGet(url) {
-    const res = await fetch(url);
-    return res.json();
-  }
-  async function apiPut(url, data) {
-    await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-  }
-  async function apiDelete(url) {
-    await fetch(url, { method: 'DELETE' });
-  }
-  async function apiPost(url, data) {
-    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-    return res.json();
-  }
+  const api = {
+    get:    url => fetch(url).then(r => r.json()),
+    put:    (url, d) => fetch(url, { method:'PUT',    headers:{'Content-Type':'application/json'}, body:JSON.stringify(d) }),
+    delete: url => fetch(url, { method:'DELETE' }),
+    post:   (url, d) => fetch(url, { method:'POST',   headers:{'Content-Type':'application/json'}, body:JSON.stringify(d) }).then(r => r.json())
+  };
 
   // ── ACTIONS ──
-  async function setStatus(id, status) {
-    await apiPut(`/api/orders/${id}`, { status });
-    renderAll();
-  }
-  async function deleteOrder(id) {
-    if (!confirm('Slett denne ordren permanent?')) return;
-    await apiDelete(`/api/orders/${id}`);
-    renderAll();
-  }
-  async function setInquiryStatus(id, status) {
-    await apiPut(`/api/inquiries/${id}`, { status });
-    renderAll();
-  }
-  async function deleteInquiry(id) {
-    if (!confirm('Slett denne henvendelsen permanent?')) return;
-    await apiDelete(`/api/inquiries/${id}`);
-    renderAll();
-  }
+  async function setStatus(id, status) { await api.put(`/api/orders/${id}`, { status }); renderAll(); }
+  async function deleteOrder(id) { if (!confirm('Slett ordren permanent?')) return; await api.delete(`/api/orders/${id}`); renderAll(); }
+  async function setInquiryStatus(id, status) { await api.put(`/api/inquiries/${id}`, { status }); renderAll(); }
+  async function deleteInquiry(id) { if (!confirm('Slett henvendelsen permanent?')) return; await api.delete(`/api/inquiries/${id}`); renderAll(); }
 
   // ── VIEWS ──
   function setView(view, el) {
     currentView = view;
-    document.querySelectorAll('.filter-tabs:first-of-type .tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     el.classList.add('active');
-    document.getElementById('orderList').style.display = view === 'bestillinger' ? 'flex' : 'none';
-    document.getElementById('orderList').style.flexDirection = 'column';
-    document.getElementById('inquiryList').style.display = view === 'henvendelser' ? 'flex' : 'none';
-    document.getElementById('inquiryList').style.flexDirection = 'column';
-    document.getElementById('orderFilterTabs').style.display = view === 'bestillinger' ? 'flex' : 'none';
+    document.getElementById('orderList').style.display    = view === 'bestillinger' ? 'flex' : 'none';
+    document.getElementById('inquiryList').style.display  = view === 'henvendelser'  ? 'flex' : 'none';
+    document.getElementById('orderFilterBar').style.display = view === 'bestillinger' ? 'flex' : 'none';
+    document.getElementById('topbarTitle').textContent = view === 'bestillinger' ? 'Bestillinger' : 'Henvendelser';
     renderAll();
   }
 
   // ── RENDER ──
   async function renderAll() {
-    const [orders, inquiries] = await Promise.all([
-      apiGet('/api/orders'),
-      apiGet('/api/inquiries')
-    ]);
+    const [orders, inquiries] = await Promise.all([api.get('/api/orders'), api.get('/api/inquiries')]);
     renderStats(orders, inquiries);
     if (currentView === 'bestillinger') renderOrders(orders);
     else renderInquiries(inquiries);
   }
 
   function renderStats(orders, inquiries) {
-    const counts = { alle: orders.length, venter: 0, bekreftet: 0, avbestilt: 0 };
-    orders.forEach(o => counts[o.status] = (counts[o.status] || 0) + 1);
-    const newInquiries = (inquiries || []).filter(i => i.status === 'ny').length;
+    const c = { alle: orders.length, venter: 0, bekreftet: 0, avbestilt: 0 };
+    orders.forEach(o => c[o.status] = (c[o.status]||0)+1);
+    const newInq = (inquiries||[]).filter(i => i.status === 'ny').length;
+
+    const badge = document.getElementById('inquiryBadge');
+    badge.style.display = newInq > 0 ? 'inline-block' : 'none';
+    badge.textContent = newInq;
+
     document.getElementById('statsRow').innerHTML = `
-      <div class="stat-card"><div class="num">${counts.alle}</div><div class="lbl">Bestillinger totalt</div></div>
-      <div class="stat-card"><div class="num" style="color:#b45309">${counts.venter}</div><div class="lbl">Venter</div></div>
-      <div class="stat-card"><div class="num">${counts.bekreftet}</div><div class="lbl">Bekreftet</div></div>
-      <div class="stat-card"><div class="num" style="color:#991b1b">${counts.avbestilt}</div><div class="lbl">Avbestilt</div></div>
-      <div class="stat-card"><div class="num" style="color:#b45309">${newInquiries}</div><div class="lbl">Nye henvendelser</div></div>
+      <div class="stat-card"><div class="num">${c.alle}</div><div class="lbl">Totalt</div></div>
+      <div class="stat-card"><div class="num yellow">${c.venter}</div><div class="lbl">Venter</div></div>
+      <div class="stat-card"><div class="num green">${c.bekreftet}</div><div class="lbl">Bekreftet</div></div>
+      <div class="stat-card"><div class="num red">${c.avbestilt}</div><div class="lbl">Avbestilt</div></div>
+      <div class="stat-card"><div class="num ${newInq>0?'yellow':''}">${newInq}</div><div class="lbl">Nye henvendelser</div></div>
     `;
   }
 
   function renderOrders(orders) {
-    const filtered = orders
-      .filter(o => currentFilter === 'alle' || o.status === currentFilter)
-      .sort((a, b) => b.id - a.id);
-
+    const filtered = orders.filter(o => currentFilter==='alle' || o.status===currentFilter).sort((a,b)=>b.id-a.id);
     const list = document.getElementById('orderList');
-    if (filtered.length === 0) {
-      list.innerHTML = `<div class="empty-state"><div class="icon">🌿</div><div>Ingen bestillinger ${currentFilter !== 'alle' ? 'med status «' + currentFilter + '»' : 'ennå'}.</div></div>`;
-      return;
-    }
+    if (!filtered.length) { list.innerHTML = `<div class="empty-state"><div class="icon">📦</div><p>Ingen bestillinger ${currentFilter!=='alle'?'med denne statusen':''} ennå.</p></div>`; return; }
 
     list.innerHTML = filtered.map(o => {
       const date = new Date(o.timestamp || parseInt(o.id));
       const dateStr = date.toLocaleString('nb-NO', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
-      const badgeClass = { venter: 'badge-venter', bekreftet: 'badge-bekreftet', avbestilt: 'badge-avbestilt' }[o.status] || 'badge-venter';
-      const statusLabel = { venter: 'Venter', bekreftet: 'Bekreftet ✅', avbestilt: 'Avbestilt ❌' }[o.status] || o.status;
-      const confirmBtn = o.status !== 'bekreftet' ? `<button class="btn-confirm" onclick="setStatus('${o.id}','bekreftet')">Bekreft ✅</button>` : '';
-      const cancelBtn = o.status !== 'avbestilt' ? `<button class="btn-cancel" onclick="setStatus('${o.id}','avbestilt')">Avbestill ❌</button>` : '';
-      const itemsText = (o.items || []).map(i => `${esc(i.name)} × ${i.qty} ${esc(i.unit)}`).join(', ');
+      const pillClass = { venter:'pill-venter', bekreftet:'pill-bekreftet', avbestilt:'pill-avbestilt' }[o.status]||'pill-venter';
+      const statusLabel = { venter:'Venter', bekreftet:'Bekreftet', avbestilt:'Avbestilt' }[o.status]||o.status;
+      const items = (o.items||[]).map(i=>`${esc(i.name)} × ${i.qty} ${esc(i.unit)}`).join(' · ');
       const emailHref = buildEmailHref(o);
-      const emailLabel = o.status === 'bekreftet' ? '📧 Send bekreftelse' : o.status === 'avbestilt' ? '📧 Send avbestilling' : '📧 Kontakt';
+      const emailLabel = o.status==='bekreftet' ? '📧 Send bekreftelse' : o.status==='avbestilt' ? '📧 Send avbestilling' : '📧 Kontakt';
 
-      return `
-        <div class="order-card status-${o.status}" style="gap:0.5rem;display:flex;flex-direction:column;">
-          <div class="order-header">
-            <div><div class="order-name">${esc(o.name)}</div><div class="order-time">${dateStr} · ID: ${o.id}</div></div>
-            <span class="status-badge ${badgeClass}">${statusLabel}</span>
-          </div>
-          <div class="order-details">
-            ${itemsText ? `<span>📦 ${itemsText}</span>` : ''}
-            ${o.total ? `<span>💰 <strong>${o.total} kr</strong></span>` : ''}
-            <span>🚗 ${esc(o.delivery)}</span>
-            <span>📞 <a href="tel:${esc(o.phone)}">${esc(o.phone)}</a></span>
-            ${o.email ? `<span>✉️ <a href="mailto:${esc(o.email)}">${esc(o.email)}</a></span>` : ''}
-          </div>
-          ${o.note ? `<div class="order-note-text">💬 ${esc(o.note)}</div>` : ''}
-          <div class="order-actions">
-            ${confirmBtn}${cancelBtn}
-            ${o.email ? `<a class="btn-email" href="${emailHref}">${emailLabel}</a>` : ''}
-            <button class="btn-delete" onclick="deleteOrder('${o.id}')" title="Slett">🗑</button>
-          </div>
-        </div>`;
+      return `<div class="order-card status-${o.status}">
+        <div class="card-header">
+          <div><div class="card-name">${esc(o.name)}</div><div class="card-time">${dateStr} · ${o.id}</div></div>
+          <span class="status-pill ${pillClass}">${statusLabel}</span>
+        </div>
+        <div class="card-meta">
+          ${items ? `<span>📦 <strong>${items}</strong></span>` : ''}
+          ${o.total ? `<span>💰 <strong>${o.total} kr</strong></span>` : ''}
+          <span>🚗 ${esc(o.delivery)}</span>
+          <span>📞 <a href="tel:${esc(o.phone)}">${esc(o.phone)}</a></span>
+          ${o.email ? `<span>✉️ <a href="mailto:${esc(o.email)}">${esc(o.email)}</a></span>` : ''}
+        </div>
+        ${o.note ? `<div class="card-note">💬 ${esc(o.note)}</div>` : ''}
+        <div class="card-actions">
+          ${o.status!=='bekreftet' ? `<button class="action-btn btn-confirm" onclick="setStatus('${o.id}','bekreftet')">Bekreft ✓</button>` : ''}
+          ${o.status!=='avbestilt' ? `<button class="action-btn btn-cancel-order" onclick="setStatus('${o.id}','avbestilt')">Avbestill</button>` : ''}
+          ${o.email ? `<a class="action-btn btn-email" href="${emailHref}">${emailLabel}</a>` : ''}
+          <button class="action-btn btn-delete" onclick="deleteOrder('${o.id}')">🗑</button>
+        </div>
+      </div>`;
     }).join('');
   }
 
   function renderInquiries(inquiries) {
     const list = document.getElementById('inquiryList');
-    if (!inquiries || inquiries.length === 0) {
-      list.innerHTML = `<div class="empty-state"><div class="icon">💬</div><div>Ingen henvendelser ennå.</div></div>`;
-      return;
-    }
-    list.innerHTML = [...inquiries].sort((a,b) => b.id - a.id).map(i => {
-      const date = new Date(i.timestamp || parseInt(i.id));
+    if (!inquiries||!inquiries.length) { list.innerHTML = `<div class="empty-state"><div class="icon">💬</div><p>Ingen henvendelser ennå.</p></div>`; return; }
+
+    list.innerHTML = [...inquiries].sort((a,b)=>b.id-a.id).map(i => {
+      const date = new Date(i.timestamp||parseInt(i.id));
       const dateStr = date.toLocaleString('nb-NO', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
-      const isNew = i.status === 'ny';
-      const replyHref = i.email ? `mailto:${i.email}?subject=${encodeURIComponent('Svar på din henvendelse')}&body=${encodeURIComponent('Hei ' + i.name + ',\n\n')}` : '#';
-      return `
-        <div class="order-card" style="border-left: 4px solid ${isNew ? '#fcd34d' : '#b7e4c7'};display:flex;flex-direction:column;gap:0.5rem;">
-          <div class="order-header">
-            <div><div class="order-name">${esc(i.name)} ${isNew ? '<span class="status-badge badge-venter">Ny</span>' : ''}</div><div class="order-time">${dateStr}</div></div>
+      const isNew = i.status==='ny';
+      const replyHref = i.email ? `mailto:${i.email}?subject=${encodeURIComponent('Svar på din henvendelse')}&body=${encodeURIComponent('Hei '+i.name+',\n\n')}` : '#';
+
+      return `<div class="order-card" style="border-left:3px solid ${isNew?'var(--yellow)':'var(--border)'}">
+        <div class="card-header">
+          <div>
+            <div class="card-name">${esc(i.name)} <span class="status-pill ${isNew?'pill-ny':'pill-lest'}">${isNew?'Ny':'Lest'}</span></div>
+            <div class="card-time">${dateStr}</div>
           </div>
-          <div class="order-details">
-            ${i.email ? `<span>✉️ <a href="mailto:${esc(i.email)}">${esc(i.email)}</a></span>` : ''}
-            ${i.phone ? `<span>📞 ${esc(i.phone)}</span>` : ''}
-          </div>
-          <div class="order-note-text">💬 ${esc(i.message)}</div>
-          <div class="order-actions">
-            ${isNew ? `<button class="btn-confirm" onclick="setInquiryStatus('${i.id}','lest')">Merk som lest</button>` : ''}
-            ${i.email ? `<a class="btn-email" href="${replyHref}">📧 Svar</a>` : ''}
-            <button class="btn-delete" onclick="deleteInquiry('${i.id}')" title="Slett">🗑</button>
-          </div>
-        </div>`;
+        </div>
+        <div class="card-meta">
+          ${i.email ? `<span>✉️ <a href="mailto:${esc(i.email)}">${esc(i.email)}</a></span>` : ''}
+          ${i.phone ? `<span>📞 ${esc(i.phone)}</span>` : ''}
+        </div>
+        <div class="card-note">💬 ${esc(i.message)}</div>
+        <div class="card-actions">
+          ${isNew ? `<button class="action-btn btn-confirm" onclick="setInquiryStatus('${i.id}','lest')">Merk som lest</button>` : ''}
+          ${i.email ? `<a class="action-btn btn-email" href="${replyHref}">📧 Svar</a>` : ''}
+          <button class="action-btn btn-delete" onclick="deleteInquiry('${i.id}')">🗑</button>
+        </div>
+      </div>`;
     }).join('');
   }
 
   function buildEmailHref(o) {
     if (!o.email) return '#';
-    const itemsText = (o.items || []).map(i => `${i.name}: ${i.qty} × ${i.unit}`).join('\n');
+    const items = (o.items||[]).map(i=>`${i.name}: ${i.qty} × ${i.unit}`).join('\n');
     let subject, body;
-    if (o.status === 'bekreftet') {
+    if (o.status==='bekreftet') {
       subject = encodeURIComponent('Ramsløk-bestillingen din er bekreftet! 🌿');
-      body = encodeURIComponent(`Hei ${o.name},\n\nBestillingen din er bekreftet!\n\n${itemsText}\nTotal: ${o.total} kr\nLevering: ${o.delivery}\n\nVi tar kontakt for å avtale tidspunkt.\n\nMed vennlig hilsen,\nNesodden Ramsløk`);
-    } else if (o.status === 'avbestilt') {
+      body = encodeURIComponent(`Hei ${o.name},\n\nBestillingen din er bekreftet!\n\n${items}\nTotal: ${o.total} kr\nLevering: ${o.delivery}\n\nVi kontakter deg for å avtale tidspunkt.\n\nMed vennlig hilsen,\nNesodden Ramsløk`);
+    } else if (o.status==='avbestilt') {
       subject = encodeURIComponent('Angående din ramsløk-bestilling');
       body = encodeURIComponent(`Hei ${o.name},\n\nDessverre må vi avbestille bestillingen din.\n\nTa kontakt om du ønsker å bestille på et annet tidspunkt.\n\nMed vennlig hilsen,\nNesodden Ramsløk`);
     } else {
@@ -560,36 +735,34 @@
 
   function setFilter(filter, el) {
     currentFilter = filter;
-    document.querySelectorAll('#orderFilterTabs .tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
     el.classList.add('active');
     renderAll();
   }
 
-  // ── ADD MANUALLY ──
   function toggleAddForm() {
-    const panel = document.getElementById('addOrderPanel');
-    panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+    const p = document.getElementById('addOrderPanel');
+    p.style.display = p.style.display === 'block' ? 'none' : 'block';
   }
 
   async function addOrderManually() {
     const name = document.getElementById('a_name').value.trim();
     const phone = document.getElementById('a_phone').value.trim();
-    if (!name || !phone) { alert('Navn og telefon er påkrevd.'); return; }
-    await apiPost('/api/orders', {
+    if (!name||!phone) { alert('Navn og telefon er påkrevd.'); return; }
+    await api.post('/api/orders', {
       name, phone,
       email: document.getElementById('a_email').value.trim(),
-      items: [{ name: document.getElementById('a_product').value, qty: 1, unit: document.getElementById('a_amount').value.trim(), price: 0 }],
+      items: [{ name: document.getElementById('a_product').value, qty: 1, unit: document.getElementById('a_amount').value.trim()||'stk', price: 0 }],
       delivery: document.getElementById('a_delivery').value,
       note: document.getElementById('a_note').value.trim(),
       total: 0
     });
-    ['a_name','a_phone','a_email','a_amount','a_note'].forEach(id => document.getElementById(id).value = '');
+    ['a_name','a_phone','a_email','a_amount','a_note'].forEach(id => document.getElementById(id).value='');
     toggleAddForm();
     renderAll();
   }
 
-  // Initial render if logged in
-  if (sessionStorage.getItem('admin_auth') === '1') renderAll();
+  if (sessionStorage.getItem('admin_auth')==='1') renderAll();
 </script>
 </body>
 </html>
