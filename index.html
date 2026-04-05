@@ -594,6 +594,57 @@
       .order-box { padding: 1.5rem; }
       .inquiry-box { padding: 1.5rem; }
     }
+
+    /* ── DARK MODE ── */
+    html.dark {
+      --green: #52b788;
+      --green-light: #74c69d;
+      --green-pale: #1b4332;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --border: #30363d;
+      --white: #0d1117;
+    }
+    html.dark body { background: #0d1117; }
+    html.dark nav { background: rgba(13,17,23,0.95); }
+    html.dark .hero { background: linear-gradient(160deg, #0d2818 0%, #0d1117 60%); }
+    html.dark .feature-card { background: #161b22; }
+    html.dark #produkter { background: #111519; }
+    html.dark .product-card { background: #161b22; }
+    html.dark #bestill { background: #0d2818; }
+    html.dark .order-box { background: #161b22; border-color: #1b4332; }
+    html.dark .vipps-row { background: #0d2818; border-color: #1b4332; }
+    html.dark .order-summary { background: #0d2818; border-color: #1b4332; }
+    html.dark input, html.dark select, html.dark textarea { background: #161b22; border-color: #30363d; color: var(--text); }
+    html.dark .sustainability-strip { background: #111519; }
+    html.dark #kontakt { background: #111519; }
+    html.dark .contact-chip { background: #161b22; }
+    html.dark #henvendelse { background: #0d1117; }
+    html.dark .inquiry-box { background: #161b22; }
+    html.dark .cart-drawer { background: #161b22; }
+    html.dark .cart-footer { background: #111519; }
+    html.dark .cart-qty button { background: #161b22; }
+    html.dark .cart-qty button:hover { background: #1b4332; }
+    html.dark footer { background: #0d1117; }
+    html.dark .success-msg { background: #0d2818; border-color: #1b4332; }
+
+    /* ── DARK TOGGLE BUTTON ── */
+    .dark-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      width: 2.1rem;
+      height: 2.1rem;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      transition: background 0.2s, color 0.2s;
+      flex-shrink: 0;
+    }
+    .dark-toggle:hover { background: var(--green-pale); color: var(--green); }
   </style>
 </head>
 <body>
@@ -609,9 +660,12 @@
     <li><a href="#henvendelse">Henvendelser</a></li>
     <li><a href="#kontakt">Kontakt</a></li>
   </ul>
-  <button class="cart-btn" onclick="openCart()">
-    🛒 Handlekurv <span class="cart-count" id="cartCount">0</span>
-  </button>
+  <div style="display:flex;align-items:center;gap:0.6rem;">
+    <button class="dark-toggle" id="darkToggle" onclick="toggleDark()" title="Bytt tema">🌙</button>
+    <button class="cart-btn" onclick="openCart()">
+      🛒 Handlekurv <span class="cart-count" id="cartCount">0</span>
+    </button>
+  </div>
 </nav>
 
 <!-- CART OVERLAY + DRAWER -->
@@ -894,6 +948,25 @@
 </footer>
 
 <script>
+  // ── DARK MODE ──
+  (function() {
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.documentElement.classList.add('dark');
+    }
+  })();
+
+  function toggleDark() {
+    const isDark = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('darkMode', isDark);
+    document.getElementById('darkToggle').textContent = isDark ? '☀️' : '🌙';
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    if (document.documentElement.classList.contains('dark')) {
+      document.getElementById('darkToggle').textContent = '☀️';
+    }
+  });
+
   // ── HANDLEKURV ──
   let cart = [];
 
