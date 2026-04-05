@@ -415,9 +415,77 @@
       .sidebar { display: none; }
       .main { margin-left: 0; }
     }
+
+    /* ── CONFIRM MODAL ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      width: min(480px, 92vw);
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+    .modal h3 { font-size: 1rem; color: var(--text); }
+    .modal label { font-size: 0.8rem; color: var(--muted); display: block; margin-bottom: 0.3rem; }
+    .modal input, .modal select, .modal textarea {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.6rem 0.8rem;
+      color: var(--text);
+      font-size: 0.875rem;
+      font-family: inherit;
+      outline: none;
+    }
+    .modal input:focus, .modal select:focus, .modal textarea:focus { border-color: var(--purple); }
+    .modal textarea { resize: vertical; min-height: 70px; }
+    .modal-actions { display: flex; gap: 0.8rem; justify-content: flex-end; }
+    .modal-actions button { padding: 0.55rem 1.2rem; border-radius: 6px; font-size: 0.875rem; font-weight: 600; cursor: pointer; border: none; }
+    .btn-modal-cancel { background: var(--surface); color: var(--muted); border: 1px solid var(--border) !important; }
+    .btn-modal-confirm { background: var(--green); color: #fff; }
   </style>
 </head>
 <body>
+
+<!-- BEKREFT MODAL -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <h3>Bekreft bestilling – <span id="modalCustomerName"></span></h3>
+    <div>
+      <label>Hentested</label>
+      <select id="modalPlace">
+        <option value="Nesodden (Bellevue)">Nesodden (Bellevue)</option>
+        <option value="Oslo sentrum">Oslo sentrum</option>
+        <option value="Levering til din adresse">Levering til din adresse</option>
+      </select>
+    </div>
+    <div>
+      <label>Foreslått dato og tidspunkt</label>
+      <input type="datetime-local" id="modalTime" />
+    </div>
+    <div>
+      <label>Melding til kunden (valgfritt)</label>
+      <textarea id="modalNote" placeholder="F.eks. møt meg ved innkjørselen…"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeConfirmModal()">Avbryt</button>
+      <button class="btn-modal-confirm" onclick="submitConfirm()">Bekreft og send e-post ✓</button>
+    </div>
+  </div>
+</div>
 
 <!-- LOGIN -->
 <div id="loginScreen">
@@ -605,6 +673,38 @@
     post:   (url, d) => fetch(url, { method:'POST',   headers:{'Content-Type':'application/json'}, body:JSON.stringify(d) }).then(r => r.json())
   };
 
+  // ── BEKREFT MODAL ──
+  let confirmOrderId = null;
+
+  function openConfirmModal(id, name) {
+    confirmOrderId = id;
+    document.getElementById('modalCustomerName').textContent = name;
+    document.getElementById('modalTime').value = '';
+    document.getElementById('modalNote').value = '';
+    document.getElementById('confirmModal').classList.add('open');
+  }
+
+  function closeConfirmModal() {
+    confirmOrderId = null;
+    document.getElementById('confirmModal').classList.remove('open');
+  }
+
+  async function submitConfirm() {
+    if (!confirmOrderId) return;
+    const place = document.getElementById('modalPlace').value;
+    const time = document.getElementById('modalTime').value;
+    const note = document.getElementById('modalNote').value;
+    const pickupTime = time ? new Date(time).toLocaleString('nb-NO', { weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' }) : '';
+    await api.put(`/api/orders/${confirmOrderId}`, {
+      status: 'bekreftet',
+      pickupPlace: place,
+      pickupTime,
+      adminNote: note
+    });
+    closeConfirmModal();
+    renderAll();
+  }
+
   // ── ACTIONS ──
   async function setStatus(id, status) { await api.put(`/api/orders/${id}`, { status }); renderAll(); }
   async function deleteOrder(id) { if (!confirm('Slett ordren permanent?')) return; await api.delete(`/api/orders/${id}`); renderAll(); }
@@ -677,7 +777,7 @@
         </div>
         ${o.note ? `<div class="card-note">💬 ${esc(o.note)}</div>` : ''}
         <div class="card-actions">
-          ${o.status!=='bekreftet' ? `<button class="action-btn btn-confirm" onclick="setStatus('${o.id}','bekreftet')">Bekreft ✓</button>` : ''}
+          ${o.status!=='bekreftet' ? `<button class="action-btn btn-confirm" onclick="openConfirmModal('${o.id}','${esc(o.name)}')">Bekreft ✓</button>` : ''}
           ${o.status!=='avbestilt' ? `<button class="action-btn btn-cancel-order" onclick="setStatus('${o.id}','avbestilt')">Avbestill</button>` : ''}
           ${o.email ? `<a class="action-btn btn-email" href="${emailHref}">${emailLabel}</a>` : ''}
           <button class="action-btn btn-delete" onclick="deleteOrder('${o.id}')">🗑</button>
