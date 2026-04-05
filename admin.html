@@ -334,8 +334,14 @@
       <button class="btn-sm btn-ghost" style="margin-left:0.5rem;" onclick="toggleAddForm()">Avbryt</button>
     </div>
 
-    <!-- Filter tabs -->
-    <div class="filter-tabs">
+    <!-- View tabs -->
+    <div class="filter-tabs" style="margin-bottom:0.5rem;">
+      <div class="tab active" onclick="setView('bestillinger', this)">📦 Bestillinger</div>
+      <div class="tab" onclick="setView('henvendelser', this)">💬 Henvendelser</div>
+    </div>
+
+    <!-- Filter tabs (orders) -->
+    <div class="filter-tabs" id="orderFilterTabs">
       <div class="tab active" onclick="setFilter('alle', this)">Alle</div>
       <div class="tab" onclick="setFilter('venter', this)">Venter</div>
       <div class="tab" onclick="setFilter('bekreftet', this)">Bekreftet</div>
@@ -344,13 +350,15 @@
 
     <!-- Order list -->
     <div id="orderList"></div>
+
+    <!-- Inquiry list -->
+    <div id="inquiryList" style="display:none;"></div>
   </main>
 </div>
 
 <script>
   // ── CONFIG ──
   const ADMIN_PASSWORD = 'ramsloek2025'; // Endre dette til ditt eget passord
-  const STORAGE_KEY = 'ramsloek_orders';
 
   // ── AUTH ──
   function login() {
@@ -376,97 +384,158 @@
     document.getElementById('adminScreen').style.display = 'block';
   }
 
-  // ── DATA ──
+  // ── DATA & STATE ──
   let currentFilter = 'alle';
+  let currentView = 'bestillinger';
 
-  function getOrders() {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  function esc(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  function saveOrders(orders) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+  // ── API ──
+  async function apiGet(url) {
+    const res = await fetch(url);
+    return res.json();
+  }
+  async function apiPut(url, data) {
+    await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+  }
+  async function apiDelete(url) {
+    await fetch(url, { method: 'DELETE' });
+  }
+  async function apiPost(url, data) {
+    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+    return res.json();
   }
 
-  function setStatus(id, status) {
-    const orders = getOrders();
-    const idx = orders.findIndex(o => o.id === id);
-    if (idx === -1) return;
-    orders[idx].status = status;
-    saveOrders(orders);
+  // ── ACTIONS ──
+  async function setStatus(id, status) {
+    await apiPut(`/api/orders/${id}`, { status });
+    renderAll();
+  }
+  async function deleteOrder(id) {
+    if (!confirm('Slett denne ordren permanent?')) return;
+    await apiDelete(`/api/orders/${id}`);
+    renderAll();
+  }
+  async function setInquiryStatus(id, status) {
+    await apiPut(`/api/inquiries/${id}`, { status });
+    renderAll();
+  }
+  async function deleteInquiry(id) {
+    if (!confirm('Slett denne henvendelsen permanent?')) return;
+    await apiDelete(`/api/inquiries/${id}`);
     renderAll();
   }
 
-  function deleteOrder(id) {
-    if (!confirm('Slett denne ordren permanent?')) return;
-    const orders = getOrders().filter(o => o.id !== id);
-    saveOrders(orders);
+  // ── VIEWS ──
+  function setView(view, el) {
+    currentView = view;
+    document.querySelectorAll('.filter-tabs:first-of-type .tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('orderList').style.display = view === 'bestillinger' ? 'flex' : 'none';
+    document.getElementById('orderList').style.flexDirection = 'column';
+    document.getElementById('inquiryList').style.display = view === 'henvendelser' ? 'flex' : 'none';
+    document.getElementById('inquiryList').style.flexDirection = 'column';
+    document.getElementById('orderFilterTabs').style.display = view === 'bestillinger' ? 'flex' : 'none';
     renderAll();
   }
 
   // ── RENDER ──
-  function renderAll() {
-    renderStats();
-    renderOrders();
+  async function renderAll() {
+    const [orders, inquiries] = await Promise.all([
+      apiGet('/api/orders'),
+      apiGet('/api/inquiries')
+    ]);
+    renderStats(orders, inquiries);
+    if (currentView === 'bestillinger') renderOrders(orders);
+    else renderInquiries(inquiries);
   }
 
-  function renderStats() {
-    const orders = getOrders();
+  function renderStats(orders, inquiries) {
     const counts = { alle: orders.length, venter: 0, bekreftet: 0, avbestilt: 0 };
     orders.forEach(o => counts[o.status] = (counts[o.status] || 0) + 1);
+    const newInquiries = (inquiries || []).filter(i => i.status === 'ny').length;
     document.getElementById('statsRow').innerHTML = `
-      <div class="stat-card"><div class="num">${counts.alle}</div><div class="lbl">Totalt</div></div>
+      <div class="stat-card"><div class="num">${counts.alle}</div><div class="lbl">Bestillinger totalt</div></div>
       <div class="stat-card"><div class="num" style="color:#b45309">${counts.venter}</div><div class="lbl">Venter</div></div>
       <div class="stat-card"><div class="num">${counts.bekreftet}</div><div class="lbl">Bekreftet</div></div>
       <div class="stat-card"><div class="num" style="color:#991b1b">${counts.avbestilt}</div><div class="lbl">Avbestilt</div></div>
+      <div class="stat-card"><div class="num" style="color:#b45309">${newInquiries}</div><div class="lbl">Nye henvendelser</div></div>
     `;
   }
 
-  function renderOrders() {
-    const orders = getOrders()
+  function renderOrders(orders) {
+    const filtered = orders
       .filter(o => currentFilter === 'alle' || o.status === currentFilter)
       .sort((a, b) => b.id - a.id);
 
     const list = document.getElementById('orderList');
-    if (orders.length === 0) {
+    if (filtered.length === 0) {
       list.innerHTML = `<div class="empty-state"><div class="icon">🌿</div><div>Ingen bestillinger ${currentFilter !== 'alle' ? 'med status «' + currentFilter + '»' : 'ennå'}.</div></div>`;
       return;
     }
 
-    list.innerHTML = orders.map(o => {
+    list.innerHTML = filtered.map(o => {
       const date = new Date(o.timestamp || parseInt(o.id));
-      const dateStr = date.toLocaleDateString('nb-NO', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+      const dateStr = date.toLocaleString('nb-NO', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
       const badgeClass = { venter: 'badge-venter', bekreftet: 'badge-bekreftet', avbestilt: 'badge-avbestilt' }[o.status] || 'badge-venter';
       const statusLabel = { venter: 'Venter', bekreftet: 'Bekreftet ✅', avbestilt: 'Avbestilt ❌' }[o.status] || o.status;
-
-      const confirmBtn = o.status !== 'bekreftet'
-        ? `<button class="btn-confirm" onclick="setStatus('${o.id}','bekreftet')">Bekreft ✅</button>` : '';
-      const cancelBtn = o.status !== 'avbestilt'
-        ? `<button class="btn-cancel" onclick="setStatus('${o.id}','avbestilt')">Avbestill ❌</button>` : '';
-
-      const emailBtnLabel = o.status === 'bekreftet' ? '📧 Send bekreftelse' : o.status === 'avbestilt' ? '📧 Send avbestilling' : '📧 Kontakt kunde';
+      const confirmBtn = o.status !== 'bekreftet' ? `<button class="btn-confirm" onclick="setStatus('${o.id}','bekreftet')">Bekreft ✅</button>` : '';
+      const cancelBtn = o.status !== 'avbestilt' ? `<button class="btn-cancel" onclick="setStatus('${o.id}','avbestilt')">Avbestill ❌</button>` : '';
+      const itemsText = (o.items || []).map(i => `${esc(i.name)} × ${i.qty} ${esc(i.unit)}`).join(', ');
       const emailHref = buildEmailHref(o);
+      const emailLabel = o.status === 'bekreftet' ? '📧 Send bekreftelse' : o.status === 'avbestilt' ? '📧 Send avbestilling' : '📧 Kontakt';
 
       return `
-        <div class="order-card status-${o.status}">
+        <div class="order-card status-${o.status}" style="gap:0.5rem;display:flex;flex-direction:column;">
           <div class="order-header">
-            <div>
-              <div class="order-name">${esc(o.name)}</div>
-              <div class="order-time">${dateStr} &nbsp;·&nbsp; ID: ${o.id}</div>
-            </div>
+            <div><div class="order-name">${esc(o.name)}</div><div class="order-time">${dateStr} · ID: ${o.id}</div></div>
             <span class="status-badge ${badgeClass}">${statusLabel}</span>
           </div>
           <div class="order-details">
-            <span>📦 <strong>${esc(o.product)}</strong> – ${esc(o.amount)}</span>
+            ${itemsText ? `<span>📦 ${itemsText}</span>` : ''}
+            ${o.total ? `<span>💰 <strong>${o.total} kr</strong></span>` : ''}
             <span>🚗 ${esc(o.delivery)}</span>
             <span>📞 <a href="tel:${esc(o.phone)}">${esc(o.phone)}</a></span>
             ${o.email ? `<span>✉️ <a href="mailto:${esc(o.email)}">${esc(o.email)}</a></span>` : ''}
           </div>
           ${o.note ? `<div class="order-note-text">💬 ${esc(o.note)}</div>` : ''}
           <div class="order-actions">
-            ${confirmBtn}
-            ${cancelBtn}
-            ${o.email ? `<a class="btn-email" href="${emailHref}">${emailBtnLabel}</a>` : ''}
-            <button class="btn-delete" onclick="deleteOrder('${o.id}')" title="Slett ordre">🗑</button>
+            ${confirmBtn}${cancelBtn}
+            ${o.email ? `<a class="btn-email" href="${emailHref}">${emailLabel}</a>` : ''}
+            <button class="btn-delete" onclick="deleteOrder('${o.id}')" title="Slett">🗑</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function renderInquiries(inquiries) {
+    const list = document.getElementById('inquiryList');
+    if (!inquiries || inquiries.length === 0) {
+      list.innerHTML = `<div class="empty-state"><div class="icon">💬</div><div>Ingen henvendelser ennå.</div></div>`;
+      return;
+    }
+    list.innerHTML = [...inquiries].sort((a,b) => b.id - a.id).map(i => {
+      const date = new Date(i.timestamp || parseInt(i.id));
+      const dateStr = date.toLocaleString('nb-NO', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+      const isNew = i.status === 'ny';
+      const replyHref = i.email ? `mailto:${i.email}?subject=${encodeURIComponent('Svar på din henvendelse')}&body=${encodeURIComponent('Hei ' + i.name + ',\n\n')}` : '#';
+      return `
+        <div class="order-card" style="border-left: 4px solid ${isNew ? '#fcd34d' : '#b7e4c7'};display:flex;flex-direction:column;gap:0.5rem;">
+          <div class="order-header">
+            <div><div class="order-name">${esc(i.name)} ${isNew ? '<span class="status-badge badge-venter">Ny</span>' : ''}</div><div class="order-time">${dateStr}</div></div>
+          </div>
+          <div class="order-details">
+            ${i.email ? `<span>✉️ <a href="mailto:${esc(i.email)}">${esc(i.email)}</a></span>` : ''}
+            ${i.phone ? `<span>📞 ${esc(i.phone)}</span>` : ''}
+          </div>
+          <div class="order-note-text">💬 ${esc(i.message)}</div>
+          <div class="order-actions">
+            ${isNew ? `<button class="btn-confirm" onclick="setInquiryStatus('${i.id}','lest')">Merk som lest</button>` : ''}
+            ${i.email ? `<a class="btn-email" href="${replyHref}">📧 Svar</a>` : ''}
+            <button class="btn-delete" onclick="deleteInquiry('${i.id}')" title="Slett">🗑</button>
           </div>
         </div>`;
     }).join('');
@@ -474,43 +543,26 @@
 
   function buildEmailHref(o) {
     if (!o.email) return '#';
+    const itemsText = (o.items || []).map(i => `${i.name}: ${i.qty} × ${i.unit}`).join('\n');
     let subject, body;
     if (o.status === 'bekreftet') {
-      subject = encodeURIComponent('Din ramsløk-bestilling er bekreftet!');
-      body = encodeURIComponent(
-        'Hei ' + o.name + ',\n\n' +
-        'Bestillingen din er bekreftet! 🌿\n\n' +
-        'Produkt: ' + o.product + '\n' +
-        'Mengde: ' + o.amount + '\n' +
-        'Levering: ' + o.delivery + '\n\n' +
-        'Vi tar kontakt for å avtale tidspunkt.\n\n' +
-        'Med vennlig hilsen,\nNesodden Ramsløk'
-      );
+      subject = encodeURIComponent('Ramsløk-bestillingen din er bekreftet! 🌿');
+      body = encodeURIComponent(`Hei ${o.name},\n\nBestillingen din er bekreftet!\n\n${itemsText}\nTotal: ${o.total} kr\nLevering: ${o.delivery}\n\nVi tar kontakt for å avtale tidspunkt.\n\nMed vennlig hilsen,\nNesodden Ramsløk`);
     } else if (o.status === 'avbestilt') {
       subject = encodeURIComponent('Angående din ramsløk-bestilling');
-      body = encodeURIComponent(
-        'Hei ' + o.name + ',\n\n' +
-        'Dessverre må vi avbestille bestillingen din.\n\n' +
-        'Ta gjerne kontakt hvis du har spørsmål eller ønsker å bestille på et annet tidspunkt.\n\n' +
-        'Med vennlig hilsen,\nNesodden Ramsløk'
-      );
+      body = encodeURIComponent(`Hei ${o.name},\n\nDessverre må vi avbestille bestillingen din.\n\nTa kontakt om du ønsker å bestille på et annet tidspunkt.\n\nMed vennlig hilsen,\nNesodden Ramsløk`);
     } else {
       subject = encodeURIComponent('Angående din ramsløk-bestilling');
-      body = encodeURIComponent('Hei ' + o.name + ',\n\n');
+      body = encodeURIComponent(`Hei ${o.name},\n\n`);
     }
-    return 'mailto:' + o.email + '?subject=' + subject + '&body=' + body;
-  }
-
-  function esc(str) {
-    if (!str) return '';
-    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return `mailto:${o.email}?subject=${subject}&body=${body}`;
   }
 
   function setFilter(filter, el) {
     currentFilter = filter;
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('#orderFilterTabs .tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
-    renderOrders();
+    renderAll();
   }
 
   // ── ADD MANUALLY ──
@@ -519,25 +571,18 @@
     panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
   }
 
-  function addOrderManually() {
+  async function addOrderManually() {
     const name = document.getElementById('a_name').value.trim();
     const phone = document.getElementById('a_phone').value.trim();
     if (!name || !phone) { alert('Navn og telefon er påkrevd.'); return; }
-    const order = {
-      id: Date.now().toString(),
-      timestamp: new Date().toISOString(),
-      name,
-      phone,
+    await apiPost('/api/orders', {
+      name, phone,
       email: document.getElementById('a_email').value.trim(),
-      product: document.getElementById('a_product').value,
-      amount: document.getElementById('a_amount').value.trim(),
+      items: [{ name: document.getElementById('a_product').value, qty: 1, unit: document.getElementById('a_amount').value.trim(), price: 0 }],
       delivery: document.getElementById('a_delivery').value,
       note: document.getElementById('a_note').value.trim(),
-      status: 'venter'
-    };
-    const orders = getOrders();
-    orders.push(order);
-    saveOrders(orders);
+      total: 0
+    });
     ['a_name','a_phone','a_email','a_amount','a_note'].forEach(id => document.getElementById(id).value = '');
     toggleAddForm();
     renderAll();

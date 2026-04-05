@@ -425,9 +425,174 @@
       border-top: 1px solid var(--border);
     }
 
+    /* ── CART BUTTON IN NAV ── */
+    .cart-btn {
+      position: relative;
+      background: var(--green-pale);
+      border: 1px solid #b7e4c7;
+      border-radius: 8px;
+      padding: 0.4rem 0.8rem;
+      font-family: sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--green);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: background 0.2s;
+    }
+    .cart-btn:hover { background: #b7e4c7; }
+    .cart-count {
+      background: var(--green);
+      color: white;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.1rem 0.45rem;
+      min-width: 1.2rem;
+      text-align: center;
+    }
+
+    /* ── CART DRAWER ── */
+    .cart-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.3);
+      z-index: 200;
+    }
+    .cart-overlay.open { display: block; }
+    .cart-drawer {
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      width: min(420px, 100vw);
+      background: white;
+      box-shadow: -4px 0 30px rgba(0,0,0,0.12);
+      z-index: 201;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+    }
+    .cart-drawer.open { transform: translateX(0); }
+    .cart-header {
+      padding: 1.2rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .cart-header h3 { font-family: Georgia, serif; color: var(--green); font-size: 1.1rem; }
+    .cart-close { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--muted); line-height: 1; }
+    .cart-items { flex: 1; overflow-y: auto; padding: 1rem 1.5rem; }
+    .cart-empty { text-align: center; padding: 3rem 1rem; color: var(--muted); font-family: sans-serif; font-size: 0.9rem; }
+    .cart-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.9rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .cart-item-info { flex: 1; }
+    .cart-item-name { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+    .cart-item-price { font-family: sans-serif; font-size: 0.8rem; color: var(--muted); margin-top: 0.15rem; }
+    .cart-qty {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: sans-serif;
+    }
+    .cart-qty button {
+      width: 1.8rem; height: 1.8rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+      font-size: 1rem;
+      color: var(--text);
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s;
+    }
+    .cart-qty button:hover { background: var(--green-pale); }
+    .cart-qty span { font-size: 0.9rem; font-weight: 600; min-width: 1.5rem; text-align: center; }
+    .cart-item-total { font-family: sans-serif; font-size: 0.9rem; font-weight: 700; color: var(--green); min-width: 3.5rem; text-align: right; }
+    .cart-footer {
+      padding: 1.2rem 1.5rem;
+      border-top: 1px solid var(--border);
+      background: #f9fafb;
+    }
+    .cart-total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      font-family: sans-serif;
+    }
+    .cart-total-label { font-size: 0.9rem; color: var(--muted); }
+    .cart-total-amount { font-size: 1.3rem; font-weight: 700; color: var(--green); }
+    .cart-checkout-btn {
+      width: 100%;
+      background: var(--green);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0.85rem;
+      font-family: sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .cart-checkout-btn:hover { background: #1f4e38; }
+    .cart-checkout-btn:disabled { background: #9ca3af; cursor: default; }
+
+    /* ── ADD TO CART BUTTON ── */
+    .add-to-cart-btn {
+      margin-top: 0.8rem;
+      width: 100%;
+      background: transparent;
+      border: 1.5px solid var(--green);
+      border-radius: 7px;
+      padding: 0.5rem;
+      font-family: sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--green);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .add-to-cart-btn:hover { background: var(--green-pale); }
+    .add-to-cart-btn.added { background: var(--green); color: white; border-color: var(--green); }
+
+    /* ── ORDER SUMMARY ── */
+    .order-summary {
+      background: #f0faf3;
+      border: 1px solid #b7e4c7;
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+      margin-bottom: 1.2rem;
+      font-family: sans-serif;
+      font-size: 0.875rem;
+    }
+    .order-summary h4 { color: var(--green); margin-bottom: 0.6rem; font-size: 0.9rem; }
+    .order-summary-item { display: flex; justify-content: space-between; color: var(--text); padding: 0.2rem 0; }
+    .order-summary-total { display: flex; justify-content: space-between; font-weight: 700; color: var(--green); border-top: 1px solid #b7e4c7; margin-top: 0.5rem; padding-top: 0.5rem; }
+
+    /* ── INQUIRY SECTION ── */
+    #henvendelse { background: white; }
+    .inquiry-box {
+      background: #f9fafb;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      max-width: 580px;
+    }
+
     @media (max-width: 600px) {
       .nav-links { display: none; }
       .order-box { padding: 1.5rem; }
+      .inquiry-box { padding: 1.5rem; }
     }
   </style>
 </head>
@@ -441,9 +606,32 @@
     <li><a href="#produkter">Produkter</a></li>
     <li><a href="#slik-fungerer-det">Slik fungerer det</a></li>
     <li><a href="#bestill">Bestill</a></li>
+    <li><a href="#henvendelse">Henvendelser</a></li>
     <li><a href="#kontakt">Kontakt</a></li>
   </ul>
+  <button class="cart-btn" onclick="openCart()">
+    🛒 Handlekurv <span class="cart-count" id="cartCount">0</span>
+  </button>
 </nav>
+
+<!-- CART OVERLAY + DRAWER -->
+<div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+<div class="cart-drawer" id="cartDrawer">
+  <div class="cart-header">
+    <h3>Handlekurv</h3>
+    <button class="cart-close" onclick="closeCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cartItems">
+    <div class="cart-empty">Handlekurven er tom.<br>Legg til produkter for å bestille.</div>
+  </div>
+  <div class="cart-footer">
+    <div class="cart-total-row">
+      <span class="cart-total-label">Total</span>
+      <span class="cart-total-amount" id="cartTotal">0 kr</span>
+    </div>
+    <button class="cart-checkout-btn" id="cartCheckoutBtn" onclick="goToCheckout()" disabled>Gå til bestilling</button>
+  </div>
+</div>
 
 <!-- HERO -->
 <section class="hero">
@@ -509,18 +697,21 @@
         <h3>Ramsløkblader</h3>
         <p class="product-desc">Bare blader, uten stilk. Mer delikat og kortere holdbarhet – best brukt samme dag eller dagen etter.</p>
         <div class="product-price">65 kr <span>/ 100g</span></div>
+        <button class="add-to-cart-btn" onclick="addToCart('blader', 'Ramsløkblader', 65, '100g', this)">+ Legg i kurv</button>
       </div>
       <div class="product-card">
         <span class="product-tag">⭐ Anbefalt</span>
         <h3>Blader + løk/stilk</h3>
         <p class="product-desc">Plukket med stilk og løk – holder seg lengre, smaker mer og gir bedre verdi per krone. Vårt ferskeste og mest holdbare alternativ.</p>
         <div class="product-price">40 kr <span>/ 100g</span></div>
+        <button class="add-to-cart-btn" onclick="addToCart('stilk', 'Blader + løk/stilk', 40, '100g', this)">+ Legg i kurv</button>
       </div>
       <div class="product-card">
         <span class="product-tag">Storbunke</span>
         <h3>Familiepose</h3>
         <p class="product-desc">Større mengde for deg som vil lage pesto i store volum, sylte, eller fylle fryseren.</p>
         <div class="product-price">200 kr <span>/ 500g</span></div>
+        <button class="add-to-cart-btn" onclick="addToCart('pose', 'Familiepose', 200, '500g', this)">+ Legg i kurv</button>
       </div>
     </div>
     <p style="font-family:sans-serif;font-size:0.82rem;color:var(--muted);margin-top:1.2rem;">
@@ -591,6 +782,12 @@
         💳 Betal til Vipps-nummer <strong>[VIPPS]</strong> – merk betalingen med fullt navn og hva du bestiller. Legg til 75 kr ved levering i sentrale Oslo.
       </div>
       <h3>Bestillingsskjema</h3>
+      <div id="orderSummaryBox" style="display:none;">
+        <div class="order-summary" id="orderSummary"></div>
+      </div>
+      <p id="emptyCartMsg" style="font-family:sans-serif;font-size:0.875rem;color:#dc2626;margin-bottom:1rem;display:none;">
+        ⚠️ Handlekurven er tom. <a href="#produkter" style="color:var(--green)">Legg til produkter</a> først.
+      </p>
       <form id="orderForm">
         <div class="form-group">
           <label for="name">Fullt navn</label>
@@ -605,19 +802,6 @@
           <input type="email" id="email" placeholder="ola@example.com" required />
         </div>
         <div class="form-group">
-          <label for="product">Produkt</label>
-          <select id="product" required>
-            <option value="">Velg produkt…</option>
-            <option value="Ramsløkblader">Ramsløkblader – 65 kr / 100g</option>
-            <option value="Blader + løk/stilk">Blader + løk/stilk – 40 kr / 100g</option>
-            <option value="Familiepose (500g)">Familiepose (500g) – 200 kr</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="amount">Mengde / antall</label>
-          <input type="text" id="amount" placeholder="f.eks. 200g" required />
-        </div>
-        <div class="form-group">
           <label for="delivery">Henting eller levering?</label>
           <select id="delivery" required>
             <option value="">Velg…</option>
@@ -630,10 +814,43 @@
           <label for="note">Kommentar (valgfritt)</label>
           <textarea id="note" placeholder="Ønsket tidspunkt, spørsmål, o.l."></textarea>
         </div>
-        <button type="submit" class="btn" style="width:100%;">Send bestilling</button>
+        <button type="submit" class="btn" style="width:100%;" id="orderSubmitBtn">Send bestilling</button>
         <p class="order-note">Vi bekrefter bestillingen og avtaler detaljer via SMS/e-post innen 24 timer.</p>
         <div class="success-msg" id="successMsg">
-          ✅ Takk for bestillingen! Vi tar kontakt snart for å bekrefte og avtale levering/henting.
+          ✅ Takk for bestillingen! Vi tar kontakt snart for å bekrefte og avtale levering/henting. Husk å betale på Vipps-nummer <strong>[VIPPS]</strong>.
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- HENVENDELSE -->
+<section id="henvendelse">
+  <div class="container">
+    <p class="section-label">Spesielle henvendelser</p>
+    <h2>Spørsmål eller særønsker?</h2>
+    <p class="lead">Storbedrift, restaurantbestilling, spesialtidspunkt? Send oss en melding så tar vi kontakt.</p>
+    <div class="inquiry-box">
+      <form id="inquiryForm">
+        <div class="form-group">
+          <label for="iq_name">Fullt navn</label>
+          <input type="text" id="iq_name" placeholder="Ola Nordmann" required />
+        </div>
+        <div class="form-group">
+          <label for="iq_email">E-postadresse</label>
+          <input type="email" id="iq_email" placeholder="ola@example.com" required />
+        </div>
+        <div class="form-group">
+          <label for="iq_phone">Telefon (valgfritt)</label>
+          <input type="tel" id="iq_phone" placeholder="400 00 000" />
+        </div>
+        <div class="form-group">
+          <label for="iq_message">Melding</label>
+          <textarea id="iq_message" placeholder="Fortell oss hva du lurer på eller trenger…" style="min-height:120px;" required></textarea>
+        </div>
+        <button type="submit" class="btn" style="width:100%;">Send henvendelse</button>
+        <div class="success-msg" id="inquirySuccess" style="margin-top:1rem;">
+          ✅ Takk! Vi svarer deg innen 24 timer.
         </div>
       </form>
     </div>
@@ -661,44 +878,159 @@
 </footer>
 
 <script>
-  document.getElementById('orderForm').addEventListener('submit', function(e) {
-    e.preventDefault();
+  // ── HANDLEKURV ──
+  let cart = [];
 
-    const order = {
-      id: Date.now().toString(),
-      timestamp: new Date().toISOString(),
+  function addToCart(id, name, price, unit, btn) {
+    const existing = cart.find(i => i.id === id);
+    if (existing) {
+      existing.qty++;
+    } else {
+      cart.push({ id, name, price, unit, qty: 1 });
+    }
+    btn.textContent = '✓ Lagt til';
+    btn.classList.add('added');
+    setTimeout(() => { btn.textContent = '+ Legg i kurv'; btn.classList.remove('added'); }, 1500);
+    updateCartUI();
+    openCart();
+  }
+
+  function updateCartUI() {
+    const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const count = cart.reduce((s, i) => s + i.qty, 0);
+    document.getElementById('cartCount').textContent = count;
+    document.getElementById('cartTotal').textContent = total + ' kr';
+    document.getElementById('cartCheckoutBtn').disabled = cart.length === 0;
+
+    const itemsEl = document.getElementById('cartItems');
+    if (cart.length === 0) {
+      itemsEl.innerHTML = '<div class="cart-empty">Handlekurven er tom.<br>Legg til produkter for å bestille.</div>';
+      return;
+    }
+    itemsEl.innerHTML = cart.map(item => `
+      <div class="cart-item">
+        <div class="cart-item-info">
+          <div class="cart-item-name">${item.name}</div>
+          <div class="cart-item-price">${item.price} kr / ${item.unit}</div>
+        </div>
+        <div class="cart-qty">
+          <button onclick="changeQty('${item.id}', -1)">−</button>
+          <span>${item.qty}</span>
+          <button onclick="changeQty('${item.id}', 1)">+</button>
+        </div>
+        <div class="cart-item-total">${item.price * item.qty} kr</div>
+      </div>
+    `).join('');
+
+    // Oppdater ordresammendrag
+    updateOrderSummary();
+  }
+
+  function changeQty(id, delta) {
+    const idx = cart.findIndex(i => i.id === id);
+    if (idx === -1) return;
+    cart[idx].qty += delta;
+    if (cart[idx].qty <= 0) cart.splice(idx, 1);
+    updateCartUI();
+  }
+
+  function openCart() {
+    document.getElementById('cartOverlay').classList.add('open');
+    document.getElementById('cartDrawer').classList.add('open');
+  }
+
+  function closeCart() {
+    document.getElementById('cartOverlay').classList.remove('open');
+    document.getElementById('cartDrawer').classList.remove('open');
+  }
+
+  function goToCheckout() {
+    closeCart();
+    updateOrderSummary();
+    document.getElementById('bestill').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function updateOrderSummary() {
+    if (cart.length === 0) {
+      document.getElementById('orderSummaryBox').style.display = 'none';
+      return;
+    }
+    const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const rows = cart.map(i => `<div class="order-summary-item"><span>${i.name} × ${i.qty} ${i.unit}</span><span>${i.price * i.qty} kr</span></div>`).join('');
+    document.getElementById('orderSummary').innerHTML = `<h4>Din bestilling</h4>${rows}<div class="order-summary-total"><span>Total</span><span>${total} kr</span></div>`;
+    document.getElementById('orderSummaryBox').style.display = 'block';
+  }
+
+  // ── BESTILLINGSSKJEMA ──
+  document.getElementById('orderForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    if (cart.length === 0) {
+      document.getElementById('emptyCartMsg').style.display = 'block';
+      return;
+    }
+    document.getElementById('emptyCartMsg').style.display = 'none';
+
+    const btn = document.getElementById('orderSubmitBtn');
+    btn.textContent = 'Sender…';
+    btn.disabled = true;
+
+    const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const payload = {
       name:     document.getElementById('name').value.trim(),
       phone:    document.getElementById('phone').value.trim(),
       email:    document.getElementById('email').value.trim(),
-      product:  document.getElementById('product').value,
-      amount:   document.getElementById('amount').value.trim(),
       delivery: document.getElementById('delivery').value,
       note:     document.getElementById('note').value.trim(),
-      status:   'venter'
+      items:    cart.map(i => ({ name: i.name, qty: i.qty, unit: i.unit, price: i.price })),
+      total
     };
 
-    // Save to localStorage
-    const orders = JSON.parse(localStorage.getItem('ramsloek_orders') || '[]');
-    orders.push(order);
-    localStorage.setItem('ramsloek_orders', JSON.stringify(orders));
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error();
+      document.getElementById('successMsg').style.display = 'block';
+      this.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = true);
+      cart = [];
+      updateCartUI();
+    } catch {
+      btn.textContent = 'Send bestilling';
+      btn.disabled = false;
+      alert('Noe gikk galt. Prøv igjen eller ta kontakt direkte.');
+    }
+  });
 
-    // Open mailto: to notify seller
-    const subject = encodeURIComponent('Ny ramsløk-bestilling fra ' + order.name);
-    const body = encodeURIComponent(
-      'Ny bestilling mottatt!\n\n' +
-      'Navn: ' + order.name + '\n' +
-      'Telefon: ' + order.phone + '\n' +
-      'E-post: ' + order.email + '\n' +
-      'Produkt: ' + order.product + '\n' +
-      'Mengde: ' + order.amount + '\n' +
-      'Levering: ' + order.delivery + '\n' +
-      'Kommentar: ' + (order.note || '–') + '\n\n' +
-      'Ordre-ID: ' + order.id
-    );
-    window.location.href = 'mailto:[EPOST]?subject=' + subject + '&body=' + body;
+  // ── HENVENDELSESSKJEMA ──
+  document.getElementById('inquiryForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = this.querySelector('button[type=submit]');
+    btn.textContent = 'Sender…';
+    btn.disabled = true;
 
-    document.getElementById('successMsg').style.display = 'block';
-    this.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = true);
+    const payload = {
+      name:    document.getElementById('iq_name').value.trim(),
+      email:   document.getElementById('iq_email').value.trim(),
+      phone:   document.getElementById('iq_phone').value.trim(),
+      message: document.getElementById('iq_message').value.trim()
+    };
+
+    try {
+      const res = await fetch('/api/inquiries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error();
+      document.getElementById('inquirySuccess').style.display = 'block';
+      this.querySelectorAll('input, textarea, button').forEach(el => el.disabled = true);
+    } catch {
+      btn.textContent = 'Send henvendelse';
+      btn.disabled = false;
+      alert('Noe gikk galt. Prøv igjen eller ta kontakt direkte.');
+    }
   });
 </script>
 
