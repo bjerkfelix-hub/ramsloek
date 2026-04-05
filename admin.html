@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin – Nesodden Ramsløk</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #2d6a4f;
+      --green-light: #52b788;
+      --green-pale: #d8f3dc;
+      --text: #1b1b1b;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --white: #ffffff;
+      --yellow: #fef3c7;
+      --yellow-border: #fcd34d;
+      --red-pale: #fee2e2;
+      --red-border: #fca5a5;
+    }
+    body {
+      font-family: sans-serif;
+      background: #f9fafb;
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── LOGIN ── */
+    #loginScreen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    .login-box {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+    }
+    .login-box h1 { font-family: Georgia, serif; color: var(--green); font-size: 1.4rem; margin-bottom: 0.4rem; }
+    .login-box p { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.8rem; }
+    .login-box input {
+      width: 100%;
+      padding: 0.7rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+      outline: none;
+    }
+    .login-box input:focus { border-color: var(--green-light); }
+    .login-box button {
+      width: 100%;
+      background: var(--green);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0.75rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .login-box button:hover { background: #1f4e38; }
+    .login-error {
+      color: #dc2626;
+      font-size: 0.82rem;
+      margin-top: 0.6rem;
+      display: none;
+    }
+
+    /* ── ADMIN ── */
+    #adminScreen { display: none; }
+
+    header {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header-title { font-family: Georgia, serif; color: var(--green); font-size: 1rem; font-weight: bold; }
+    .header-actions { display: flex; gap: 0.8rem; align-items: center; }
+    .btn-sm {
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.4rem 0.9rem;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-green { background: var(--green); color: white; }
+    .btn-green:hover { background: #1f4e38; }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn-ghost:hover { background: #f3f4f6; }
+
+    main { max-width: 960px; margin: 0 auto; padding: 2rem; }
+
+    /* ── STATS ── */
+    .stats-row {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.4rem;
+      flex: 1;
+      min-width: 120px;
+    }
+    .stat-card .num { font-size: 1.6rem; font-weight: 700; color: var(--green); }
+    .stat-card .lbl { font-size: 0.75rem; color: var(--muted); margin-top: 0.2rem; }
+
+    /* ── FILTER TABS ── */
+    .filter-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.4rem;
+      flex-wrap: wrap;
+    }
+    .tab {
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 0.4rem 1rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--white);
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tab.active, .tab:hover { background: var(--green-pale); border-color: var(--green-light); color: var(--green); }
+
+    /* ── ADD ORDER FORM ── */
+    .add-order-panel {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      display: none;
+    }
+    .add-order-panel h3 { font-size: 0.95rem; color: var(--green); margin-bottom: 1rem; }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.8rem;
+      margin-bottom: 1rem;
+    }
+    .form-grid .form-group { display: flex; flex-direction: column; gap: 0.3rem; }
+    .form-grid label { font-size: 0.78rem; font-weight: 600; color: var(--text); }
+    .form-grid input, .form-grid select, .form-grid textarea {
+      font-size: 0.85rem;
+      padding: 0.5rem 0.7rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      outline: none;
+    }
+    .form-grid input:focus, .form-grid select:focus { border-color: var(--green-light); }
+
+    /* ── ORDER CARDS ── */
+    #orderList { display: flex; flex-direction: column; gap: 1rem; }
+
+    .order-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.4rem 1.6rem;
+      transition: box-shadow 0.15s;
+    }
+    .order-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .order-card.status-bekreftet { border-left: 4px solid var(--green-light); }
+    .order-card.status-avbestilt { border-left: 4px solid #fca5a5; opacity: 0.7; }
+    .order-card.status-venter { border-left: 4px solid #fcd34d; }
+
+    .order-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.8rem;
+    }
+    .order-name { font-size: 1rem; font-weight: 700; color: var(--text); }
+    .order-time { font-size: 0.75rem; color: var(--muted); }
+
+    .status-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.7rem;
+      border-radius: 999px;
+    }
+    .badge-venter { background: var(--yellow); color: #92400e; border: 1px solid var(--yellow-border); }
+    .badge-bekreftet { background: var(--green-pale); color: var(--green); border: 1px solid #b7e4c7; }
+    .badge-avbestilt { background: var(--red-pale); color: #991b1b; border: 1px solid var(--red-border); }
+
+    .order-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.5rem 1.5rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+    .order-details span strong { color: var(--text); }
+    .order-note-text {
+      font-size: 0.82rem;
+      color: var(--muted);
+      background: #f9fafb;
+      border-radius: 6px;
+      padding: 0.5rem 0.8rem;
+      margin-bottom: 0.9rem;
+      font-style: italic;
+    }
+
+    .order-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+    .btn-confirm {
+      font-size: 0.82rem; font-weight: 600; padding: 0.4rem 1rem;
+      border-radius: 6px; border: none; cursor: pointer;
+      background: var(--green-pale); color: var(--green); transition: background 0.15s;
+    }
+    .btn-confirm:hover { background: #b7e4c7; }
+    .btn-cancel {
+      font-size: 0.82rem; font-weight: 600; padding: 0.4rem 1rem;
+      border-radius: 6px; border: none; cursor: pointer;
+      background: var(--red-pale); color: #991b1b; transition: background 0.15s;
+    }
+    .btn-cancel:hover { background: #fecaca; }
+    .btn-email {
+      font-size: 0.82rem; font-weight: 600; padding: 0.4rem 1rem;
+      border-radius: 6px; border: 1px solid var(--border); cursor: pointer;
+      background: white; color: var(--muted); text-decoration: none;
+      display: inline-block; transition: background 0.15s;
+    }
+    .btn-email:hover { background: #f3f4f6; }
+    .btn-delete {
+      font-size: 0.82rem; font-weight: 600; padding: 0.4rem 0.7rem;
+      border-radius: 6px; border: 1px solid var(--border); cursor: pointer;
+      background: white; color: #d1d5db; transition: color 0.15s;
+    }
+    .btn-delete:hover { color: #dc2626; border-color: #fca5a5; }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .empty-state .icon { font-size: 2.5rem; margin-bottom: 0.8rem; }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <h1>Nesodden Ramsløk</h1>
+    <p>Admin-panel for ordrehåndtering</p>
+    <input type="password" id="passwordInput" placeholder="Passord" onkeydown="if(event.key==='Enter')login()" />
+    <button onclick="login()">Logg inn</button>
+    <p class="login-error" id="loginError">Feil passord. Prøv igjen.</p>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="adminScreen">
+  <header>
+    <span class="header-title">Ramsløk Admin</span>
+    <div class="header-actions">
+      <button class="btn-sm btn-ghost" onclick="toggleAddForm()">+ Legg til ordre manuelt</button>
+      <button class="btn-sm btn-ghost" onclick="logout()">Logg ut</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Stats -->
+    <div class="stats-row" id="statsRow"></div>
+
+    <!-- Add order panel -->
+    <div class="add-order-panel" id="addOrderPanel">
+      <h3>Legg til ordre manuelt</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Fullt navn *</label>
+          <input type="text" id="a_name" placeholder="Ola Nordmann" />
+        </div>
+        <div class="form-group">
+          <label>Telefon *</label>
+          <input type="tel" id="a_phone" placeholder="400 00 000" />
+        </div>
+        <div class="form-group">
+          <label>E-post</label>
+          <input type="email" id="a_email" placeholder="ola@example.com" />
+        </div>
+        <div class="form-group">
+          <label>Produkt *</label>
+          <select id="a_product">
+            <option value="Ramsløkblader">Ramsløkblader</option>
+            <option value="Blader + løk/stilk">Blader + løk/stilk</option>
+            <option value="Familiepose (500g)">Familiepose (500g)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Mengde *</label>
+          <input type="text" id="a_amount" placeholder="f.eks. 200g" />
+        </div>
+        <div class="form-group">
+          <label>Levering</label>
+          <select id="a_delivery">
+            <option value="Henting på Nesodden">Henting på Nesodden</option>
+            <option value="Levering">Levering</option>
+          </select>
+        </div>
+        <div class="form-group" style="grid-column: 1/-1;">
+          <label>Kommentar</label>
+          <input type="text" id="a_note" placeholder="Valgfritt…" />
+        </div>
+      </div>
+      <button class="btn-sm btn-green" onclick="addOrderManually()">Lagre ordre</button>
+      <button class="btn-sm btn-ghost" style="margin-left:0.5rem;" onclick="toggleAddForm()">Avbryt</button>
+    </div>
+
+    <!-- Filter tabs -->
+    <div class="filter-tabs">
+      <div class="tab active" onclick="setFilter('alle', this)">Alle</div>
+      <div class="tab" onclick="setFilter('venter', this)">Venter</div>
+      <div class="tab" onclick="setFilter('bekreftet', this)">Bekreftet</div>
+      <div class="tab" onclick="setFilter('avbestilt', this)">Avbestilt</div>
+    </div>
+
+    <!-- Order list -->
+    <div id="orderList"></div>
+  </main>
+</div>
+
+<script>
+  // ── CONFIG ──
+  const ADMIN_PASSWORD = 'ramsloek2025'; // Endre dette til ditt eget passord
+  const STORAGE_KEY = 'ramsloek_orders';
+
+  // ── AUTH ──
+  function login() {
+    const pw = document.getElementById('passwordInput').value;
+    if (pw === ADMIN_PASSWORD) {
+      sessionStorage.setItem('admin_auth', '1');
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('adminScreen').style.display = 'block';
+      renderAll();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+    }
+  }
+
+  function logout() {
+    sessionStorage.removeItem('admin_auth');
+    location.reload();
+  }
+
+  // Auto-login if session active
+  if (sessionStorage.getItem('admin_auth') === '1') {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('adminScreen').style.display = 'block';
+  }
+
+  // ── DATA ──
+  let currentFilter = 'alle';
+
+  function getOrders() {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  }
+
+  function saveOrders(orders) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+  }
+
+  function setStatus(id, status) {
+    const orders = getOrders();
+    const idx = orders.findIndex(o => o.id === id);
+    if (idx === -1) return;
+    orders[idx].status = status;
+    saveOrders(orders);
+    renderAll();
+  }
+
+  function deleteOrder(id) {
+    if (!confirm('Slett denne ordren permanent?')) return;
+    const orders = getOrders().filter(o => o.id !== id);
+    saveOrders(orders);
+    renderAll();
+  }
+
+  // ── RENDER ──
+  function renderAll() {
+    renderStats();
+    renderOrders();
+  }
+
+  function renderStats() {
+    const orders = getOrders();
+    const counts = { alle: orders.length, venter: 0, bekreftet: 0, avbestilt: 0 };
+    orders.forEach(o => counts[o.status] = (counts[o.status] || 0) + 1);
+    document.getElementById('statsRow').innerHTML = `
+      <div class="stat-card"><div class="num">${counts.alle}</div><div class="lbl">Totalt</div></div>
+      <div class="stat-card"><div class="num" style="color:#b45309">${counts.venter}</div><div class="lbl">Venter</div></div>
+      <div class="stat-card"><div class="num">${counts.bekreftet}</div><div class="lbl">Bekreftet</div></div>
+      <div class="stat-card"><div class="num" style="color:#991b1b">${counts.avbestilt}</div><div class="lbl">Avbestilt</div></div>
+    `;
+  }
+
+  function renderOrders() {
+    const orders = getOrders()
+      .filter(o => currentFilter === 'alle' || o.status === currentFilter)
+      .sort((a, b) => b.id - a.id);
+
+    const list = document.getElementById('orderList');
+    if (orders.length === 0) {
+      list.innerHTML = `<div class="empty-state"><div class="icon">🌿</div><div>Ingen bestillinger ${currentFilter !== 'alle' ? 'med status «' + currentFilter + '»' : 'ennå'}.</div></div>`;
+      return;
+    }
+
+    list.innerHTML = orders.map(o => {
+      const date = new Date(o.timestamp || parseInt(o.id));
+      const dateStr = date.toLocaleDateString('nb-NO', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+      const badgeClass = { venter: 'badge-venter', bekreftet: 'badge-bekreftet', avbestilt: 'badge-avbestilt' }[o.status] || 'badge-venter';
+      const statusLabel = { venter: 'Venter', bekreftet: 'Bekreftet ✅', avbestilt: 'Avbestilt ❌' }[o.status] || o.status;
+
+      const confirmBtn = o.status !== 'bekreftet'
+        ? `<button class="btn-confirm" onclick="setStatus('${o.id}','bekreftet')">Bekreft ✅</button>` : '';
+      const cancelBtn = o.status !== 'avbestilt'
+        ? `<button class="btn-cancel" onclick="setStatus('${o.id}','avbestilt')">Avbestill ❌</button>` : '';
+
+      const emailBtnLabel = o.status === 'bekreftet' ? '📧 Send bekreftelse' : o.status === 'avbestilt' ? '📧 Send avbestilling' : '📧 Kontakt kunde';
+      const emailHref = buildEmailHref(o);
+
+      return `
+        <div class="order-card status-${o.status}">
+          <div class="order-header">
+            <div>
+              <div class="order-name">${esc(o.name)}</div>
+              <div class="order-time">${dateStr} &nbsp;·&nbsp; ID: ${o.id}</div>
+            </div>
+            <span class="status-badge ${badgeClass}">${statusLabel}</span>
+          </div>
+          <div class="order-details">
+            <span>📦 <strong>${esc(o.product)}</strong> – ${esc(o.amount)}</span>
+            <span>🚗 ${esc(o.delivery)}</span>
+            <span>📞 <a href="tel:${esc(o.phone)}">${esc(o.phone)}</a></span>
+            ${o.email ? `<span>✉️ <a href="mailto:${esc(o.email)}">${esc(o.email)}</a></span>` : ''}
+          </div>
+          ${o.note ? `<div class="order-note-text">💬 ${esc(o.note)}</div>` : ''}
+          <div class="order-actions">
+            ${confirmBtn}
+            ${cancelBtn}
+            ${o.email ? `<a class="btn-email" href="${emailHref}">${emailBtnLabel}</a>` : ''}
+            <button class="btn-delete" onclick="deleteOrder('${o.id}')" title="Slett ordre">🗑</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function buildEmailHref(o) {
+    if (!o.email) return '#';
+    let subject, body;
+    if (o.status === 'bekreftet') {
+      subject = encodeURIComponent('Din ramsløk-bestilling er bekreftet!');
+      body = encodeURIComponent(
+        'Hei ' + o.name + ',\n\n' +
+        'Bestillingen din er bekreftet! 🌿\n\n' +
+        'Produkt: ' + o.product + '\n' +
+        'Mengde: ' + o.amount + '\n' +
+        'Levering: ' + o.delivery + '\n\n' +
+        'Vi tar kontakt for å avtale tidspunkt.\n\n' +
+        'Med vennlig hilsen,\nNesodden Ramsløk'
+      );
+    } else if (o.status === 'avbestilt') {
+      subject = encodeURIComponent('Angående din ramsløk-bestilling');
+      body = encodeURIComponent(
+        'Hei ' + o.name + ',\n\n' +
+        'Dessverre må vi avbestille bestillingen din.\n\n' +
+        'Ta gjerne kontakt hvis du har spørsmål eller ønsker å bestille på et annet tidspunkt.\n\n' +
+        'Med vennlig hilsen,\nNesodden Ramsløk'
+      );
+    } else {
+      subject = encodeURIComponent('Angående din ramsløk-bestilling');
+      body = encodeURIComponent('Hei ' + o.name + ',\n\n');
+    }
+    return 'mailto:' + o.email + '?subject=' + subject + '&body=' + body;
+  }
+
+  function esc(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function setFilter(filter, el) {
+    currentFilter = filter;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    renderOrders();
+  }
+
+  // ── ADD MANUALLY ──
+  function toggleAddForm() {
+    const panel = document.getElementById('addOrderPanel');
+    panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+  }
+
+  function addOrderManually() {
+    const name = document.getElementById('a_name').value.trim();
+    const phone = document.getElementById('a_phone').value.trim();
+    if (!name || !phone) { alert('Navn og telefon er påkrevd.'); return; }
+    const order = {
+      id: Date.now().toString(),
+      timestamp: new Date().toISOString(),
+      name,
+      phone,
+      email: document.getElementById('a_email').value.trim(),
+      product: document.getElementById('a_product').value,
+      amount: document.getElementById('a_amount').value.trim(),
+      delivery: document.getElementById('a_delivery').value,
+      note: document.getElementById('a_note').value.trim(),
+      status: 'venter'
+    };
+    const orders = getOrders();
+    orders.push(order);
+    saveOrders(orders);
+    ['a_name','a_phone','a_email','a_amount','a_note'].forEach(id => document.getElementById(id).value = '');
+    toggleAddForm();
+    renderAll();
+  }
+
+  // Initial render if logged in
+  if (sessionStorage.getItem('admin_auth') === '1') renderAll();
+</script>
+</body>
+</html>
