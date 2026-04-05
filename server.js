@@ -69,7 +69,7 @@ app.post('/api/orders', async (req, res) => {
 
   const itemsText = (order.items || []).map(i => `  - ${i.name}: ${i.qty} × ${i.unit} = ${i.qty * i.price} kr`).join('\n');
   await sendEmail(
-    `🌿 Ny bestilling fra ${order.name}`,
+    `Salg! – ${order.name}`,
     `Ny ramsløk-bestilling!\n\nNavn: ${order.name}\nTelefon: ${order.phone}\nE-post: ${order.email}\n\nProdukter:\n${itemsText}\n\nTotal: ${order.total} kr\nLevering: ${order.delivery}\nKommentar: ${order.note || '–'}\n\nOrdre-ID: ${order.id}\nTidspunkt: ${new Date(order.timestamp).toLocaleString('nb-NO')}`
   );
 
@@ -106,7 +106,7 @@ app.post('/api/inquiries', async (req, res) => {
   saveStore(store);
 
   await sendEmail(
-    `💬 Ny henvendelse fra ${inquiry.name}`,
+    `Spørsmål – ${inquiry.name}`,
     `Ny henvendelse!\n\nNavn: ${inquiry.name}\nE-post: ${inquiry.email}\nTelefon: ${inquiry.phone || '–'}\n\nMelding:\n${inquiry.message}\n\nID: ${inquiry.id}\nTidspunkt: ${new Date(inquiry.timestamp).toLocaleString('nb-NO')}`
   );
 
