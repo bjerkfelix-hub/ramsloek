@@ -43,8 +43,9 @@ function createTransporter() {
   console.log('📧 E-posttransport opprettes for:', user);
   return nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
+    port: 587,
+    secure: false,
+    requireTLS: true,
     auth: { user, pass }
   });
 }
