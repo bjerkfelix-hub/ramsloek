@@ -75,14 +75,6 @@ app.post('/api/orders', async (req, res) => {
     `Ny ramsløk-bestilling!\n\nNavn: ${order.name}\nTelefon: ${order.phone}\nE-post: ${order.email}\n\nProdukter:\n${itemsText}\n\nTotal: ${order.total} kr\nLevering: ${order.delivery}\nKommentar: ${order.note || '–'}\n\nOrdre-ID: ${order.id}\nTidspunkt: ${new Date(order.timestamp).toLocaleString('nb-NO')}`
   );
 
-  // Mottaksbekreftelse til kunde
-  if (order.email) {
-    await sendEmail(
-      'Vi har mottatt bestillingen din! 🌿',
-      `Hei ${order.name}!\n\nTakk for bestillingen – vi har mottatt den og behandler den så snart som mulig.\n\nDu har bestilt:\n${itemsText}\n\nTotal: ${order.total} kr\nLeveringsmåte: ${order.delivery}${order.note ? `\nKommentar: ${order.note}` : ''}\n\nDu vil få en ny e-post når bestillingen er bekreftet med forslag til hentested og tidspunkt.\n\nMed vennlig hilsen,\nNesodden Ramsløk 🌿`,
-      order.email
-    );
-  }
 
   res.json({ ok: true, id: order.id });
 });
@@ -95,19 +87,6 @@ app.put('/api/orders/:id', async (req, res) => {
   store.orders[idx] = { ...prev, ...req.body };
   saveStore(store);
 
-  // Send kundebekreftelse når status endres til bekreftet
-  if (req.body.status === 'bekreftet' && prev.status !== 'bekreftet' && prev.email) {
-    const o = store.orders[idx];
-    const itemsText = (o.items || []).map(i => `  - ${i.name}: ${i.qty} × ${i.unit} = ${i.qty * i.price} kr`).join('\n');
-    const pickupLine = o.pickupTime
-      ? `\nHentested: ${o.pickupPlace || 'Nesodden'}\nForeslått tidspunkt: ${o.pickupTime}`
-      : `\nVi kontakter deg for å avtale tidspunkt og hentested.`;
-    await sendEmail(
-      'Ramsløk-bestillingen din er bekreftet! 🌿',
-      `Hei ${o.name}!\n\nBestillingen din er bekreftet.\n\nDu har bestilt:\n${itemsText}\n\nTotal: ${o.total} kr\nLeveringsmåte: ${o.delivery}${pickupLine}\n${o.adminNote ? `\nMelding fra oss: ${o.adminNote}\n` : ''}\nBetal på Vipps når du henter.\n\nMed vennlig hilsen,\nNesodden Ramsløk 🌿`,
-      prev.email
-    );
-  }
 
   res.json({ ok: true });
 });
