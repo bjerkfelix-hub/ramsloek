@@ -760,8 +760,6 @@
       const pillClass = { venter:'pill-venter', bekreftet:'pill-bekreftet', avbestilt:'pill-avbestilt' }[o.status]||'pill-venter';
       const statusLabel = { venter:'Venter', bekreftet:'Bekreftet', avbestilt:'Avbestilt' }[o.status]||o.status;
       const items = (o.items||[]).map(i=>`${esc(i.name)} × ${i.qty} ${esc(i.unit)}`).join(' · ');
-      const emailHref = buildEmailHref(o);
-      const emailLabel = o.status==='bekreftet' ? '📧 Send bekreftelse' : o.status==='avbestilt' ? '📧 Send avbestilling' : '📧 Kontakt';
 
       return `<div class="order-card status-${o.status}">
         <div class="card-header">
@@ -779,7 +777,6 @@
         <div class="card-actions">
           ${o.status!=='bekreftet' ? `<button class="action-btn btn-confirm" onclick="openConfirmModal('${o.id}','${esc(o.name)}')">Bekreft ✓</button>` : ''}
           ${o.status!=='avbestilt' ? `<button class="action-btn btn-cancel-order" onclick="setStatus('${o.id}','avbestilt')">Avbestill</button>` : ''}
-          ${o.email ? `<a class="action-btn btn-email" href="${emailHref}">${emailLabel}</a>` : ''}
           <button class="action-btn btn-delete" onclick="deleteOrder('${o.id}')">🗑</button>
         </div>
       </div>`;
