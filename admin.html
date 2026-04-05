@@ -416,6 +416,16 @@
       .main { margin-left: 0; }
     }
 
+    /* ── BOX CARDS ── */
+    .box-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 1.2rem 1.4rem; display: flex; flex-direction: column; gap: 0.7rem; }
+    .box-card.status-solgt { border-left: 3px solid var(--green); opacity: 0.7; }
+    .box-card.status-kassert { border-left: 3px solid var(--red); opacity: 0.6; }
+    .box-card.status-på-lager { border-left: 3px solid var(--yellow); }
+    .box-tracking { font-family: monospace; font-size: 1.1rem; font-weight: 700; color: var(--purple); }
+    .box-meta { display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem; font-family: sans-serif; font-size: 0.82rem; color: var(--muted); }
+    .box-orders { font-family: sans-serif; font-size: 0.82rem; color: var(--muted); background: var(--surface); border-radius: 6px; padding: 0.5rem 0.8rem; }
+    .box-orders span { color: var(--text); font-weight: 600; }
+
     /* ── CONFIRM MODAL ── */
     .modal-overlay {
       display: none;
@@ -460,6 +470,39 @@
 </head>
 <body>
 
+<!-- NY ESKE MODAL -->
+<div class="modal-overlay" id="newBoxModal">
+  <div class="modal">
+    <h3>Registrer ny eske</h3>
+    <div>
+      <label>Plukkdato</label>
+      <input type="date" id="box_date" />
+    </div>
+    <div>
+      <label>Område / sted på eiendommen</label>
+      <input type="text" id="box_area" placeholder="F.eks. Nordskogen, ved stien…" />
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;">
+      <div>
+        <label>Antall poser</label>
+        <input type="number" id="box_bags" placeholder="5" min="1" />
+      </div>
+      <div>
+        <label>Vekt per pose (g)</label>
+        <input type="number" id="box_weight" placeholder="100" min="1" />
+      </div>
+    </div>
+    <div>
+      <label>Kommentar (valgfritt)</label>
+      <textarea id="box_note" placeholder="F.eks. ekstra frisk batch…"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeNewBoxModal()">Avbryt</button>
+      <button class="btn-modal-confirm" onclick="submitNewBox()">Registrer eske</button>
+    </div>
+  </div>
+</div>
+
 <!-- BEKREFT MODAL -->
 <div class="modal-overlay" id="confirmModal">
   <div class="modal">
@@ -479,6 +522,10 @@
     <div>
       <label>Melding til kunden (valgfritt)</label>
       <textarea id="modalNote" placeholder="F.eks. møt meg ved innkjørselen…"></textarea>
+    </div>
+    <div>
+      <label>Fra eske (smittesporing)</label>
+      <select id="modalBox"><option value="">– Velg eske –</option></select>
     </div>
     <div class="modal-actions">
       <button class="btn-modal-cancel" onclick="closeConfirmModal()">Avbryt</button>
@@ -528,6 +575,9 @@
         <span class="nav-icon">💬</span> Henvendelser
         <span class="nav-badge" id="inquiryBadge" style="display:none;">0</span>
       </div>
+      <div class="nav-item" id="nav-lager" onclick="setView('lager', this)" style="display:none;">
+        <span class="nav-icon">📦</span> Lager
+      </div>
     </nav>
 
     <div class="sidebar-footer">
@@ -547,7 +597,8 @@
     <div class="topbar">
       <span class="topbar-title" id="topbarTitle">Bestillinger</span>
       <div class="topbar-actions">
-        <button class="btn-sm" onclick="toggleAddForm()">+ Legg til manuelt</button>
+        <button class="btn-sm" id="btnAddOrder" onclick="toggleAddForm()">+ Legg til manuelt</button>
+        <button class="btn-sm purple" id="btnNewBox" onclick="openNewBoxModal()" style="display:none;">+ Ny eske</button>
         <button class="btn-sm purple" onclick="renderAll()">↻ Oppdater</button>
       </div>
     </div>
@@ -597,6 +648,7 @@
       <!-- Lists -->
       <div class="card-list" id="orderList"></div>
       <div class="card-list" id="inquiryList" style="display:none;"></div>
+      <div class="card-list" id="boxList" style="display:none;"></div>
     </div>
   </div>
 </div>
@@ -631,6 +683,9 @@
     document.querySelector('.avatar').textContent = currentUser.initials;
     document.querySelector('.user-name').textContent = currentUser.display;
     document.querySelector('.user-role').textContent = currentUser.role === 'admin' ? 'Admin' : 'Leveranser';
+    if (currentUser.role === 'admin') {
+      document.getElementById('nav-lager').style.display = '';
+    }
     if (currentUser.role === 'leveranser') {
       // Sverre ser bare bekreftet/venter og leveranse-fokus
       document.getElementById('nav-henvendelser').style.display = 'none';
@@ -676,11 +731,21 @@
   // ── BEKREFT MODAL ──
   let confirmOrderId = null;
 
-  function openConfirmModal(id, name) {
+  async function openConfirmModal(id, name) {
     confirmOrderId = id;
     document.getElementById('modalCustomerName').textContent = name;
     document.getElementById('modalTime').value = '';
     document.getElementById('modalNote').value = '';
+    // Populate box dropdown with available boxes
+    const boxes = await api.get('/api/boxes');
+    const sel = document.getElementById('modalBox');
+    sel.innerHTML = '<option value="">– Velg eske –</option>';
+    (boxes || []).filter(b => b.status === 'på lager').forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b.id;
+      opt.textContent = `${b.trackingId} – ${b.pickDate || ''} – ${b.bags} poser (${b.area})`;
+      sel.appendChild(opt);
+    });
     document.getElementById('confirmModal').classList.add('open');
   }
 
@@ -694,15 +759,78 @@
     const place = document.getElementById('modalPlace').value;
     const time = document.getElementById('modalTime').value;
     const note = document.getElementById('modalNote').value;
+    const boxId = document.getElementById('modalBox').value;
     const pickupTime = time ? new Date(time).toLocaleString('nb-NO', { weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' }) : '';
-    await api.put(`/api/orders/${confirmOrderId}`, {
-      status: 'bekreftet',
-      pickupPlace: place,
-      pickupTime,
-      adminNote: note
-    });
+    await api.put(`/api/orders/${confirmOrderId}`, { status: 'bekreftet', pickupPlace: place, pickupTime, adminNote: note, boxId });
+    if (boxId) await api.put(`/api/boxes/${boxId}`, { status: 'solgt' });
     closeConfirmModal();
     renderAll();
+  }
+
+  // ── LAGER / ESKER ──
+  function openNewBoxModal() {
+    document.getElementById('box_date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('box_area').value = '';
+    document.getElementById('box_bags').value = '';
+    document.getElementById('box_weight').value = '';
+    document.getElementById('box_note').value = '';
+    document.getElementById('newBoxModal').classList.add('open');
+  }
+
+  function closeNewBoxModal() {
+    document.getElementById('newBoxModal').classList.remove('open');
+  }
+
+  async function submitNewBox() {
+    const date = document.getElementById('box_date').value;
+    const area = document.getElementById('box_area').value;
+    const bags = parseInt(document.getElementById('box_bags').value) || 0;
+    const weight = parseInt(document.getElementById('box_weight').value) || 0;
+    const note = document.getElementById('box_note').value;
+    if (!date || !area || !bags || !weight) { alert('Fyll ut alle påkrevde felt.'); return; }
+    await api.post('/api/boxes', { pickDate: date, area, bags, weightPerBag: weight, totalWeight: bags * weight, note });
+    closeNewBoxModal();
+    renderAll();
+  }
+
+  async function deleteBox(id) {
+    if (!confirm('Slett eske permanent?')) return;
+    await api.delete(`/api/boxes/${id}`);
+    renderAll();
+  }
+
+  function renderBoxes(boxes, orders) {
+    const list = document.getElementById('boxList');
+    if (!boxes || !boxes.length) {
+      list.innerHTML = `<div class="empty-state"><div class="icon">📦</div><p>Ingen esker registrert ennå.</p></div>`;
+      return;
+    }
+    list.innerHTML = [...boxes].sort((a,b) => b.id - a.id).map(b => {
+      const linkedOrders = orders.filter(o => o.boxId === b.id);
+      const statusClass = b.status === 'solgt' ? 'status-solgt' : b.status === 'kassert' ? 'status-kassert' : 'status-på-lager';
+      const statusPill = { 'på lager': `<span class="status-pill pill-venter">På lager</span>`, 'solgt': `<span class="status-pill pill-bekreftet">Solgt</span>`, 'kassert': `<span class="status-pill pill-avbestilt">Kassert</span>` }[b.status] || '';
+      const ordersHtml = linkedOrders.length
+        ? `<div class="box-orders">🔍 Smittesporing: ${linkedOrders.map(o => `<span>${esc(o.name)} (${o.id})</span>`).join(', ')}</div>`
+        : `<div class="box-orders" style="color:var(--muted)">Ikke koblet til noen bestilling ennå</div>`;
+      return `<div class="box-card ${statusClass}">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span class="box-tracking">${esc(b.trackingId)}</span>
+          ${statusPill}
+        </div>
+        <div class="box-meta">
+          <span>📅 ${b.pickDate || '–'}</span>
+          <span>📍 ${esc(b.area)}</span>
+          <span>🛍 ${b.bags} poser</span>
+          <span>⚖️ ${b.weightPerBag}g/pose · ${b.totalWeight}g totalt</span>
+        </div>
+        ${b.note ? `<div style="font-size:0.82rem;color:var(--muted);">💬 ${esc(b.note)}</div>` : ''}
+        ${ordersHtml}
+        <div class="card-actions">
+          ${b.status !== 'kassert' ? `<button class="action-btn btn-cancel-order" onclick="api.put('/api/boxes/${b.id}',{status:'kassert'}).then(renderAll)">Kassér</button>` : ''}
+          <button class="action-btn btn-delete" onclick="deleteBox('${b.id}')">🗑</button>
+        </div>
+      </div>`;
+    }).join('');
   }
 
   // ── ACTIONS ──
@@ -718,34 +846,45 @@
     el.classList.add('active');
     document.getElementById('orderList').style.display    = view === 'bestillinger' ? 'flex' : 'none';
     document.getElementById('inquiryList').style.display  = view === 'henvendelser'  ? 'flex' : 'none';
+    document.getElementById('boxList').style.display      = view === 'lager'         ? 'flex' : 'none';
     document.getElementById('orderFilterBar').style.display = view === 'bestillinger' ? 'flex' : 'none';
-    document.getElementById('topbarTitle').textContent = view === 'bestillinger' ? 'Bestillinger' : 'Henvendelser';
+    document.getElementById('btnAddOrder').style.display  = view === 'bestillinger' ? '' : 'none';
+    document.getElementById('btnNewBox').style.display    = view === 'lager'         ? '' : 'none';
+    const titles = { bestillinger: 'Bestillinger', henvendelser: 'Henvendelser', lager: 'Lager & Smittesporing' };
+    document.getElementById('topbarTitle').textContent = titles[view] || view;
     renderAll();
   }
 
   // ── RENDER ──
   async function renderAll() {
-    const [orders, inquiries] = await Promise.all([api.get('/api/orders'), api.get('/api/inquiries')]);
-    renderStats(orders, inquiries);
+    const [orders, inquiries, boxes] = await Promise.all([api.get('/api/orders'), api.get('/api/inquiries'), api.get('/api/boxes')]);
+    renderStats(orders, inquiries, boxes);
     if (currentView === 'bestillinger') renderOrders(orders);
-    else renderInquiries(inquiries);
+    else if (currentView === 'henvendelser') renderInquiries(inquiries);
+    else if (currentView === 'lager') renderBoxes(boxes, orders);
   }
 
-  function renderStats(orders, inquiries) {
+  function renderStats(orders, inquiries, boxes) {
     const c = { alle: orders.length, venter: 0, bekreftet: 0, avbestilt: 0 };
     orders.forEach(o => c[o.status] = (c[o.status]||0)+1);
     const newInq = (inquiries||[]).filter(i => i.status === 'ny').length;
+    const totalBoxes = (boxes||[]).length;
+    const påLager = (boxes||[]).filter(b => b.status === 'på lager').length;
+    const solgtBoxes = (boxes||[]).filter(b => b.status === 'solgt').length;
 
     const badge = document.getElementById('inquiryBadge');
     badge.style.display = newInq > 0 ? 'inline-block' : 'none';
     badge.textContent = newInq;
 
     document.getElementById('statsRow').innerHTML = `
-      <div class="stat-card"><div class="num">${c.alle}</div><div class="lbl">Totalt</div></div>
+      <div class="stat-card"><div class="num">${c.alle}</div><div class="lbl">Bestillinger totalt</div></div>
       <div class="stat-card"><div class="num yellow">${c.venter}</div><div class="lbl">Venter</div></div>
       <div class="stat-card"><div class="num green">${c.bekreftet}</div><div class="lbl">Bekreftet</div></div>
       <div class="stat-card"><div class="num red">${c.avbestilt}</div><div class="lbl">Avbestilt</div></div>
       <div class="stat-card"><div class="num ${newInq>0?'yellow':''}">${newInq}</div><div class="lbl">Nye henvendelser</div></div>
+      <div class="stat-card"><div class="num yellow">${påLager}</div><div class="lbl">Esker på lager</div></div>
+      <div class="stat-card"><div class="num green">${solgtBoxes}</div><div class="lbl">Esker solgt</div></div>
+      <div class="stat-card"><div class="num">${totalBoxes}</div><div class="lbl">Esker totalt</div></div>
     `;
   }
 

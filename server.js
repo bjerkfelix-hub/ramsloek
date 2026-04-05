@@ -15,10 +15,10 @@ const DATA_FILE = path.join(DATA_DIR, 'store.json');
 function loadStore() {
   try {
     if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-    if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, JSON.stringify({ orders: [], inquiries: [] }, null, 2));
+    if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, JSON.stringify({ orders: [], inquiries: [], boxes: [] }, null, 2));
     return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
   } catch {
-    return { orders: [], inquiries: [] };
+    return { orders: [], inquiries: [], boxes: [] };
   }
 }
 
@@ -133,6 +133,40 @@ app.delete('/api/inquiries/:id', (req, res) => {
   const store = loadStore();
   if (!store.inquiries) store.inquiries = [];
   store.inquiries = store.inquiries.filter(o => o.id !== req.params.id);
+  saveStore(store);
+  res.json({ ok: true });
+});
+
+// ── Lager/Esker-API ──
+app.get('/api/boxes', (req, res) => {
+  const store = loadStore();
+  res.json(store.boxes || []);
+});
+
+app.post('/api/boxes', (req, res) => {
+  const store = loadStore();
+  if (!store.boxes) store.boxes = [];
+  const num = (store.boxes.length + 1).toString().padStart(3, '0');
+  const box = { id: Date.now().toString(), trackingId: `ESK-${num}`, timestamp: new Date().toISOString(), status: 'på lager', ...req.body };
+  store.boxes.push(box);
+  saveStore(store);
+  res.json({ ok: true, id: box.id, trackingId: box.trackingId });
+});
+
+app.put('/api/boxes/:id', (req, res) => {
+  const store = loadStore();
+  if (!store.boxes) store.boxes = [];
+  const idx = store.boxes.findIndex(b => b.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Ikke funnet' });
+  store.boxes[idx] = { ...store.boxes[idx], ...req.body };
+  saveStore(store);
+  res.json({ ok: true });
+});
+
+app.delete('/api/boxes/:id', (req, res) => {
+  const store = loadStore();
+  if (!store.boxes) store.boxes = [];
+  store.boxes = store.boxes.filter(b => b.id !== req.params.id);
   saveStore(store);
   res.json({ ok: true });
 });
