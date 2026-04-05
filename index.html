@@ -861,13 +861,26 @@
 <section id="kontakt">
   <div class="container">
     <p class="section-label">Kontakt</p>
-    <h2>Ta kontakt</h2>
-    <p class="lead">Spørsmål om produktene, sesongen eller levering? Ikke nøl med å ta kontakt.</p>
-    <div class="contact-info">
-      <div class="contact-chip">👤 [NAVN]</div>
-      <div class="contact-chip">📞 [TELEFON]</div>
-      <div class="contact-chip">✉️ [EPOST]</div>
-      <div class="contact-chip">📍 Nesodden, Akershus</div>
+    <h2>La oss kontakte deg</h2>
+    <p class="lead">Legg igjen e-postadressen din og hva det gjelder, så tar vi kontakt.</p>
+    <div class="inquiry-box">
+      <form id="contactForm">
+        <div class="form-group">
+          <label for="ct_email">Din e-postadresse</label>
+          <input type="email" id="ct_email" placeholder="ola@example.com" required />
+        </div>
+        <div class="form-group">
+          <label for="ct_subject">Hva gjelder det?</label>
+          <input type="text" id="ct_subject" placeholder="F.eks. spørsmål om levering, priser, sesong…" required />
+        </div>
+        <button type="submit" class="btn" style="width:100%;">Send</button>
+        <div class="success-msg" id="contactSuccess" style="margin-top:1rem;">
+          ✅ Takk! Vi tar kontakt med deg snart.
+        </div>
+      </form>
+    </div>
+    <div class="contact-info" style="margin-top:1.5rem;">
+      <div class="contact-chip">📍 Bellevue, Nesodden, Akershus</div>
     </div>
   </div>
 </section>
@@ -1000,6 +1013,32 @@
       btn.textContent = 'Send bestilling';
       btn.disabled = false;
       alert('Noe gikk galt. Prøv igjen eller ta kontakt direkte.');
+    }
+  });
+
+  // ── KONTAKTSKJEMA ──
+  document.getElementById('contactForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = this.querySelector('button[type=submit]');
+    btn.textContent = 'Sender…';
+    btn.disabled = true;
+    try {
+      const res = await fetch('/api/inquiries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: document.getElementById('ct_email').value.split('@')[0],
+          email: document.getElementById('ct_email').value.trim(),
+          message: document.getElementById('ct_subject').value.trim()
+        })
+      });
+      if (!res.ok) throw new Error();
+      document.getElementById('contactSuccess').style.display = 'block';
+      this.querySelectorAll('input, button').forEach(el => el.disabled = true);
+    } catch {
+      btn.textContent = 'Send';
+      btn.disabled = false;
+      alert('Noe gikk galt. Prøv igjen.');
     }
   });
 
