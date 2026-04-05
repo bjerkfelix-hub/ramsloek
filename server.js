@@ -1,5 +1,4 @@
 const express = require('express');
-const nodemailer = require('nodemailer');
 const fs = require('fs');
 const path = require('path');
 
@@ -32,37 +31,26 @@ function saveStore(data) {
   }
 }
 
-// ── E-post (Gmail) ──
-function createTransporter() {
-  const user = process.env.GMAIL_USER;
-  const pass = process.env.GMAIL_APP_PASSWORD;
-  if (!user || !pass) {
-    console.warn('⚠️  GMAIL_USER eller GMAIL_APP_PASSWORD mangler – e-post deaktivert');
-    return null;
-  }
-  console.log('📧 E-posttransport opprettes for:', user);
-  return nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
-    requireTLS: true,
-    auth: { user, pass }
-  });
-}
-
+// ── E-post (Resend) ──
 async function sendEmail(subject, text, to) {
-  const transporter = createTransporter();
-  if (!transporter) return;
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) { console.warn('⚠️  RESEND_API_KEY mangler – e-post deaktivert'); return; }
   const recipient = to || process.env.GMAIL_USER;
   console.log(`📤 Sender e-post til ${recipient}: "${subject}"`);
   try {
-    await transporter.sendMail({
-      from: `"Ramsløk Nesodden" <${process.env.GMAIL_USER}>`,
-      to: recipient,
-      subject,
-      text
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: 'Ramsløk Nesodden <onboarding@resend.dev>',
+        to: recipient,
+        subject,
+        text
+      })
     });
-    console.log(`✅ E-post sendt til ${recipient}`);
+    const data = await res.json();
+    if (res.ok) console.log(`✅ E-post sendt til ${recipient}`);
+    else console.error('❌ E-postfeil:', JSON.stringify(data));
   } catch (e) {
     console.error('❌ E-postfeil:', e.message);
   }
