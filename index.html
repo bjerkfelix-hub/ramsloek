@@ -4,13 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kjøp fersk ramsløk – Bellevue, Nesodden</title>
-  <meta name="description" content="Kjøp fersk ramsløk plukket on demand fra Bellevue på Nesodden. Kortreist, klimavennlig og uten mellomledd. Henting lørdag på Nesodden eller levering i Oslo." />
+  <meta name="description" content="Kjøp fersk ramsløk plukket ved bestilling fra Bellevue på Nesodden. Kortreist, klimavennlig og uten mellomledd. Henting lørdag på Nesodden eller levering i Oslo." />
   <meta name="keywords" content="kjøp ramsløk, fersk ramsløk, ramsløk oslo, ramsløk nesodden, ramsløk bestille, vill hvitløk, kortreist, ramsløk 2026" />
   <link rel="canonical" href="https://ramsloek.no/" />
 
   <!-- Open Graph -->
   <meta property="og:title" content="Kjøp fersk ramsløk – Bellevue, Nesodden" />
-  <meta property="og:description" content="Plukket on demand fra privat eiendom på Nesodden. Henting lørdag eller levering i sentrale Oslo." />
+  <meta property="og:description" content="Plukket ved bestilling fra privat eiendom på Nesodden. Henting lørdag eller levering i sentrale Oslo." />
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="nb_NO" />
 
@@ -20,7 +20,7 @@
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     "name": "Bellevue Ramsløk",
-    "description": "Fersk, kortreist ramsløk plukket on demand fra privat eiendom på Nesodden.",
+    "description": "Fersk, kortreist ramsløk plukket ved bestilling fra privat eiendom på Nesodden.",
     "address": {
       "@type": "PostalAddress",
       "addressLocality": "Nesodden",
@@ -628,6 +628,24 @@
     html.dark footer { background: #0d1117; }
     html.dark .success-msg { background: #0d2818; border-color: #1b4332; }
 
+    /* ── LANG TOGGLE ── */
+    .lang-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0 0.6rem;
+      height: 2.1rem;
+      font-family: sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      transition: background 0.2s, color 0.2s;
+      flex-shrink: 0;
+    }
+    .lang-toggle:hover { background: var(--green-pale); color: var(--green); }
+
     /* ── DARK TOGGLE BUTTON ── */
     .dark-toggle {
       background: none;
@@ -653,17 +671,18 @@
 <nav>
   <a class="nav-logo" href="#">Nesodden Ramsløk</a>
   <ul class="nav-links">
-    <li><a href="#produkter">Produkter</a></li>
-    <li><a href="#slik-fungerer-det">Slik fungerer det</a></li>
-    <li><a href="#bestill">Bestill</a></li>
-    <li><a href="#om">Om</a></li>
-    <li><a href="#henvendelse">Henvendelser</a></li>
-    <li><a href="#kontakt">Kontakt</a></li>
+    <li><a href="#produkter" data-no="Produkter" data-en="Products">Produkter</a></li>
+    <li><a href="#slik-fungerer-det" data-no="Slik fungerer det" data-en="How it works">Slik fungerer det</a></li>
+    <li><a href="#bestill" data-no="Bestill" data-en="Order">Bestill</a></li>
+    <li><a href="#om" data-no="Om" data-en="About">Om</a></li>
+    <li><a href="#henvendelse" data-no="Henvendelser" data-en="Inquiries">Henvendelser</a></li>
+    <li><a href="#kontakt" data-no="Kontakt" data-en="Contact">Kontakt</a></li>
   </ul>
   <div style="display:flex;align-items:center;gap:0.6rem;">
+    <button class="lang-toggle" id="langToggle" onclick="toggleLang()">NO</button>
     <button class="dark-toggle" id="darkToggle" onclick="toggleDark()" title="Bytt tema">🌙</button>
     <button class="cart-btn" onclick="openCart()">
-      🛒 Handlekurv <span class="cart-count" id="cartCount">0</span>
+      🛒 <span data-no="Handlekurv" data-en="Cart">Handlekurv</span> <span class="cart-count" id="cartCount">0</span>
     </button>
   </div>
 </nav>
@@ -672,69 +691,68 @@
 <div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
 <div class="cart-drawer" id="cartDrawer">
   <div class="cart-header">
-    <h3>Handlekurv</h3>
+    <h3 data-no="Handlekurv" data-en="Cart">Handlekurv</h3>
     <button class="cart-close" onclick="closeCart()">✕</button>
   </div>
   <div class="cart-items" id="cartItems">
-    <div class="cart-empty">Handlekurven er tom.<br>Legg til produkter for å bestille.</div>
+    <div class="cart-empty" data-no-html="Handlekurven er tom.<br>Legg til produkter for å bestille." data-en-html="Your cart is empty.<br>Add products to order.">Handlekurven er tom.<br>Legg til produkter for å bestille.</div>
   </div>
   <div class="cart-footer">
     <div class="cart-total-row">
-      <span class="cart-total-label">Total</span>
+      <span class="cart-total-label" data-no="Total" data-en="Total">Total</span>
       <span class="cart-total-amount" id="cartTotal">0 kr</span>
     </div>
-    <button class="cart-checkout-btn" id="cartCheckoutBtn" onclick="goToCheckout()" disabled>Gå til bestilling</button>
+    <button class="cart-checkout-btn" id="cartCheckoutBtn" onclick="goToCheckout()" disabled data-no="Gå til bestilling" data-en="Go to checkout">Gå til bestilling</button>
   </div>
 </div>
 
 <!-- HERO -->
 <section class="hero">
-  <p class="hero-eyebrow">Privat eiendom · Nesodden</p>
-  <h1>Fersk ramsløk,<br>plukket for deg</h1>
-  <p>Rett fra skogen på Nesodden til bordet ditt – høstet on demand, kortreist og med minimalt klimafotavtrykk.</p>
+  <p class="hero-eyebrow" data-no="Privat eiendom · Nesodden" data-en="Private property · Nesodden">Privat eiendom · Nesodden</p>
+  <h1 data-no-html="Fersk ramsløk,<br>plukket for deg" data-en-html="Fresh wild garlic,<br>picked for you">Fersk ramsløk,<br>plukket for deg</h1>
+  <p data-no="Rett fra skogen på Nesodden til bordet ditt – høstet ved bestilling, kortreist og med minimalt klimafotavtrykk." data-en="Straight from the forest on Nesodden to your table – harvested to order, locally sourced with minimal carbon footprint.">Rett fra skogen på Nesodden til bordet ditt – høstet ved bestilling, kortreist og med minimalt klimafotavtrykk.</p>
   <div class="badge-row">
-    <span class="badge">🌿 Plukkes ved bestilling</span>
+    <span class="badge" data-no="🌿 Plukkes ved bestilling" data-en="🌿 Picked to order">🌿 Plukkes ved bestilling</span>
     <span class="badge">📍 Nesodden</span>
-    <span class="badge">♻️ Lavt klimafotavtrykk</span>
-    <span class="badge">🚫 Ingen mellomledd</span>
+    <span class="badge" data-no="♻️ Lavt klimafotavtrykk" data-en="♻️ Low carbon footprint">♻️ Lavt klimafotavtrykk</span>
+    <span class="badge" data-no="🚫 Ingen mellomledd" data-en="🚫 No middlemen">🚫 Ingen mellomledd</span>
   </div>
   <div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;">
-    <a class="btn" href="#bestill">Bestill nå</a>
-    <a class="btn btn-outline" href="#produkter">Se produkter</a>
+    <a class="btn" href="#bestill" data-no="Bestill nå" data-en="Order now">Bestill nå</a>
+    <a class="btn btn-outline" href="#produkter" data-no="Se produkter" data-en="View products">Se produkter</a>
   </div>
-
 </section>
 
 <!-- PRODUKTER -->
 <section id="produkter">
   <div class="container">
-    <p class="section-label">Produkter</p>
-    <h2>Hva kan du bestille?</h2>
-    <p class="lead">Ramsløk er en allsidig vårurt. Vi tilbyr blader til salat og pesto, samt hele planter med løk og stilk.</p>
+    <p class="section-label" data-no="Produkter" data-en="Products">Produkter</p>
+    <h2 data-no="Hva kan du bestille?" data-en="What can you order?">Hva kan du bestille?</h2>
+    <p class="lead" data-no="Ramsløk er en allsidig vårurt. Vi tilbyr blader til salat og pesto, samt hele planter med løk og stilk." data-en="Wild garlic is a versatile spring herb. We offer leaves for salads and pesto, as well as whole plants with bulb and stem.">Ramsløk er en allsidig vårurt. Vi tilbyr blader til salat og pesto, samt hele planter med løk og stilk.</p>
     <div class="product-grid">
       <div class="product-card">
-        <span class="product-tag">Bare blader</span>
-        <h3>Ramsløkblader</h3>
-        <p class="product-desc">Bare blader, uten stilk. Mer delikat og kortere holdbarhet – best brukt samme dag eller dagen etter.</p>
+        <span class="product-tag" data-no="Bare blader" data-en="Leaves only">Bare blader</span>
+        <h3 data-no="Ramsløkblader" data-en="Wild garlic leaves">Ramsløkblader</h3>
+        <p class="product-desc" data-no="Bare blader, uten stilk. Mer delikat og kortere holdbarhet – best brukt samme dag eller dagen etter." data-en="Leaves only, without stem. More delicate with shorter shelf life – best used the same day or the day after.">Bare blader, uten stilk. Mer delikat og kortere holdbarhet – best brukt samme dag eller dagen etter.</p>
         <div class="product-price">65 kr <span>/ 100g</span></div>
-        <button class="add-to-cart-btn" onclick="addToCart('blader', 'Ramsløkblader', 65, '100g', this)">+ Legg i kurv</button>
+        <button class="add-to-cart-btn" data-no="+ Legg i kurv" data-en="+ Add to cart" onclick="addToCart('blader', 'Ramsløkblader', 65, '100g', this)">+ Legg i kurv</button>
       </div>
       <div class="product-card">
-        <span class="product-tag">⭐ Anbefalt</span>
-        <h3>Blader + løk/stilk</h3>
-        <p class="product-desc">Plukket med stilk og løk – holder seg lengre, smaker mer og gir bedre verdi per krone. Vårt ferskeste og mest holdbare alternativ.</p>
+        <span class="product-tag" data-no="⭐ Anbefalt" data-en="⭐ Recommended">⭐ Anbefalt</span>
+        <h3 data-no="Blader + løk/stilk" data-en="Leaves + bulb/stem">Blader + løk/stilk</h3>
+        <p class="product-desc" data-no="Plukket med stilk og løk – holder seg lengre, smaker mer og gir bedre verdi per krone. Vårt ferskeste og mest holdbare alternativ." data-en="Picked with stem and bulb – lasts longer, tastes richer, better value for money. Our freshest and most durable option.">Plukket med stilk og løk – holder seg lengre, smaker mer og gir bedre verdi per krone. Vårt ferskeste og mest holdbare alternativ.</p>
         <div class="product-price">40 kr <span>/ 100g</span></div>
-        <button class="add-to-cart-btn" onclick="addToCart('stilk', 'Blader + løk/stilk', 40, '100g', this)">+ Legg i kurv</button>
+        <button class="add-to-cart-btn" data-no="+ Legg i kurv" data-en="+ Add to cart" onclick="addToCart('stilk', 'Blader + løk/stilk', 40, '100g', this)">+ Legg i kurv</button>
       </div>
       <div class="product-card">
-        <span class="product-tag">Storbunke</span>
-        <h3>Familiepose</h3>
-        <p class="product-desc">Større mengde for deg som vil lage pesto i store volum, sylte, eller fylle fryseren.</p>
+        <span class="product-tag" data-no="Storbunke" data-en="Bulk">Storbunke</span>
+        <h3 data-no="Familiepose" data-en="Family bag">Familiepose</h3>
+        <p class="product-desc" data-no="Større mengde for deg som vil lage pesto i store volum, sylte, eller fylle fryseren." data-en="Larger quantity for those who want to make pesto in bulk, pickle, or fill the freezer.">Større mengde for deg som vil lage pesto i store volum, sylte, eller fylle fryseren.</p>
         <div class="product-price">200 kr <span>/ 500g</span></div>
-        <button class="add-to-cart-btn" onclick="addToCart('pose', 'Familiepose', 200, '500g', this)">+ Legg i kurv</button>
+        <button class="add-to-cart-btn" data-no="+ Legg i kurv" data-en="+ Add to cart" onclick="addToCart('pose', 'Familiepose', 200, '500g', this)">+ Legg i kurv</button>
       </div>
     </div>
-    <p style="font-family:sans-serif;font-size:0.82rem;color:var(--muted);margin-top:1.2rem;">
+    <p style="font-family:sans-serif;font-size:0.82rem;color:var(--muted);margin-top:1.2rem;" data-no-html="Sesongen er kort – typisk <strong>april–mai</strong>. Bestill tidlig for å sikre deg en plass i køen." data-en-html="The season is short – typically <strong>April–May</strong>. Order early to secure your spot.">
       Sesongen er kort – typisk <strong>april–mai</strong>. Bestill tidlig for å sikre deg en plass i køen.
     </p>
   </div>
@@ -744,21 +762,21 @@
 <div class="sustainability-strip">
   <div class="container">
     <div class="sust-text">
-      <h2>Kortreist betyr noe</h2>
-      <p>Ramsløken reiser bare noen minutter fra skog til hente/leveringspunkt. Ingen kjølelager, ingen flyfrakt, ingen emballasjelinje.</p>
+      <h2 data-no="Kortreist betyr noe" data-en="Local sourcing matters">Kortreist betyr noe</h2>
+      <p data-no="Ramsløken reiser bare noen minutter fra skog til hente/leveringspunkt. Ingen kjølelager, ingen flyfrakt, ingen emballasjelinje." data-en="The wild garlic travels only minutes from forest to pickup/delivery point. No cold storage, no air freight, no packaging line.">Ramsløken reiser bare noen minutter fra skog til hente/leveringspunkt. Ingen kjølelager, ingen flyfrakt, ingen emballasjelinje.</p>
     </div>
     <div class="sust-stats">
       <div class="stat">
         <div class="stat-num">~0</div>
-        <div class="stat-label">Mellomledd</div>
+        <div class="stat-label" data-no="Mellomledd" data-en="Middlemen">Mellomledd</div>
       </div>
       <div class="stat">
         <div class="stat-num">&lt;30</div>
-        <div class="stat-label">Km fra åker til deg</div>
+        <div class="stat-label" data-no="Km fra åker til deg" data-en="Km field to you">Km fra åker til deg</div>
       </div>
       <div class="stat">
         <div class="stat-num">100%</div>
-        <div class="stat-label">Naturlig dyrket</div>
+        <div class="stat-label" data-no="Naturlig dyrket" data-en="Naturally grown">Naturlig dyrket</div>
       </div>
     </div>
   </div>
@@ -767,25 +785,25 @@
 <!-- SLIK FUNGERER DET -->
 <section id="slik-fungerer-det">
   <div class="container">
-    <p class="section-label">Fremgangsmåte</p>
-    <h2>Slik fungerer det</h2>
-    <p class="lead">Bestillingsprosessen er enkel og tar under to minutter.</p>
+    <p class="section-label" data-no="Fremgangsmåte" data-en="Process">Fremgangsmåte</p>
+    <h2 data-no="Slik fungerer det" data-en="How it works">Slik fungerer det</h2>
+    <p class="lead" data-no="Bestillingsprosessen er enkel og tar under to minutter." data-en="The ordering process is simple and takes under two minutes.">Bestillingsprosessen er enkel og tar under to minutter.</p>
     <div class="steps">
       <div class="step">
-        <h3>Bestill via skjema</h3>
-        <p>Fyll ut bestillingsskjemaet nedenfor med ønsket produkt og mengde.</p>
+        <h3 data-no="Bestill via skjema" data-en="Order via form">Bestill via skjema</h3>
+        <p data-no="Fyll ut bestillingsskjemaet nedenfor med ønsket produkt og mengde." data-en="Fill out the order form below with the desired product and quantity.">Fyll ut bestillingsskjemaet nedenfor med ønsket produkt og mengde.</p>
       </div>
       <div class="step">
-        <h3>Betal via Vipps</h3>
-        <p>Send betaling til Vipps-nummer <strong>[VIPPS]</strong> med navn og bestilling som melding.</p>
+        <h3 data-no="Betal via Vipps" data-en="Pay via Vipps">Betal via Vipps</h3>
+        <p data-no-html="Send betaling til Vipps-nummer <strong>[VIPPS]</strong> med navn og bestilling som melding." data-en-html="Send payment to Vipps number <strong>[VIPPS]</strong> with your name and order as the message.">Send betaling til Vipps-nummer <strong>[VIPPS]</strong> med navn og bestilling som melding.</p>
       </div>
       <div class="step">
-        <h3>Vi plukker</h3>
-        <p>Etter bekreftet betaling plukker vi ramsløken din fersk fra eiendommen.</p>
+        <h3 data-no="Vi plukker" data-en="We pick">Vi plukker</h3>
+        <p data-no="Etter bekreftet betaling plukker vi ramsløken din fersk fra eiendommen." data-en="After confirmed payment we pick your wild garlic fresh from the property.">Etter bekreftet betaling plukker vi ramsløken din fersk fra eiendommen.</p>
       </div>
       <div class="step">
-        <h3>Hent eller motta</h3>
-        <p>Hent på Nesodden (lørdag), hent i Oslo, eller motta levering i sentrale Oslo (+75 kr). Vi avtaler tidspunkt per SMS/e-post.</p>
+        <h3 data-no="Hent eller motta" data-en="Pick up or receive">Hent eller motta</h3>
+        <p data-no="Hent på Nesodden (lørdag), hent i Oslo, eller motta levering i sentrale Oslo (+75 kr). Vi avtaler tidspunkt per SMS/e-post." data-en="Pick up on Nesodden (Saturday), pick up in Oslo, or receive delivery in central Oslo (+75 kr). We arrange time via SMS/email.">Hent på Nesodden (lørdag), hent i Oslo, eller motta levering i sentrale Oslo (+75 kr). Vi avtaler tidspunkt per SMS/e-post.</p>
       </div>
     </div>
   </div>
@@ -794,52 +812,52 @@
 <!-- BESTILL -->
 <section id="bestill">
   <div class="container">
-    <p class="section-label">Bestilling</p>
-    <h2>Legg inn bestilling</h2>
-    <p class="lead">Fyll ut skjemaet, betal på Vipps, og vi tar kontakt for å avtale henting eller levering.</p>
+    <p class="section-label" data-no="Bestilling" data-en="Order">Bestilling</p>
+    <h2 data-no="Legg inn bestilling" data-en="Place an order">Legg inn bestilling</h2>
+    <p class="lead" data-no="Fyll ut skjemaet, betal på Vipps, og vi tar kontakt for å avtale henting eller levering." data-en="Fill out the form, pay via Vipps, and we will be in touch to arrange pickup or delivery.">Fyll ut skjemaet, betal på Vipps, og vi tar kontakt for å avtale henting eller levering.</p>
     <div class="order-box">
-      <div class="vipps-row">
+      <div class="vipps-row" data-no-html="💳 Betal til Vipps-nummer <strong>[VIPPS]</strong> – merk betalingen med fullt navn og hva du bestiller. Legg til 75 kr ved levering i sentrale Oslo." data-en-html="💳 Pay to Vipps number <strong>[VIPPS]</strong> – include your full name and order in the message. Add 75 kr for delivery in central Oslo.">
         💳 Betal til Vipps-nummer <strong>[VIPPS]</strong> – merk betalingen med fullt navn og hva du bestiller. Legg til 75 kr ved levering i sentrale Oslo.
       </div>
-      <h3>Bestillingsskjema</h3>
+      <h3 data-no="Bestillingsskjema" data-en="Order form">Bestillingsskjema</h3>
       <div id="orderSummaryBox" style="display:none;">
         <div class="order-summary" id="orderSummary"></div>
       </div>
       <p style="font-family:sans-serif;font-size:0.875rem;color:var(--muted);margin-bottom:1rem;">
-        <a href="#produkter" style="color:var(--green)">Legg til produkter i handlekurven</a> før du bestiller.
+        <a href="#produkter" style="color:var(--green)" data-no="Legg til produkter i handlekurven" data-en="Add products to your cart">Legg til produkter i handlekurven</a><span data-no=" før du bestiller." data-en=" before ordering."> før du bestiller.</span>
       </p>
       <p id="emptyCartMsg" style="font-family:sans-serif;font-size:0.875rem;color:#dc2626;margin-bottom:1rem;display:none;">
-        ⚠️ Handlekurven er tom. <a href="#produkter" style="color:var(--green)">Legg til produkter</a> først.
+        <span data-no="⚠️ Handlekurven er tom." data-en="⚠️ Your cart is empty.">⚠️ Handlekurven er tom.</span> <a href="#produkter" style="color:var(--green)" data-no="Legg til produkter" data-en="Add products">Legg til produkter</a><span data-no=" først." data-en=" first."> først.</span>
       </p>
       <form id="orderForm">
         <div class="form-group">
-          <label for="name">Fullt navn</label>
-          <input type="text" id="name" placeholder="Ola Nordmann" required />
+          <label for="name" data-no="Fullt navn" data-en="Full name">Fullt navn</label>
+          <input type="text" id="name" placeholder="Ola Nordmann" data-ph-no="Ola Nordmann" data-ph-en="John Smith" required />
         </div>
         <div class="form-group">
-          <label for="phone">Telefonnummer</label>
+          <label for="phone" data-no="Telefonnummer" data-en="Phone number">Telefonnummer</label>
           <input type="tel" id="phone" placeholder="400 00 000" required />
         </div>
         <div class="form-group">
-          <label for="email">E-postadresse</label>
+          <label for="email" data-no="E-postadresse" data-en="Email address">E-postadresse</label>
           <input type="email" id="email" placeholder="ola@example.com" required />
         </div>
         <div class="form-group">
-          <label for="delivery">Henting eller levering?</label>
+          <label for="delivery" data-no="Henting eller levering?" data-en="Pickup or delivery?">Henting eller levering?</label>
           <select id="delivery" required>
-            <option value="">Velg…</option>
-            <option value="Henting på Nesodden (lørdag)">⭐ Henting på Nesodden (lørdag – anbefalt)</option>
-            <option value="Henting i Oslo">Henting i Oslo (sted avtales)</option>
-            <option value="Levering i sentrale Oslo (+75 kr)">Levering i sentrale Oslo (+75 kr)</option>
+            <option value="" data-no="Velg…" data-en="Choose…">Velg…</option>
+            <option value="Henting på Nesodden (lørdag)" data-no="⭐ Henting på Nesodden (lørdag – anbefalt)" data-en="⭐ Pickup at Nesodden (Saturday – recommended)">⭐ Henting på Nesodden (lørdag – anbefalt)</option>
+            <option value="Henting i Oslo" data-no="Henting i Oslo (sted avtales)" data-en="Pickup in Oslo (location TBD)">Henting i Oslo (sted avtales)</option>
+            <option value="Levering i sentrale Oslo (+75 kr)" data-no="Levering i sentrale Oslo (+75 kr)" data-en="Delivery in central Oslo (+75 kr)">Levering i sentrale Oslo (+75 kr)</option>
           </select>
         </div>
         <div class="form-group">
-          <label for="note">Kommentar (valgfritt)</label>
-          <textarea id="note" placeholder="Ønsket tidspunkt, spørsmål, o.l."></textarea>
+          <label for="note" data-no="Kommentar (valgfritt)" data-en="Comment (optional)">Kommentar (valgfritt)</label>
+          <textarea id="note" placeholder="Ønsket tidspunkt, spørsmål, o.l." data-ph-no="Ønsket tidspunkt, spørsmål, o.l." data-ph-en="Preferred time, questions, etc."></textarea>
         </div>
-        <button type="submit" class="btn" style="width:100%;" id="orderSubmitBtn">Send bestilling</button>
-        <p class="order-note">Vi bekrefter bestillingen og avtaler detaljer via SMS/e-post innen 24 timer.</p>
-        <div class="success-msg" id="successMsg">
+        <button type="submit" class="btn" style="width:100%;" id="orderSubmitBtn" data-no="Send bestilling" data-en="Place order">Send bestilling</button>
+        <p class="order-note" data-no="Vi bekrefter bestillingen og avtaler detaljer via SMS/e-post innen 24 timer." data-en="We confirm the order and arrange details via SMS/email within 24 hours.">Vi bekrefter bestillingen og avtaler detaljer via SMS/e-post innen 24 timer.</p>
+        <div class="success-msg" id="successMsg" data-no-html="✅ Takk for bestillingen! Vi tar kontakt snart for å bekrefte og avtale levering/henting. Husk å betale på Vipps-nummer <strong>[VIPPS]</strong>." data-en-html="✅ Thank you for your order! We will be in touch soon to confirm and arrange delivery/pickup. Remember to pay via Vipps number <strong>[VIPPS]</strong>.">
           ✅ Takk for bestillingen! Vi tar kontakt snart for å bekrefte og avtale levering/henting. Husk å betale på Vipps-nummer <strong>[VIPPS]</strong>.
         </div>
       </form>
@@ -850,31 +868,31 @@
 <!-- OM -->
 <section id="om">
   <div class="container">
-    <p class="section-label">Om oss</p>
-    <h2>Vill ramsløk fra<br>Bellevue på Nesodden</h2>
-    <p class="lead">
+    <p class="section-label" data-no="Om oss" data-en="About us">Om oss</p>
+    <h2 data-no-html="Vill ramsløk fra<br>Bellevue på Nesodden" data-en-html="Wild garlic from<br>Bellevue on Nesodden">Vill ramsløk fra<br>Bellevue på Nesodden</h2>
+    <p class="lead" data-no="Ramsløken vokser naturlig i skogen på eiendommen vår – Bellevue på Nesodden. Vi plukker aldri mer enn naturen tåler, og alltid til ordre – slik at det du mottar er så ferskt som mulig." data-en="The wild garlic grows naturally in the forest on our property – Bellevue on Nesodden. We never pick more than nature can sustain, and always to order – so what you receive is as fresh as possible.">
       Ramsløken vokser naturlig i skogen på eiendommen vår – Bellevue på Nesodden. Vi plukker aldri mer enn naturen tåler, og alltid til ordre – slik at det du mottar er så ferskt som mulig.
     </p>
     <div class="features-grid">
       <div class="feature-card">
         <div class="feature-icon">🌱</div>
-        <h3>On demand</h3>
-        <p>Vi plukker først etter at du har bestilt. Ingen lagring, ingen visning – kun det ferskeste.</p>
+        <h3 data-no="Plukkes ved bestilling" data-en="Picked to order">Plukkes ved bestilling</h3>
+        <p data-no="Vi plukker først etter at du har bestilt. Ingen lagring, ingen visning – kun det ferskeste." data-en="We only pick after you have ordered. No storage, no wilting – only the freshest.">Vi plukker først etter at du har bestilt. Ingen lagring, ingen visning – kun det ferskeste.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">📍</div>
-        <h3>Kortreist</h3>
-        <p>Fra vår egen eiendom på Nesodden – noen av de korteste transportlinjene du kan få på mat.</p>
+        <h3 data-no="Kortreist" data-en="Locally sourced">Kortreist</h3>
+        <p data-no="Fra vår egen eiendom på Nesodden – noen av de korteste transportlinjene du kan få på mat." data-en="From our own property on Nesodden – some of the shortest supply lines you can get for food.">Fra vår egen eiendom på Nesodden – noen av de korteste transportlinjene du kan få på mat.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">🌍</div>
-        <h3>Klimavennlig</h3>
-        <p>Ingen sprøytemidler, ingen produksjonsanlegg, ingen lange forsyningskjeder. Naturen gjør jobben.</p>
+        <h3 data-no="Klimavennlig" data-en="Climate-friendly">Klimavennlig</h3>
+        <p data-no="Ingen sprøytemidler, ingen produksjonsanlegg, ingen lange forsyningskjeder. Naturen gjør jobben." data-en="No pesticides, no production facility, no long supply chains. Nature does the work.">Ingen sprøytemidler, ingen produksjonsanlegg, ingen lange forsyningskjeder. Naturen gjør jobben.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">🧑‍🌾</div>
-        <h3>Direkte fra eier</h3>
-        <p>Ingen grossist, ingen butikk. Du handler direkte med den som plukket planten.</p>
+        <h3 data-no="Direkte fra eier" data-en="Direct from owner">Direkte fra eier</h3>
+        <p data-no="Ingen grossist, ingen butikk. Du handler direkte med den som plukket planten." data-en="No wholesaler, no shop. You buy directly from the person who picked the plant.">Ingen grossist, ingen butikk. Du handler direkte med den som plukket planten.</p>
       </div>
     </div>
 
@@ -884,29 +902,29 @@
 <!-- HENVENDELSE -->
 <section id="henvendelse">
   <div class="container">
-    <p class="section-label">Spesielle henvendelser</p>
-    <h2>Spørsmål eller særønsker?</h2>
-    <p class="lead">Storbedrift, restaurantbestilling, spesialtidspunkt? Send oss en melding så tar vi kontakt.</p>
+    <p class="section-label" data-no="Spesielle henvendelser" data-en="Special inquiries">Spesielle henvendelser</p>
+    <h2 data-no="Spørsmål eller særønsker?" data-en="Questions or special requests?">Spørsmål eller særønsker?</h2>
+    <p class="lead" data-no="Storbedrift, restaurantbestilling, spesialtidspunkt? Send oss en melding så tar vi kontakt." data-en="Large order, restaurant supply, special timing? Send us a message and we'll be in touch.">Storbedrift, restaurantbestilling, spesialtidspunkt? Send oss en melding så tar vi kontakt.</p>
     <div class="inquiry-box">
       <form id="inquiryForm">
         <div class="form-group">
-          <label for="iq_name">Fullt navn</label>
-          <input type="text" id="iq_name" placeholder="Ola Nordmann" required />
+          <label for="iq_name" data-no="Fullt navn" data-en="Full name">Fullt navn</label>
+          <input type="text" id="iq_name" placeholder="Ola Nordmann" data-ph-no="Ola Nordmann" data-ph-en="John Smith" required />
         </div>
         <div class="form-group">
-          <label for="iq_email">E-postadresse</label>
+          <label for="iq_email" data-no="E-postadresse" data-en="Email address">E-postadresse</label>
           <input type="email" id="iq_email" placeholder="ola@example.com" required />
         </div>
         <div class="form-group">
-          <label for="iq_phone">Telefon (valgfritt)</label>
+          <label for="iq_phone" data-no="Telefon (valgfritt)" data-en="Phone (optional)">Telefon (valgfritt)</label>
           <input type="tel" id="iq_phone" placeholder="400 00 000" />
         </div>
         <div class="form-group">
-          <label for="iq_message">Melding</label>
-          <textarea id="iq_message" placeholder="Fortell oss hva du lurer på eller trenger…" style="min-height:120px;" required></textarea>
+          <label for="iq_message" data-no="Melding" data-en="Message">Melding</label>
+          <textarea id="iq_message" placeholder="Fortell oss hva du lurer på eller trenger…" data-ph-no="Fortell oss hva du lurer på eller trenger…" data-ph-en="Tell us what you need or are wondering about…" style="min-height:120px;" required></textarea>
         </div>
-        <button type="submit" class="btn" style="width:100%;">Send henvendelse</button>
-        <div class="success-msg" id="inquirySuccess" style="margin-top:1rem;">
+        <button type="submit" class="btn" style="width:100%;" data-no="Send henvendelse" data-en="Send inquiry">Send henvendelse</button>
+        <div class="success-msg" id="inquirySuccess" style="margin-top:1rem;" data-no="✅ Takk! Vi svarer deg innen 24 timer." data-en="✅ Thanks! We'll reply within 24 hours.">
           ✅ Takk! Vi svarer deg innen 24 timer.
         </div>
       </form>
@@ -917,21 +935,21 @@
 <!-- KONTAKT -->
 <section id="kontakt">
   <div class="container">
-    <p class="section-label">Kontakt</p>
-    <h2>La oss kontakte deg</h2>
-    <p class="lead">Legg igjen e-postadressen din og hva det gjelder, så tar vi kontakt.</p>
+    <p class="section-label" data-no="Kontakt" data-en="Contact">Kontakt</p>
+    <h2 data-no="La oss kontakte deg" data-en="Let us contact you">La oss kontakte deg</h2>
+    <p class="lead" data-no="Legg igjen e-postadressen din og hva det gjelder, så tar vi kontakt." data-en="Leave your email and what it regards, and we'll be in touch.">Legg igjen e-postadressen din og hva det gjelder, så tar vi kontakt.</p>
     <div class="inquiry-box">
       <form id="contactForm">
         <div class="form-group">
-          <label for="ct_email">Din e-postadresse</label>
+          <label for="ct_email" data-no="Din e-postadresse" data-en="Your email address">Din e-postadresse</label>
           <input type="email" id="ct_email" placeholder="ola@example.com" required />
         </div>
         <div class="form-group">
-          <label for="ct_subject">Hva gjelder det?</label>
-          <input type="text" id="ct_subject" placeholder="F.eks. spørsmål om levering, priser, sesong…" required />
+          <label for="ct_subject" data-no="Hva gjelder det?" data-en="What is it about?">Hva gjelder det?</label>
+          <input type="text" id="ct_subject" placeholder="F.eks. spørsmål om levering, priser, sesong…" data-ph-no="F.eks. spørsmål om levering, priser, sesong…" data-ph-en="E.g. questions about delivery, prices, season…" required />
         </div>
-        <button type="submit" class="btn" style="width:100%;">Send</button>
-        <div class="success-msg" id="contactSuccess" style="margin-top:1rem;">
+        <button type="submit" class="btn" style="width:100%;" data-no="Send" data-en="Send">Send</button>
+        <div class="success-msg" id="contactSuccess" style="margin-top:1rem;" data-no="✅ Takk! Vi tar kontakt med deg snart." data-en="✅ Thanks! We'll be in touch soon.">
           ✅ Takk! Vi tar kontakt med deg snart.
         </div>
       </form>
@@ -944,10 +962,33 @@
 
 <!-- FOOTER -->
 <footer>
-  <p>© 2026 Nesodden Ramsløk &nbsp;·&nbsp; Privat eiendom &nbsp;·&nbsp; Naturlig, kortreist, fersk</p>
+  <p data-no-html="© 2026 Nesodden Ramsløk &nbsp;·&nbsp; Privat eiendom &nbsp;·&nbsp; Naturlig, kortreist, fersk" data-en-html="© 2026 Nesodden Ramsløk &nbsp;·&nbsp; Private property &nbsp;·&nbsp; Natural, local, fresh">© 2026 Nesodden Ramsløk &nbsp;·&nbsp; Privat eiendom &nbsp;·&nbsp; Naturlig, kortreist, fersk</p>
 </footer>
 
 <script>
+  // ── SPRÅK ──
+  let currentLang = localStorage.getItem('lang') || 'no';
+
+  function applyLang(lang) {
+    document.querySelectorAll('[data-no]').forEach(el => {
+      el.textContent = lang === 'en' ? el.dataset.en : el.dataset.no;
+    });
+    document.querySelectorAll('[data-no-html]').forEach(el => {
+      el.innerHTML = lang === 'en' ? el.dataset.enHtml : el.dataset.noHtml;
+    });
+    document.querySelectorAll('[data-ph-no]').forEach(el => {
+      el.placeholder = lang === 'en' ? el.dataset.phEn : el.dataset.phNo;
+    });
+    document.getElementById('langToggle').textContent = lang === 'en' ? 'EN' : 'NO';
+    document.documentElement.lang = lang === 'en' ? 'en' : 'no';
+  }
+
+  function toggleLang() {
+    currentLang = currentLang === 'no' ? 'en' : 'no';
+    localStorage.setItem('lang', currentLang);
+    applyLang(currentLang);
+  }
+
   // ── DARK MODE ──
   (function() {
     if (localStorage.getItem('darkMode') === 'true') {
@@ -965,6 +1006,7 @@
     if (document.documentElement.classList.contains('dark')) {
       document.getElementById('darkToggle').textContent = '☀️';
     }
+    if (currentLang === 'en') applyLang('en');
   });
 
   // ── HANDLEKURV ──
@@ -977,9 +1019,9 @@
     } else {
       cart.push({ id, name, price, unit, qty: 1 });
     }
-    btn.textContent = '✓ Lagt til';
+    btn.textContent = currentLang === 'en' ? '✓ Added' : '✓ Lagt til';
     btn.classList.add('added');
-    setTimeout(() => { btn.textContent = '+ Legg i kurv'; btn.classList.remove('added'); }, 1500);
+    setTimeout(() => { btn.textContent = currentLang === 'en' ? '+ Add to cart' : '+ Legg i kurv'; btn.classList.remove('added'); }, 1500);
     updateCartUI();
     openCart();
   }
@@ -993,7 +1035,9 @@
 
     const itemsEl = document.getElementById('cartItems');
     if (cart.length === 0) {
-      itemsEl.innerHTML = '<div class="cart-empty">Handlekurven er tom.<br>Legg til produkter for å bestille.</div>';
+      itemsEl.innerHTML = currentLang === 'en'
+        ? '<div class="cart-empty">Your cart is empty.<br>Add products to order.</div>'
+        : '<div class="cart-empty">Handlekurven er tom.<br>Legg til produkter for å bestille.</div>';
       return;
     }
     itemsEl.innerHTML = cart.map(item => `
