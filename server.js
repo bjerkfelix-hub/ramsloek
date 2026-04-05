@@ -34,25 +34,36 @@ function saveStore(data) {
 
 // ── E-post (Gmail) ──
 function createTransporter() {
-  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) return null;
+  const user = process.env.GMAIL_USER;
+  const pass = process.env.GMAIL_APP_PASSWORD;
+  if (!user || !pass) {
+    console.warn('⚠️  GMAIL_USER eller GMAIL_APP_PASSWORD mangler – e-post deaktivert');
+    return null;
+  }
+  console.log('📧 E-posttransport opprettes for:', user);
   return nodemailer.createTransport({
-    service: 'gmail',
-    auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD }
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: { user, pass }
   });
 }
 
 async function sendEmail(subject, text, to) {
   const transporter = createTransporter();
-  if (!transporter) { console.log('E-post ikke konfigurert – hopper over:', subject); return; }
+  if (!transporter) return;
+  const recipient = to || process.env.GMAIL_USER;
+  console.log(`📤 Sender e-post til ${recipient}: "${subject}"`);
   try {
     await transporter.sendMail({
       from: `"Ramsløk Nesodden" <${process.env.GMAIL_USER}>`,
-      to: to || process.env.GMAIL_USER,
+      to: recipient,
       subject,
       text
     });
+    console.log(`✅ E-post sendt til ${recipient}`);
   } catch (e) {
-    console.error('E-postfeil:', e.message);
+    console.error('❌ E-postfeil:', e.message);
   }
 }
 
