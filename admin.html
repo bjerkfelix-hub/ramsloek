@@ -492,6 +492,16 @@
         <input type="number" id="box_weight" placeholder="100" min="1" />
       </div>
     </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;">
+      <div>
+        <label>Plukket kl.</label>
+        <input type="time" id="box_pickTime" />
+      </div>
+      <div>
+        <label>Pakket kl.</label>
+        <input type="time" id="box_packTime" />
+      </div>
+    </div>
     <div>
       <label>Kommentar (valgfritt)</label>
       <textarea id="box_note" placeholder="F.eks. ekstra frisk batch…"></textarea>
@@ -784,7 +794,10 @@
 
   // ── LAGER / ESKER ──
   function openNewBoxModal() {
-    document.getElementById('box_date').value = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    document.getElementById('box_date').value = now.toISOString().split('T')[0];
+    document.getElementById('box_pickTime').value = now.toTimeString().slice(0,5);
+    document.getElementById('box_packTime').value = '';
     document.getElementById('box_area').value = '';
     document.getElementById('box_bags').value = '';
     document.getElementById('box_weight').value = '';
@@ -797,13 +810,16 @@
   }
 
   async function submitNewBox() {
-    const date = document.getElementById('box_date').value;
-    const area = document.getElementById('box_area').value;
-    const bags = parseInt(document.getElementById('box_bags').value) || 0;
-    const weight = parseInt(document.getElementById('box_weight').value) || 0;
-    const note = document.getElementById('box_note').value;
+    const date      = document.getElementById('box_date').value;
+    const area      = document.getElementById('box_area').value;
+    const bags      = parseInt(document.getElementById('box_bags').value) || 0;
+    const weight    = parseInt(document.getElementById('box_weight').value) || 0;
+    const pickTime  = document.getElementById('box_pickTime').value;
+    const packTime  = document.getElementById('box_packTime').value;
+    const note      = document.getElementById('box_note').value;
     if (!date || !area || !bags || !weight) { alert('Fyll ut alle påkrevde felt.'); return; }
-    await api.post('/api/boxes', { pickDate: date, area, bags, weightPerBag: weight, totalWeight: bags * weight, note });
+    const poseList = Array.from({ length: bags }, (_, i) => ({ nr: i + 1, vekt: weight }));
+    await api.post('/api/boxes', { pickDate: date, area, bags, weightPerBag: weight, totalWeight: bags * weight, pickTime, packTime, poseList, note });
     closeNewBoxModal();
     renderAll();
   }
@@ -835,8 +851,17 @@
         <div class="box-meta">
           <span>📅 ${b.pickDate || '–'}</span>
           <span>📍 ${esc(b.area)}</span>
-          <span>🛍 ${b.bags} poser</span>
-          <span>⚖️ ${b.weightPerBag}g/pose · ${b.totalWeight}g totalt</span>
+          <span>⚖️ ${b.totalWeight}g totalt</span>
+          ${b.pickTime ? `<span>🌿 Plukket kl. ${b.pickTime}</span>` : ''}
+          ${b.packTime ? `<span>📦 Pakket kl. ${b.packTime}</span>` : ''}
+        </div>
+        <div style="background:var(--surface);border-radius:6px;padding:0.6rem 0.8rem;">
+          <div style="font-size:0.75rem;color:var(--muted);margin-bottom:0.4rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Poser i esken</div>
+          <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+            ${(b.poseList || Array.from({length: b.bags}, (_,i) => ({nr:i+1, vekt:b.weightPerBag}))).map(p =>
+              `<span style="background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:0.2rem 0.6rem;font-size:0.78rem;font-family:monospace;">Pose ${p.nr} – ${p.vekt}g</span>`
+            ).join('')}
+          </div>
         </div>
         ${b.note ? `<div style="font-size:0.82rem;color:var(--muted);">💬 ${esc(b.note)}</div>` : ''}
         ${ordersHtml}
