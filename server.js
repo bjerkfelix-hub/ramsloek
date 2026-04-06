@@ -38,6 +38,31 @@ const pool = new Pool({
   ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
 });
 
+// ── Backup-database (valgfri) ──
+const backupPool = process.env.BACKUP_DATABASE_URL ? new Pool({
+  connectionString: process.env.BACKUP_DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+}) : null;
+
+async function backupWrite(query, params) {
+  if (!backupPool) return;
+  try {
+    await backupPool.query(query, params);
+  } catch (e) {
+    console.error('⚠️  Backup-skriving feilet:', e.message);
+  }
+}
+
+async function initBackupDB() {
+  if (!backupPool) return;
+  await backupPool.query(`
+    CREATE TABLE IF NOT EXISTS orders    (id TEXT PRIMARY KEY, data JSONB NOT NULL);
+    CREATE TABLE IF NOT EXISTS inquiries (id TEXT PRIMARY KEY, data JSONB NOT NULL);
+    CREATE TABLE IF NOT EXISTS consents  (id TEXT PRIMARY KEY, data JSONB NOT NULL);
+  `);
+  console.log('✅ Backup-database klar');
+}
+
 async function initDB() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS orders    (id TEXT PRIMARY KEY, data JSONB NOT NULL);
@@ -57,6 +82,14 @@ function str(val, max = 200) {
 function isEmail(val) {
   return typeof val === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim()) && val.length <= 200;
 }
+
+// ── Prisliste (eneste gyldige produkter og priser) ──
+const PRICE_LIST = {
+  'stilk':    { name: 'Blader + løk/stilk',       price: 40,  unit: '100g' },
+  'stilk250': { name: 'Blader + løk/stilk 250g',  price: 100, unit: '250g' },
+  'pose':     { name: 'Familiepose',               price: 200, unit: '500g' },
+};
+const MAX_QTY = 50;
 
 // ── Auth ──
 const USERS = {
@@ -171,13 +204,15 @@ app.post('/api/orders', publicLimiter, async (req, res) => {
     const note            = str(req.body.note, 500);
     const delivery        = str(req.body.delivery, 100);
     const deliveryAddress = str(req.body.deliveryAddress, 200);
-    const items    = Array.isArray(req.body.items)
-      ? req.body.items.slice(0, 20).map(i => ({
-          name:  str(i.name, 100),
-          qty:   typeof i.qty   === 'number' ? Math.max(0, i.qty)   : 0,
-          unit:  str(i.unit, 20),
-          price: typeof i.price === 'number' ? Math.max(0, i.price) : 0
-        }))
+    const items = Array.isArray(req.body.items)
+      ? req.body.items.slice(0, 20)
+          .filter(i => PRICE_LIST[i.id] || PRICE_LIST[str(i.name, 100)])
+          .map(i => {
+            const product = PRICE_LIST[i.id] || Object.values(PRICE_LIST).find(p => p.name === str(i.name, 100));
+            const qty = typeof i.qty === 'number' ? Math.min(Math.max(0, Math.floor(i.qty)), MAX_QTY) : 0;
+            return product ? { name: product.name, qty, unit: product.unit, price: product.price } : null;
+          })
+          .filter(Boolean)
       : [];
     const total = Math.round(items.reduce((sum, i) => sum + i.qty * i.price, 0));
 
@@ -185,10 +220,12 @@ app.post('/api/orders', publicLimiter, async (req, res) => {
 
     const order = { id: Date.now().toString(), timestamp: new Date().toISOString(), status: 'venter', name, phone, email, note, delivery, deliveryAddress, total, items };
     await pool.query('INSERT INTO orders (id, data) VALUES ($1, $2)', [order.id, JSON.stringify(order)]);
+    backupWrite('INSERT INTO orders (id, data) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data', [order.id, JSON.stringify(order)]);
 
     // Lagre samtykke til kjøpsvilkår
     const consent = { id: order.id, name, email, phone, timestamp: order.timestamp, termsVersion: '2026-04', orderId: order.id };
     await pool.query('INSERT INTO consents (id, data) VALUES ($1, $2)', [consent.id, JSON.stringify(consent)]);
+    backupWrite('INSERT INTO consents (id, data) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data', [consent.id, JSON.stringify(consent)]);
 
     const itemsText = items.map(i => `  - ${i.name}: ${i.qty} × ${i.unit} = ${i.qty * i.price} kr`).join('\n');
     await sendEmail(
@@ -254,6 +291,7 @@ app.post('/api/inquiries', publicLimiter, async (req, res) => {
 
     const inquiry = { id: Date.now().toString(), timestamp: new Date().toISOString(), status: 'ny', name, email, phone, message };
     await pool.query('INSERT INTO inquiries (id, data) VALUES ($1, $2)', [inquiry.id, JSON.stringify(inquiry)]);
+    backupWrite('INSERT INTO inquiries (id, data) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data', [inquiry.id, JSON.stringify(inquiry)]);
 
     await sendEmail(
       `Spørsmål – ${name}`,
@@ -410,7 +448,7 @@ app.delete('/api/bags/:id', requireAdmin, async (req, res) => {
 });
 
 // ── Start ──
-Promise.all([initDB(), initPasswords()]).then(() => {
+Promise.all([initDB(), initBackupDB(), initPasswords()]).then(() => {
   app.listen(PORT, () => console.log(`🌿 Server kjører på port ${PORT}`));
 }).catch(err => {
   console.error('❌ Oppstartsfeil:', err.message || JSON.stringify(err));
