@@ -1,6 +1,8 @@
 const express = require('express');
-const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
+const { Pool } = require('pg');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -8,31 +10,53 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
-// ── Filbasert lagring ──
-const DATA_DIR = path.join(__dirname, 'data');
-const DATA_FILE = path.join(DATA_DIR, 'store.json');
+// ── Database (Postgres) ──
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+});
 
-function loadStore() {
-  try {
-    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-    if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, JSON.stringify({ orders: [], inquiries: [], boxes: [] }, null, 2));
-    return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-  } catch {
-    return { orders: [], inquiries: [], boxes: [] };
-  }
+async function initDB() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS orders    (id TEXT PRIMARY KEY, data JSONB NOT NULL);
+    CREATE TABLE IF NOT EXISTS inquiries (id TEXT PRIMARY KEY, data JSONB NOT NULL);
+    CREATE TABLE IF NOT EXISTS boxes     (id TEXT PRIMARY KEY, data JSONB NOT NULL);
+  `);
+  console.log('✅ Database klar');
 }
 
-function saveStore(data) {
-  try {
-    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
-  } catch (e) {
-    console.error('Kunne ikke lagre data:', e);
+// ── Brukere (passord aldri eksponert til klient) ──
+const USERS = {
+  'FelixWilliam':    { password: 'ramsloek2026',  role: 'admin',      initials: 'FW', display: 'FelixWilliam' },
+  'SverreFredriksen':{ password: 'ramsloek2026',  role: 'leveranser', initials: 'SF', display: 'Sverre' },
+  'EirikNordtug':    { password: 'ramsloekeirik', role: 'admin',      initials: 'EN', display: 'Eirik' }
+};
+
+const sessions = new Map(); // token -> brukerinfo
+
+app.post('/api/login', (req, res) => {
+  const { username, password } = req.body || {};
+  const user = USERS[username];
+  if (!user || user.password !== password) {
+    return res.status(401).json({ error: 'Feil brukernavn eller passord' });
   }
+  const token = crypto.randomUUID();
+  sessions.set(token, { ...user, username });
+  res.json({ ok: true, token, role: user.role, display: user.display, initials: user.initials });
+});
+
+function requireAuth(req, res, next) {
+  const token = req.headers['x-admin-token'];
+  if (!token || !sessions.has(token)) return res.status(401).json({ error: 'Ikke autorisert' });
+  req.user = sessions.get(token);
+  next();
 }
+
+// ── Rate limiting (beskytter mot spam) ──
+const publicLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
+const loginLimiter  = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false });
 
 // ── E-post (Resend) ──
-// Når domenet er verifisert i Resend: sett FROM_EMAIL=bestillinger@dittdomene.no i Railway
 const FROM_ADDRESS = process.env.FROM_EMAIL
   ? `Ramsløk Nesodden <${process.env.FROM_EMAIL}>`
   : 'Ramsløk Nesodden <onboarding@resend.dev>';
@@ -57,45 +81,34 @@ async function sendEmail(subject, text, to) {
 }
 
 // ── Ordre-API ──
-app.get('/api/orders', (req, res) => {
-  res.json(loadStore().orders);
+app.get('/api/orders', requireAuth, async (req, res) => {
+  const { rows } = await pool.query("SELECT data FROM orders ORDER BY (data->>'id') DESC");
+  res.json(rows.map(r => r.data));
 });
 
-app.post('/api/orders', async (req, res) => {
+app.post('/api/orders', publicLimiter, async (req, res) => {
   const order = { id: Date.now().toString(), timestamp: new Date().toISOString(), status: 'venter', ...req.body };
-  const store = loadStore();
-  store.orders.push(order);
-  saveStore(store);
+  await pool.query('INSERT INTO orders (id, data) VALUES ($1, $2)', [order.id, JSON.stringify(order)]);
 
   const itemsText = (order.items || []).map(i => `  - ${i.name}: ${i.qty} × ${i.unit} = ${i.qty * i.price} kr`).join('\n');
-
-  // E-post til admin
   await sendEmail(
     `Salg! – ${order.name}`,
     `Ny ramsløk-bestilling!\n\nNavn: ${order.name}\nTelefon: ${order.phone}\nE-post: ${order.email}\n\nProdukter:\n${itemsText}\n\nTotal: ${order.total} kr\nLevering: ${order.delivery}\nKommentar: ${order.note || '–'}\n\nOrdre-ID: ${order.id}\nTidspunkt: ${new Date(order.timestamp).toLocaleString('nb-NO')}`
   );
 
-
   res.json({ ok: true, id: order.id });
 });
 
-app.put('/api/orders/:id', async (req, res) => {
-  const store = loadStore();
-  const idx = store.orders.findIndex(o => o.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: 'Ikke funnet' });
-  const prev = store.orders[idx];
-  const updated = { ...prev, ...req.body };
-  store.orders[idx] = updated;
-  saveStore(store);
+app.put('/api/orders/:id', requireAuth, async (req, res) => {
+  const { rows } = await pool.query('SELECT data FROM orders WHERE id = $1', [req.params.id]);
+  if (!rows.length) return res.status(404).json({ error: 'Ikke funnet' });
+  const updated = { ...rows[0].data, ...req.body };
+  await pool.query('UPDATE orders SET data = $1 WHERE id = $2', [JSON.stringify(updated), req.params.id]);
 
-  // Send bekreftelse til kunden når status settes til bekreftet
   if (req.body.status === 'bekreftet' && updated.email) {
     const itemsText = (updated.items || []).map(i => `  - ${i.name}: ${i.qty} × ${i.unit}`).join('\n');
-    const pickupInfo = updated.pickupTime
-      ? `\nHentested: ${updated.pickupPlace || '–'}\nTidspunkt: ${updated.pickupTime}`
-      : '';
+    const pickupInfo = updated.pickupTime ? `\nHentested: ${updated.pickupPlace || '–'}\nTidspunkt: ${updated.pickupTime}` : '';
     const noteInfo = updated.adminNote ? `\nMelding fra oss: ${updated.adminNote}` : '';
-
     await sendEmail(
       'Ramsløk-bestillingen din er bekreftet! 🌿',
       `Hei ${updated.name}!\n\nBestillingen din er bekreftet.\n\nDu har bestilt:\n${itemsText}\nTotal: ${updated.total} kr${pickupInfo}${noteInfo}\n\nHar du spørsmål? Ta kontakt på ${process.env.GMAIL_USER || 'bjerkfelix@gmail.com'}.\n\nMed vennlig hilsen,\nRamsløk Nesodden`,
@@ -106,25 +119,20 @@ app.put('/api/orders/:id', async (req, res) => {
   res.json({ ok: true });
 });
 
-app.delete('/api/orders/:id', (req, res) => {
-  const store = loadStore();
-  store.orders = store.orders.filter(o => o.id !== req.params.id);
-  saveStore(store);
+app.delete('/api/orders/:id', requireAuth, async (req, res) => {
+  await pool.query('DELETE FROM orders WHERE id = $1', [req.params.id]);
   res.json({ ok: true });
 });
 
 // ── Henvendelses-API ──
-app.get('/api/inquiries', (req, res) => {
-  const store = loadStore();
-  res.json(store.inquiries || []);
+app.get('/api/inquiries', requireAuth, async (req, res) => {
+  const { rows } = await pool.query("SELECT data FROM inquiries ORDER BY (data->>'id') DESC");
+  res.json(rows.map(r => r.data));
 });
 
-app.post('/api/inquiries', async (req, res) => {
+app.post('/api/inquiries', publicLimiter, async (req, res) => {
   const inquiry = { id: Date.now().toString(), timestamp: new Date().toISOString(), status: 'ny', ...req.body };
-  const store = loadStore();
-  if (!store.inquiries) store.inquiries = [];
-  store.inquiries.push(inquiry);
-  saveStore(store);
+  await pool.query('INSERT INTO inquiries (id, data) VALUES ($1, $2)', [inquiry.id, JSON.stringify(inquiry)]);
 
   await sendEmail(
     `Spørsmål – ${inquiry.name}`,
@@ -134,56 +142,50 @@ app.post('/api/inquiries', async (req, res) => {
   res.json({ ok: true, id: inquiry.id });
 });
 
-app.put('/api/inquiries/:id', (req, res) => {
-  const store = loadStore();
-  if (!store.inquiries) store.inquiries = [];
-  const idx = store.inquiries.findIndex(o => o.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: 'Ikke funnet' });
-  store.inquiries[idx] = { ...store.inquiries[idx], ...req.body };
-  saveStore(store);
+app.put('/api/inquiries/:id', requireAuth, async (req, res) => {
+  const { rows } = await pool.query('SELECT data FROM inquiries WHERE id = $1', [req.params.id]);
+  if (!rows.length) return res.status(404).json({ error: 'Ikke funnet' });
+  const updated = { ...rows[0].data, ...req.body };
+  await pool.query('UPDATE inquiries SET data = $1 WHERE id = $2', [JSON.stringify(updated), req.params.id]);
   res.json({ ok: true });
 });
 
-app.delete('/api/inquiries/:id', (req, res) => {
-  const store = loadStore();
-  if (!store.inquiries) store.inquiries = [];
-  store.inquiries = store.inquiries.filter(o => o.id !== req.params.id);
-  saveStore(store);
+app.delete('/api/inquiries/:id', requireAuth, async (req, res) => {
+  await pool.query('DELETE FROM inquiries WHERE id = $1', [req.params.id]);
   res.json({ ok: true });
 });
 
 // ── Lager/Esker-API ──
-app.get('/api/boxes', (req, res) => {
-  const store = loadStore();
-  res.json(store.boxes || []);
+app.get('/api/boxes', requireAuth, async (req, res) => {
+  const { rows } = await pool.query("SELECT data FROM boxes ORDER BY (data->>'id') DESC");
+  res.json(rows.map(r => r.data));
 });
 
-app.post('/api/boxes', (req, res) => {
-  const store = loadStore();
-  if (!store.boxes) store.boxes = [];
-  const num = (store.boxes.length + 1).toString().padStart(3, '0');
+app.post('/api/boxes', requireAuth, async (req, res) => {
+  const { rows: existing } = await pool.query('SELECT COUNT(*) FROM boxes');
+  const num = (parseInt(existing[0].count) + 1).toString().padStart(3, '0');
   const box = { id: Date.now().toString(), trackingId: `ESK-${num}`, timestamp: new Date().toISOString(), status: 'på lager', ...req.body };
-  store.boxes.push(box);
-  saveStore(store);
+  await pool.query('INSERT INTO boxes (id, data) VALUES ($1, $2)', [box.id, JSON.stringify(box)]);
   res.json({ ok: true, id: box.id, trackingId: box.trackingId });
 });
 
-app.put('/api/boxes/:id', (req, res) => {
-  const store = loadStore();
-  if (!store.boxes) store.boxes = [];
-  const idx = store.boxes.findIndex(b => b.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: 'Ikke funnet' });
-  store.boxes[idx] = { ...store.boxes[idx], ...req.body };
-  saveStore(store);
+app.put('/api/boxes/:id', requireAuth, async (req, res) => {
+  const { rows } = await pool.query('SELECT data FROM boxes WHERE id = $1', [req.params.id]);
+  if (!rows.length) return res.status(404).json({ error: 'Ikke funnet' });
+  const updated = { ...rows[0].data, ...req.body };
+  await pool.query('UPDATE boxes SET data = $1 WHERE id = $2', [JSON.stringify(updated), req.params.id]);
   res.json({ ok: true });
 });
 
-app.delete('/api/boxes/:id', (req, res) => {
-  const store = loadStore();
-  if (!store.boxes) store.boxes = [];
-  store.boxes = store.boxes.filter(b => b.id !== req.params.id);
-  saveStore(store);
+app.delete('/api/boxes/:id', requireAuth, async (req, res) => {
+  await pool.query('DELETE FROM boxes WHERE id = $1', [req.params.id]);
   res.json({ ok: true });
 });
 
-app.listen(PORT, () => console.log(`🌿 Server kjører på port ${PORT}`));
+// ── Start ──
+initDB().then(() => {
+  app.listen(PORT, () => console.log(`🌿 Server kjører på port ${PORT}`));
+}).catch(err => {
+  console.error('❌ Kunne ikke koble til database:', err.message);
+  process.exit(1);
+});

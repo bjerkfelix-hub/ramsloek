@@ -654,24 +654,30 @@
 </div>
 
 <script>
-  const USERS = {
-    'FelixWilliam':    { password: 'ramsloek2026', role: 'admin',      initials: 'FW', display: 'FelixWilliam' },
-    'SverreFredriksen':{ password: 'ramsloek2026', role: 'leveranser', initials: 'SF', display: 'Sverre' },
-    'EirikNordtug':    { password: 'ramsloekeirik', role: 'admin',      initials: 'EN', display: 'Eirik' }
-  };
   let currentUser = null;
 
   // ── AUTH ──
-  function login() {
+  async function login() {
     const username = document.getElementById('usernameInput').value.trim();
     const pw       = document.getElementById('passwordInput').value;
-    const user     = USERS[username];
-    if (user && user.password === pw) {
-      sessionStorage.setItem('admin_auth', '1');
-      sessionStorage.setItem('admin_user', username);
-      currentUser = { ...user, username };
-      showAdmin();
-    } else {
+    try {
+      const data = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password: pw })
+      }).then(r => r.json());
+      if (data.ok) {
+        sessionStorage.setItem('admin_token',   data.token);
+        sessionStorage.setItem('admin_user',    username);
+        sessionStorage.setItem('admin_role',    data.role);
+        sessionStorage.setItem('admin_display', data.display);
+        sessionStorage.setItem('admin_initials',data.initials);
+        currentUser = { username, role: data.role, display: data.display, initials: data.initials };
+        showAdmin();
+      } else {
+        document.getElementById('loginError').style.display = 'block';
+      }
+    } catch {
       document.getElementById('loginError').style.display = 'block';
     }
   }
@@ -700,14 +706,13 @@
   }
 
   function logout() {
-    sessionStorage.removeItem('admin_auth');
-    sessionStorage.removeItem('admin_user');
+    ['admin_token','admin_user','admin_role','admin_display','admin_initials'].forEach(k => sessionStorage.removeItem(k));
     location.reload();
   }
 
   const savedUser = sessionStorage.getItem('admin_user');
-  if (sessionStorage.getItem('admin_auth') === '1' && savedUser && USERS[savedUser]) {
-    currentUser = { ...USERS[savedUser], username: savedUser };
+  if (sessionStorage.getItem('admin_token') && savedUser) {
+    currentUser = { username: savedUser, role: sessionStorage.getItem('admin_role'), display: sessionStorage.getItem('admin_display'), initials: sessionStorage.getItem('admin_initials') };
     showAdmin();
   }
 
@@ -722,10 +727,11 @@
 
   // ── API ──
   const api = {
-    get:    url => fetch(url).then(r => r.json()),
-    put:    (url, d) => fetch(url, { method:'PUT',    headers:{'Content-Type':'application/json'}, body:JSON.stringify(d) }),
-    delete: url => fetch(url, { method:'DELETE' }),
-    post:   (url, d) => fetch(url, { method:'POST',   headers:{'Content-Type':'application/json'}, body:JSON.stringify(d) }).then(r => r.json())
+    _tok: () => sessionStorage.getItem('admin_token') || '',
+    get:    function(url)    { return fetch(url, { headers:{'x-admin-token':this._tok()} }).then(r => r.json()); },
+    put:    function(url, d) { return fetch(url, { method:'PUT',    headers:{'Content-Type':'application/json','x-admin-token':this._tok()}, body:JSON.stringify(d) }); },
+    delete: function(url)    { return fetch(url, { method:'DELETE', headers:{'x-admin-token':this._tok()} }); },
+    post:   function(url, d) { return fetch(url, { method:'POST',   headers:{'Content-Type':'application/json','x-admin-token':this._tok()}, body:JSON.stringify(d) }).then(r => r.json()); }
   };
 
   // ── BEKREFT MODAL ──
@@ -999,7 +1005,7 @@
     renderAll();
   }
 
-  if (sessionStorage.getItem('admin_auth')==='1') renderAll();
+  if (sessionStorage.getItem('admin_token')) renderAll();
 </script>
 </body>
 </html>
