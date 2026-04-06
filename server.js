@@ -183,9 +183,10 @@ app.delete('/api/boxes/:id', requireAuth, async (req, res) => {
 });
 
 // ── Start ──
+console.log('DATABASE_URL satt:', !!process.env.DATABASE_URL);
 initDB().then(() => {
   app.listen(PORT, () => console.log(`🌿 Server kjører på port ${PORT}`));
 }).catch(err => {
-  console.error('❌ Kunne ikke koble til database:', err.message);
+  console.error('❌ Kunne ikke koble til database:', err.message || JSON.stringify(err));
   process.exit(1);
 });
