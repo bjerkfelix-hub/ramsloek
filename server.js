@@ -196,7 +196,7 @@ app.put('/api/orders/:id', requireAuth, async (req, res) => {
     if (!rows.length) return res.status(404).json({ error: 'Ikke funnet' });
 
     // Kun tillatte felter kan oppdateres
-    const allowed = ['status', 'pickupPlace', 'pickupTime', 'adminNote', 'boxId'];
+    const allowed = ['status', 'pickupPlace', 'pickupTime', 'adminNote', 'boxId', 'bagId'];
     const updates = {};
     allowed.forEach(k => { if (req.body[k] !== undefined) updates[k] = str(String(req.body[k]), 500); });
 
@@ -386,6 +386,7 @@ app.put('/api/bags/:id', requireAuth, async (req, res) => {
     if (!rows.length) return res.status(404).json({ error: 'Ikke funnet' });
     const updated = { ...rows[0].data };
     if (req.body.status !== undefined) updated.status = str(String(req.body.status), 50);
+    if (req.body.orderId !== undefined) updated.orderId = str(String(req.body.orderId), 50);
     await pool.query('UPDATE bags SET data = $1 WHERE id = $2', [JSON.stringify(updated), req.params.id]);
     res.json({ ok: true });
   } catch { res.status(500).json({ error: 'Serverfeil' }); }

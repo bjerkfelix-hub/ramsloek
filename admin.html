@@ -550,6 +550,24 @@
   </div>
 </div>
 
+<!-- TILDEL POSE MODAL -->
+<div class="modal-overlay" id="assignBagModal">
+  <div class="modal">
+    <h3>Tildel pose til bestilling</h3>
+    <p style="font-size:0.85rem;color:var(--muted);">Pose: <span id="assignBag_label" style="font-family:monospace;color:var(--purple);font-weight:700;"></span></p>
+    <div>
+      <label>Velg bestilling</label>
+      <select id="assignBag_orderId">
+        <option value="">– Velg bestilling –</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeAssignBagModal()">Avbryt</button>
+      <button class="btn-modal-confirm" onclick="submitAssignBag()">Tildel pose ✓</button>
+    </div>
+  </div>
+</div>
+
 <!-- BEKREFT MODAL -->
 <div class="modal-overlay" id="confirmModal">
   <div class="modal">
@@ -573,6 +591,10 @@
     <div>
       <label>Fra eske (smittesporing)</label>
       <select id="modalBox"><option value="">– Velg eske –</option></select>
+    </div>
+    <div>
+      <label>Fra løs pose (smittesporing)</label>
+      <select id="modalBag"><option value="">– Velg løs pose –</option></select>
     </div>
     <div class="modal-actions">
       <button class="btn-modal-cancel" onclick="closeConfirmModal()">Avbryt</button>
@@ -707,6 +729,9 @@
           <span style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);">Løse poser</span>
           <div style="flex:1;height:1px;background:var(--border);"></div>
         </div>
+        <div style="margin-bottom:0.8rem;">
+          <input type="text" id="bagSearchInput" placeholder="🔍 Søk etter sporingsnummer, dato, kommentar…" oninput="filterLooseBags()" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:0.55rem 0.9rem;color:var(--text);font-size:0.875rem;font-family:inherit;outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--purple)'" onblur="this.style.borderColor='var(--border)'" />
+        </div>
         <div class="card-list" id="looseBagList"></div>
       </div>
       <div id="customerList" style="display:none;"></div>
@@ -783,6 +808,7 @@
   // ── STATE ──
   let currentFilter = 'alle';
   let currentView = 'bestillinger';
+  let allLooseBags = [];
 
   function esc(str) {
     if (!str) return '';
@@ -807,8 +833,8 @@
     document.getElementById('modalCustomerName').textContent = name;
     document.getElementById('modalTime').value = '';
     document.getElementById('modalNote').value = '';
-    // Populate box dropdown with available boxes
-    const boxes = await api.get('/api/boxes');
+    // Populate box + bag dropdowns in parallel
+    const [boxes, bags] = await Promise.all([api.get('/api/boxes'), api.get('/api/bags')]);
     const sel = document.getElementById('modalBox');
     sel.innerHTML = '<option value="">– Velg eske –</option>';
     (boxes || []).filter(b => b.status === 'på lager').forEach(b => {
@@ -817,6 +843,14 @@
       const poseCount = (b.poseList && b.poseList.length) || b.bags || 0;
       opt.textContent = `${b.trackingId} – ${b.pickDate || ''} – ${poseCount} poser (${b.area})`;
       sel.appendChild(opt);
+    });
+    const bagSel = document.getElementById('modalBag');
+    bagSel.innerHTML = '<option value="">– Velg løs pose –</option>';
+    (bags || []).filter(b => b.status === 'ledig').forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b.id;
+      opt.textContent = `${b.sporingsnummer} – ${b.dato || '–'} – ${b.vekt}g`;
+      bagSel.appendChild(opt);
     });
     document.getElementById('confirmModal').classList.add('open');
   }
@@ -832,9 +866,11 @@
     const time = document.getElementById('modalTime').value;
     const note = document.getElementById('modalNote').value;
     const boxId = document.getElementById('modalBox').value;
+    const bagId = document.getElementById('modalBag').value;
     const pickupTime = time ? new Date(time).toLocaleString('nb-NO', { weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' }) : '';
-    await api.put(`/api/orders/${confirmOrderId}`, { status: 'bekreftet', pickupPlace: place, pickupTime, adminNote: note, boxId });
+    await api.put(`/api/orders/${confirmOrderId}`, { status: 'bekreftet', pickupPlace: place, pickupTime, adminNote: note, boxId, bagId });
     if (boxId) await api.put(`/api/boxes/${boxId}`, { status: 'solgt' });
+    if (bagId) await api.put(`/api/bags/${bagId}`, { status: 'tildelt', orderId: confirmOrderId });
     closeConfirmModal();
     renderAll();
   }
@@ -989,6 +1025,43 @@
     renderAll();
   }
 
+  // ── TILDEL POSE TIL BESTILLING ──
+  let assignBag_id = null;
+
+  async function openAssignBagModal(bagId) {
+    assignBag_id = bagId;
+    const bag = allLooseBags.find(b => b.id === bagId);
+    document.getElementById('assignBag_label').textContent = bag ? bag.sporingsnummer : bagId;
+    const orders = await api.get('/api/orders');
+    const sel = document.getElementById('assignBag_orderId');
+    sel.innerHTML = '<option value="">– Velg bestilling –</option>';
+    (orders || []).filter(o => o.status !== 'avbestilt').sort((a,b) => b.id - a.id).forEach(o => {
+      const opt = document.createElement('option');
+      opt.value = o.id;
+      const items = (o.items||[]).map(i => i.name).join(', ');
+      opt.textContent = `${o.name} – ${items} (${o.status})`;
+      sel.appendChild(opt);
+    });
+    document.getElementById('assignBagModal').classList.add('open');
+  }
+
+  function closeAssignBagModal() {
+    assignBag_id = null;
+    document.getElementById('assignBagModal').classList.remove('open');
+  }
+
+  async function submitAssignBag() {
+    const bagId = assignBag_id;
+    const orderId = document.getElementById('assignBag_orderId').value;
+    if (!orderId) { alert('Velg en bestilling.'); return; }
+    await Promise.all([
+      api.put(`/api/bags/${bagId}`, { status: 'tildelt', orderId }),
+      api.put(`/api/orders/${orderId}`, { bagId })
+    ]);
+    closeAssignBagModal();
+    renderAll();
+  }
+
   // ── VIEWS ──
   function setView(view, el) {
     currentView = view;
@@ -1015,23 +1088,47 @@
       api.get('/api/consents'), api.get('/api/bags')
     ]);
     renderStats(orders, inquiries, boxes, looseBags);
-    if (currentView === 'bestillinger') renderOrders(orders);
+    if (currentView === 'bestillinger') renderOrders(orders, looseBags);
     else if (currentView === 'henvendelser') renderInquiries(inquiries);
     else if (currentView === 'lager') { renderBoxes(boxes, orders); renderLooseBags(looseBags); }
     else if (currentView === 'kunder') renderCustomers(consents);
   }
 
+  function filterLooseBags() {
+    const q = (document.getElementById('bagSearchInput')?.value || '').toLowerCase().trim();
+    const filtered = q
+      ? allLooseBags.filter(b =>
+          (b.sporingsnummer||'').toLowerCase().includes(q) ||
+          (b.dato||'').includes(q) ||
+          (b.note||'').toLowerCase().includes(q) ||
+          (b.status||'').toLowerCase().includes(q)
+        )
+      : allLooseBags;
+    renderLooseBagsFiltered(filtered);
+  }
+
   function renderLooseBags(bags) {
+    allLooseBags = bags || [];
+    filterLooseBags();
+  }
+
+  function renderLooseBagsFiltered(bags) {
     const list = document.getElementById('looseBagList');
     if (!bags || !bags.length) {
-      list.innerHTML = `<div class="empty-state"><div class="icon">🛍️</div><p>Ingen løse poser registrert ennå.</p></div>`;
+      const q = document.getElementById('bagSearchInput')?.value?.trim();
+      list.innerHTML = `<div class="empty-state"><div class="icon">🛍️</div><p>${q ? 'Ingen poser matcher søket.' : 'Ingen løse poser registrert ennå.'}</p></div>`;
       return;
     }
     list.innerHTML = [...bags].sort((a,b) => b.id - a.id).map(b => {
-      const statusPill = b.status === 'kassert'
+      const isTildelt = b.status === 'tildelt';
+      const isKassert = b.status === 'kassert';
+      const statusPill = isKassert
         ? `<span class="status-pill pill-avbestilt">Kassert</span>`
+        : isTildelt
+        ? `<span class="status-pill pill-bekreftet">Tildelt</span>`
         : `<span class="status-pill pill-venter">Ledig</span>`;
-      return `<div class="box-card ${b.status === 'kassert' ? 'status-kassert' : 'status-på-lager'}">
+      const cardClass = isKassert ? 'status-kassert' : isTildelt ? 'status-solgt' : 'status-på-lager';
+      return `<div class="box-card ${cardClass}">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <span class="box-tracking" style="font-size:0.95rem;">📦 ${esc(b.sporingsnummer)}</span>
           ${statusPill}
@@ -1039,10 +1136,12 @@
         <div class="box-meta">
           <span>📅 ${b.dato || '–'}</span>
           <span>⚖️ ${b.vekt}g</span>
+          ${b.orderId ? `<span>🔗 Bestilling: <strong style="color:var(--purple);font-family:monospace;font-size:0.78rem;">${esc(b.orderId)}</strong></span>` : ''}
         </div>
         ${b.note ? `<div style="font-size:0.82rem;color:var(--muted);">💬 ${esc(b.note)}</div>` : ''}
         <div class="card-actions">
-          ${b.status !== 'kassert' ? `<button class="action-btn btn-cancel-order" onclick="api.put('/api/bags/${b.id}',{status:'kassert'}).then(renderAll)">Kassér</button>` : ''}
+          ${!isTildelt && !isKassert ? `<button class="action-btn btn-confirm" onclick="openAssignBagModal('${b.id}')">Tildel til bestilling</button>` : ''}
+          ${!isKassert ? `<button class="action-btn btn-cancel-order" onclick="api.put('/api/bags/${b.id}',{status:'kassert'}).then(renderAll)">Kassér</button>` : ''}
           <button class="action-btn btn-delete" onclick="deleteLooseBag('${b.id}')">🗑</button>
         </div>
       </div>`;
@@ -1118,7 +1217,7 @@
     `;
   }
 
-  function renderOrders(orders) {
+  function renderOrders(orders, looseBags) {
     const filtered = orders.filter(o => currentFilter==='alle' || o.status===currentFilter).sort((a,b)=>b.id-a.id);
     const list = document.getElementById('orderList');
     if (!filtered.length) { list.innerHTML = `<div class="empty-state"><div class="icon">📦</div><p>Ingen bestillinger ${currentFilter!=='alle'?'med denne statusen':''} ennå.</p></div>`; return; }
@@ -1129,6 +1228,7 @@
       const pillClass = { venter:'pill-venter', bekreftet:'pill-bekreftet', avbestilt:'pill-avbestilt' }[o.status]||'pill-venter';
       const statusLabel = { venter:'Venter', bekreftet:'Bekreftet', avbestilt:'Avbestilt' }[o.status]||o.status;
       const items = (o.items||[]).map(i=>`${esc(i.name)} × ${i.qty} ${esc(i.unit)}`).join(' · ');
+      const linkedBag = o.bagId ? (looseBags||[]).find(b => b.id === o.bagId) : null;
 
       return `<div class="order-card status-${o.status}">
         <div class="card-header">
@@ -1142,6 +1242,7 @@
           ${o.deliveryAddress ? `<span>📍 <strong>${esc(o.deliveryAddress)}</strong></span>` : ''}
           <span>📞 <a href="tel:${esc(o.phone)}">${esc(o.phone)}</a></span>
           ${o.email ? `<span>✉️ <a href="mailto:${esc(o.email)}">${esc(o.email)}</a></span>` : ''}
+          ${linkedBag ? `<span>🛍️ Pose: <strong style="font-family:monospace;color:var(--purple);">${esc(linkedBag.sporingsnummer)}</strong> (${linkedBag.vekt}g)</span>` : ''}
         </div>
         ${o.note ? `<div class="card-note">💬 ${esc(o.note)}</div>` : ''}
         <div class="card-actions">
