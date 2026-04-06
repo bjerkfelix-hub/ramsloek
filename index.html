@@ -1010,7 +1010,11 @@
   });
 
   // ── HANDLEKURV ──
-  let cart = [];
+  let cart = JSON.parse(localStorage.getItem('ramsloek_cart') || '[]');
+
+  function saveCart() {
+    localStorage.setItem('ramsloek_cart', JSON.stringify(cart));
+  }
 
   function addToCart(id, name, price, unit, btn) {
     const existing = cart.find(i => i.id === id);
@@ -1022,6 +1026,7 @@
     btn.textContent = currentLang === 'en' ? '✓ Added' : '✓ Lagt til';
     btn.classList.add('added');
     setTimeout(() => { btn.textContent = currentLang === 'en' ? '+ Add to cart' : '+ Legg i kurv'; btn.classList.remove('added'); }, 1500);
+    saveCart();
     updateCartUI();
     openCart();
   }
@@ -1064,6 +1069,7 @@
     if (idx === -1) return;
     cart[idx].qty += delta;
     if (cart[idx].qty <= 0) cart.splice(idx, 1);
+    saveCart();
     updateCartUI();
   }
 
@@ -1130,6 +1136,7 @@
         document.getElementById('successMsg').style.display = 'block';
         this.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = true);
         cart = [];
+        saveCart();
         updateCartUI();
       }, 1500);
     } catch {
