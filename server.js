@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const crypto = require('crypto');
+const bcrypt = require('bcrypt');
 const { Pool } = require('pg');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
@@ -13,7 +14,20 @@ app.use(helmet({ contentSecurityPolicy: false })); // CSP av pga inline-script i
 
 // ── Body-størrelse maks 20kb ──
 app.use(express.json({ limit: '20kb' }));
+
+// ── Blokker direkte tilgang til admin.html ──
+app.use((req, res, next) => {
+  if (req.path.toLowerCase() === '/admin.html') return res.status(404).send('Not found');
+  next();
+});
+
 app.use(express.static(path.join(__dirname)));
+
+// ── Skjult admin-URL ──
+const ADMIN_PATH = process.env.ADMIN_PATH || '/bellevue';
+app.get(ADMIN_PATH, (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin.html'));
+});
 
 // ── Database (Postgres) ──
 const pool = new Pool({
@@ -49,6 +63,17 @@ const USERS = {
 const SESSION_TTL = 8 * 60 * 60 * 1000; // 8 timer
 const sessions = new Map();
 
+// Hash passordene ved oppstart (kjøres én gang)
+const hashedPasswords = {};
+async function initPasswords() {
+  for (const [username, user] of Object.entries(USERS)) {
+    if (user.password) {
+      hashedPasswords[username] = await bcrypt.hash(user.password, 10);
+    }
+  }
+  console.log('✅ Passord-hashing klar');
+}
+
 // Rydd utløpte sesjoner hvert 30. minutt
 setInterval(() => {
   const now = Date.now();
@@ -61,12 +86,14 @@ setInterval(() => {
 const loginLimiter  = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false });
 const publicLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
 
-app.post('/api/login', loginLimiter, (req, res) => {
+app.post('/api/login', loginLimiter, async (req, res) => {
   try {
     const { username, password } = req.body || {};
     if (!username || !password) return res.status(400).json({ error: 'Mangler felt' });
     const user = USERS[username];
-    if (!user || !user.password || user.password !== password) {
+    const hash = hashedPasswords[username];
+    const ok = hash && await bcrypt.compare(password, hash);
+    if (!user || !ok) {
       return res.status(401).json({ error: 'Feil brukernavn eller passord' });
     }
     const token = crypto.randomUUID();
@@ -281,9 +308,9 @@ app.delete('/api/boxes/:id', requireAuth, async (req, res) => {
 });
 
 // ── Start ──
-initDB().then(() => {
+Promise.all([initDB(), initPasswords()]).then(() => {
   app.listen(PORT, () => console.log(`🌿 Server kjører på port ${PORT}`));
 }).catch(err => {
-  console.error('❌ Kunne ikke koble til database:', err.message || JSON.stringify(err));
+  console.error('❌ Oppstartsfeil:', err.message || JSON.stringify(err));
   process.exit(1);
 });
