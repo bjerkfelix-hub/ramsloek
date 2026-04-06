@@ -677,6 +677,7 @@
     <li><a href="#om" data-no="Om" data-en="About">Om</a></li>
     <li><a href="#henvendelse" data-no="Henvendelser" data-en="Inquiries">Henvendelser</a></li>
     <li><a href="#kontakt" data-no="Kontakt" data-en="Contact">Kontakt</a></li>
+    <li><a href="#" onclick='document.getElementById("termsModal").style.display="flex";return false;' data-no="Kjøpsvilkår" data-en="Terms">Kjøpsvilkår</a></li>
   </ul>
   <div style="display:flex;align-items:center;gap:0.6rem;">
     <button class="lang-toggle" id="langToggle" onclick="toggleLang()">NO</button>
@@ -868,6 +869,10 @@
         <div class="form-group">
           <label for="note" data-no="Kommentar (valgfritt)" data-en="Comment (optional)">Kommentar (valgfritt)</label>
           <textarea id="note" placeholder="Ønsket tidspunkt, spørsmål, o.l." data-ph-no="Ønsket tidspunkt, spørsmål, o.l." data-ph-en="Preferred time, questions, etc."></textarea>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:0.6rem;margin-bottom:0.8rem;font-family:sans-serif;font-size:0.85rem;color:var(--muted);">
+          <input type="checkbox" id="termsAccept" style="margin-top:0.15rem;accent-color:var(--green);flex-shrink:0;" required />
+          <label for="termsAccept">Jeg har lest og aksepterer <a href="#" onclick='document.getElementById("termsModal").style.display="flex";return false;' style="color:var(--green);text-decoration:underline;">kjøpsvilkårene</a></label>
         </div>
         <button type="submit" class="btn" style="width:100%;" id="orderSubmitBtn" data-no="Send bestilling" data-en="Place order">Send bestilling</button>
         <p class="order-note" data-no="Vi bekrefter bestillingen og avtaler detaljer via SMS/e-post innen 24 timer." data-en="We confirm the order and arrange details via SMS/email within 24 hours.">Vi bekrefter bestillingen og avtaler detaljer via SMS/e-post innen 24 timer.</p>
