@@ -851,12 +851,15 @@
         </div>
         <div class="form-group">
           <label for="delivery" data-no="Henting eller levering?" data-en="Pickup or delivery?">Henting eller levering?</label>
-          <select id="delivery" required>
+          <select id="delivery" required onchange="showDeliveryInfo(this.value)">
             <option value="" data-no="Velg…" data-en="Choose…">Velg…</option>
             <option value="Henting på Nesodden (lørdag)" data-no="⭐ Henting på Nesodden (lørdag – anbefalt)" data-en="⭐ Pickup at Nesodden (Saturday – recommended)">⭐ Henting på Nesodden (lørdag – anbefalt)</option>
             <option value="Henting i Oslo" data-no="Henting i Oslo (sted avtales)" data-en="Pickup in Oslo (location TBD)">Henting i Oslo (sted avtales)</option>
             <option value="Levering i sentrale Oslo (+75 kr)" data-no="Levering i sentrale Oslo (+75 kr)" data-en="Delivery in central Oslo (+75 kr)">Levering i sentrale Oslo (+75 kr)</option>
           </select>
+          <div id="deliveryInfo" style="display:none;margin-top:0.6rem;padding:0.7rem 1rem;background:var(--green-pale);border:1px solid var(--green-light);border-radius:8px;font-family:sans-serif;font-size:0.83rem;color:var(--green-dark);">
+            📍 Vi leverer innenfor <strong>Ring 2</strong> i Oslo. Vi tar kontakt etter bestilling for å avtale leveringstidspunkt.
+          </div>
         </div>
         <div class="form-group">
           <label for="note" data-no="Kommentar (valgfritt)" data-en="Comment (optional)">Kommentar (valgfritt)</label>
@@ -1015,6 +1018,11 @@
     }
     if (currentLang === 'en') applyLang('en');
   });
+
+  function showDeliveryInfo(val) {
+    const info = document.getElementById('deliveryInfo');
+    info.style.display = val === 'Levering i sentrale Oslo (+75 kr)' ? 'block' : 'none';
+  }
 
   // ── HANDLEKURV ──
   let cart = JSON.parse(localStorage.getItem('ramsloek_cart') || '[]');
