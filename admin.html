@@ -919,6 +919,7 @@
           ${items ? `<span>📦 <strong>${items}</strong></span>` : ''}
           ${o.total ? `<span>💰 <strong>${o.total} kr</strong></span>` : ''}
           <span>🚗 ${esc(o.delivery)}</span>
+          ${o.deliveryAddress ? `<span>📍 <strong>${esc(o.deliveryAddress)}</strong></span>` : ''}
           <span>📞 <a href="tel:${esc(o.phone)}">${esc(o.phone)}</a></span>
           ${o.email ? `<span>✉️ <a href="mailto:${esc(o.email)}">${esc(o.email)}</a></span>` : ''}
         </div>

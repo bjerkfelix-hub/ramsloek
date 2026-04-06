@@ -156,8 +156,9 @@ app.post('/api/orders', publicLimiter, async (req, res) => {
     const name     = str(req.body.name, 100);
     const phone    = str(req.body.phone, 20);
     const email    = isEmail(req.body.email) ? req.body.email.trim() : '';
-    const note     = str(req.body.note, 500);
-    const delivery = str(req.body.delivery, 100);
+    const note            = str(req.body.note, 500);
+    const delivery        = str(req.body.delivery, 100);
+    const deliveryAddress = str(req.body.deliveryAddress, 200);
     const total    = typeof req.body.total === 'number' ? req.body.total : 0;
     const items    = Array.isArray(req.body.items)
       ? req.body.items.slice(0, 20).map(i => ({
@@ -170,7 +171,7 @@ app.post('/api/orders', publicLimiter, async (req, res) => {
 
     if (!name || !phone) return res.status(400).json({ error: 'Navn og telefon er påkrevd' });
 
-    const order = { id: Date.now().toString(), timestamp: new Date().toISOString(), status: 'venter', name, phone, email, note, delivery, total, items };
+    const order = { id: Date.now().toString(), timestamp: new Date().toISOString(), status: 'venter', name, phone, email, note, delivery, deliveryAddress, total, items };
     await pool.query('INSERT INTO orders (id, data) VALUES ($1, $2)', [order.id, JSON.stringify(order)]);
 
     const itemsText = items.map(i => `  - ${i.name}: ${i.qty} × ${i.unit} = ${i.qty * i.price} kr`).join('\n');
