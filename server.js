@@ -32,6 +32,11 @@ function saveStore(data) {
 }
 
 // ── E-post (Resend) ──
+// Når domenet er verifisert i Resend: sett FROM_EMAIL=bestillinger@dittdomene.no i Railway
+const FROM_ADDRESS = process.env.FROM_EMAIL
+  ? `Ramsløk Nesodden <${process.env.FROM_EMAIL}>`
+  : 'Ramsløk Nesodden <onboarding@resend.dev>';
+
 async function sendEmail(subject, text, to) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) { console.warn('⚠️  RESEND_API_KEY mangler – e-post deaktivert'); return; }
@@ -41,12 +46,7 @@ async function sendEmail(subject, text, to) {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        from: 'Ramsløk Nesodden <onboarding@resend.dev>',
-        to: recipient,
-        subject,
-        text
-      })
+      body: JSON.stringify({ from: FROM_ADDRESS, to: recipient, subject, text })
     });
     const data = await res.json();
     if (res.ok) console.log(`✅ E-post sendt til ${recipient}`);
@@ -84,9 +84,24 @@ app.put('/api/orders/:id', async (req, res) => {
   const idx = store.orders.findIndex(o => o.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: 'Ikke funnet' });
   const prev = store.orders[idx];
-  store.orders[idx] = { ...prev, ...req.body };
+  const updated = { ...prev, ...req.body };
+  store.orders[idx] = updated;
   saveStore(store);
 
+  // Send bekreftelse til kunden når status settes til bekreftet
+  if (req.body.status === 'bekreftet' && updated.email) {
+    const itemsText = (updated.items || []).map(i => `  - ${i.name}: ${i.qty} × ${i.unit}`).join('\n');
+    const pickupInfo = updated.pickupTime
+      ? `\nHentested: ${updated.pickupPlace || '–'}\nTidspunkt: ${updated.pickupTime}`
+      : '';
+    const noteInfo = updated.adminNote ? `\nMelding fra oss: ${updated.adminNote}` : '';
+
+    await sendEmail(
+      'Ramsløk-bestillingen din er bekreftet! 🌿',
+      `Hei ${updated.name}!\n\nBestillingen din er bekreftet.\n\nDu har bestilt:\n${itemsText}\nTotal: ${updated.total} kr${pickupInfo}${noteInfo}\n\nHar du spørsmål? Ta kontakt på ${process.env.GMAIL_USER || 'bjerkfelix@gmail.com'}.\n\nMed vennlig hilsen,\nRamsløk Nesodden`,
+      updated.email
+    );
+  }
 
   res.json({ ok: true });
 });
