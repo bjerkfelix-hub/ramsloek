@@ -1125,10 +1125,13 @@
         body: JSON.stringify(payload)
       });
       if (!res.ok) throw new Error();
-      document.getElementById('successMsg').style.display = 'block';
-      this.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = true);
-      cart = [];
-      updateCartUI();
+      setTimeout(() => {
+        btn.textContent = 'Sendt ✓';
+        document.getElementById('successMsg').style.display = 'block';
+        this.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = true);
+        cart = [];
+        updateCartUI();
+      }, 1500);
     } catch {
       btn.textContent = 'Send bestilling';
       btn.disabled = false;
@@ -1153,8 +1156,11 @@
         })
       });
       if (!res.ok) throw new Error();
-      document.getElementById('contactSuccess').style.display = 'block';
-      this.querySelectorAll('input, button').forEach(el => el.disabled = true);
+      setTimeout(() => {
+        btn.textContent = 'Sendt ✓';
+        document.getElementById('contactSuccess').style.display = 'block';
+        this.querySelectorAll('input, button').forEach(el => el.disabled = true);
+      }, 1500);
     } catch {
       btn.textContent = 'Send';
       btn.disabled = false;
@@ -1183,8 +1189,11 @@
         body: JSON.stringify(payload)
       });
       if (!res.ok) throw new Error();
-      document.getElementById('inquirySuccess').style.display = 'block';
-      this.querySelectorAll('input, textarea, button').forEach(el => el.disabled = true);
+      setTimeout(() => {
+        btn.textContent = 'Sendt ✓';
+        document.getElementById('inquirySuccess').style.display = 'block';
+        this.querySelectorAll('input, textarea, button').forEach(el => el.disabled = true);
+      }, 1500);
     } catch {
       btn.textContent = 'Send henvendelse';
       btn.disabled = false;
