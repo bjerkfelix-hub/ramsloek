@@ -15,6 +15,12 @@ app.use(helmet({ contentSecurityPolicy: false })); // CSP av pga inline-script i
 // ── Body-størrelse maks 20kb ──
 app.use(express.json({ limit: '20kb' }));
 
+// ── Skjult admin-URL (MÅ være før express.static) ──
+const ADMIN_PATH = process.env.ADMIN_PATH || '/bellevue';
+app.get(ADMIN_PATH, (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
 // ── Blokker direkte tilgang til admin.html ──
 app.use((req, res, next) => {
   if (req.path.toLowerCase() === '/admin.html') return res.status(404).send('Not found');
@@ -22,12 +28,6 @@ app.use((req, res, next) => {
 });
 
 app.use(express.static(path.join(__dirname)));
-
-// ── Skjult admin-URL ──
-const ADMIN_PATH = process.env.ADMIN_PATH || '/bellevue';
-app.get(ADMIN_PATH, (req, res) => {
-  res.sendFile(path.join(__dirname, 'admin.html'));
-});
 
 // ── Database (Postgres) ──
 const pool = new Pool({
