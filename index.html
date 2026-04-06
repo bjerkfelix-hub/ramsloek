@@ -974,9 +974,40 @@
   </div>
 </section>
 
+<!-- VILKÅR MODAL -->
+<div id="termsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:2000;align-items:center;justify-content:center;">
+  <div style="background:var(--white);border-radius:14px;padding:2.5rem;width:min(640px,92vw);max-height:85vh;overflow-y:auto;position:relative;font-family:sans-serif;">
+    <button onclick="document.getElementById('termsModal').style.display='none'" style="position:absolute;top:1rem;right:1.2rem;background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--muted);">✕</button>
+    <h2 style="font-size:1.2rem;margin-bottom:1.5rem;color:var(--text);">Kjøpsvilkår – Nesodden Ramsløk</h2>
+
+    <h3 style="font-size:0.95rem;margin-bottom:0.4rem;color:var(--text);">1. Selger</h3>
+    <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1.2rem;">Dont Panic AS, Nesodden. Kontakt: felix@dontpanic.no</p>
+
+    <h3 style="font-size:0.95rem;margin-bottom:0.4rem;color:var(--text);">2. Bestilling og betaling</h3>
+    <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1.2rem;">Bestilling legges inn via nettskjema. Betaling skjer via Vipps til oppgitt nummer – merk betalingen med fullt navn og hva du bestiller. Bestillingen er ikke bindende før betaling er mottatt. Faktura fra Dont Panic AS utstedes ved forespørsel.</p>
+
+    <h3 style="font-size:0.95rem;margin-bottom:0.4rem;color:var(--text);">3. Levering og henting</h3>
+    <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1.2rem;">Vi tilbyr henting på Nesodden (lørdager i sesong), henting i Oslo på avtalt sted, eller hjemlevering innenfor Ring 2 i Oslo (+75 kr). Leveringstidspunkt avtales per SMS/e-post etter mottatt bestilling. Vi forbeholder oss retten til å endre hente-/leveringspunkt ved behov.</p>
+
+    <h3 style="font-size:0.95rem;margin-bottom:0.4rem;color:var(--text);">4. Avbestilling</h3>
+    <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1.2rem;">Avbestilling må skje senest 24 timer før avtalt henting/levering. Ved avbestilling innen fristen refunderes beløpet i sin helhet. Ved avbestilling etter fristen, eller ved uteblivelse uten varsel, refunderes ikke betalingen da varen allerede er plukket.</p>
+
+    <h3 style="font-size:0.95rem;margin-bottom:0.4rem;color:var(--text);">5. Kvalitet og reklamasjon</h3>
+    <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1.2rem;">Ramsløk er et ferskt og ubehandlet naturprodukt. Varen plukkes ved bestilling og skal oppbevares kjølig. Reklamasjon på kvalitet må meldes innen 24 timer etter mottak – send bilde til felix@dontpanic.no. Ved berettiget reklamasjon tilbyr vi retur av beløp eller ny levering.</p>
+
+    <h3 style="font-size:0.95rem;margin-bottom:0.4rem;color:var(--text);">6. Sesong og tilgjengelighet</h3>
+    <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1.2rem;">Ramsløk er et sesongprodukt med begrenset tilgjengelighet, typisk april–mai. Vi forbeholder oss retten til å avvise eller avlyse bestillinger dersom været, høsten eller andre forhold utenfor vår kontroll gjør det umulig å levere. I slike tilfeller refunderes betalt beløp i sin helhet.</p>
+
+    <h3 style="font-size:0.95rem;margin-bottom:0.4rem;color:var(--text);">7. Personvern</h3>
+    <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1.2rem;">Personopplysninger (navn, telefon, e-post) lagres i opptil 3 år for å håndtere bestillingen og eventuell reklamasjon, og deles ikke med tredjeparter utover det som er nødvendig for betaling via Vipps. Kontakt felix@dontpanic.no for innsyn eller sletting.</p>
+
+    <button onclick="document.getElementById('termsModal').style.display='none'" style="margin-top:0.5rem;background:var(--green);color:white;border:none;border-radius:8px;padding:0.6rem 1.5rem;font-size:0.9rem;font-weight:600;cursor:pointer;">Lukk</button>
+  </div>
+</div>
+
 <!-- FOOTER -->
 <footer>
-  <p data-no-html="© 2026 Nesodden Ramsløk &nbsp;·&nbsp; Privat eiendom &nbsp;·&nbsp; Naturlig, kortreist, fersk" data-en-html="© 2026 Nesodden Ramsløk &nbsp;·&nbsp; Private property &nbsp;·&nbsp; Natural, local, fresh">© 2026 Nesodden Ramsløk &nbsp;·&nbsp; Privat eiendom &nbsp;·&nbsp; Naturlig, kortreist, fersk</p>
+  <p data-no-html="© 2026 Nesodden Ramsløk &nbsp;·&nbsp; Dont Panic AS &nbsp;·&nbsp; <a href='#' onclick='document.getElementById(\"termsModal\").style.display=\"flex\";return false;' style='color:var(--muted);text-decoration:underline;'>Kjøpsvilkår</a>" data-en-html="© 2026 Nesodden Ramsløk &nbsp;·&nbsp; Dont Panic AS &nbsp;·&nbsp; <a href='#' onclick='document.getElementById(\"termsModal\").style.display=\"flex\";return false;' style='color:var(--muted);text-decoration:underline;'>Terms</a>">© 2026 Nesodden Ramsløk &nbsp;·&nbsp; Dont Panic AS &nbsp;·&nbsp; <a href='#' onclick='document.getElementById("termsModal").style.display="flex";return false;' style='color:var(--muted);text-decoration:underline;'>Kjøpsvilkår</a></p>
 </footer>
 
 <script>
