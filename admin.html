@@ -1088,7 +1088,7 @@
       api.get('/api/consents'), api.get('/api/bags')
     ]);
     renderStats(orders, inquiries, boxes, looseBags);
-    if (currentView === 'bestillinger') renderOrders(orders, looseBags);
+    if (currentView === 'bestillinger') renderOrders(orders, looseBags, boxes);
     else if (currentView === 'henvendelser') renderInquiries(inquiries);
     else if (currentView === 'lager') { renderBoxes(boxes, orders); renderLooseBags(looseBags); }
     else if (currentView === 'kunder') renderCustomers(consents);
@@ -1217,7 +1217,7 @@
     `;
   }
 
-  function renderOrders(orders, looseBags) {
+  function renderOrders(orders, looseBags, boxes) {
     const filtered = orders.filter(o => currentFilter==='alle' || o.status===currentFilter).sort((a,b)=>b.id-a.id);
     const list = document.getElementById('orderList');
     if (!filtered.length) { list.innerHTML = `<div class="empty-state"><div class="icon">📦</div><p>Ingen bestillinger ${currentFilter!=='alle'?'med denne statusen':''} ennå.</p></div>`; return; }
@@ -1229,6 +1229,7 @@
       const statusLabel = { venter:'Venter', bekreftet:'Bekreftet', avbestilt:'Avbestilt' }[o.status]||o.status;
       const items = (o.items||[]).map(i=>`${esc(i.name)} × ${i.qty} ${esc(i.unit)}`).join(' · ');
       const linkedBag = o.bagId ? (looseBags||[]).find(b => b.id === o.bagId) : null;
+      const linkedBox = o.boxId ? (boxes||[]).find(b => b.id === o.boxId) : null;
 
       return `<div class="order-card status-${o.status}">
         <div class="card-header">
@@ -1242,6 +1243,7 @@
           ${o.deliveryAddress ? `<span>📍 <strong>${esc(o.deliveryAddress)}</strong></span>` : ''}
           <span>📞 <a href="tel:${esc(o.phone)}">${esc(o.phone)}</a></span>
           ${o.email ? `<span>✉️ <a href="mailto:${esc(o.email)}">${esc(o.email)}</a></span>` : ''}
+          ${linkedBox ? `<span>📦 Eske: <strong style="font-family:monospace;color:var(--purple);">${esc(linkedBox.trackingId)}</strong></span>` : ''}
           ${linkedBag ? `<span>🛍️ Pose: <strong style="font-family:monospace;color:var(--purple);">${esc(linkedBag.sporingsnummer)}</strong> (${linkedBag.vekt}g)</span>` : ''}
         </div>
         ${o.note ? `<div class="card-note">💬 ${esc(o.note)}</div>` : ''}
