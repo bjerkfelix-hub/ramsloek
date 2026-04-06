@@ -41,6 +41,7 @@ async function initDB() {
     CREATE TABLE IF NOT EXISTS inquiries (id TEXT PRIMARY KEY, data JSONB NOT NULL);
     CREATE TABLE IF NOT EXISTS boxes     (id TEXT PRIMARY KEY, data JSONB NOT NULL);
     CREATE TABLE IF NOT EXISTS consents  (id TEXT PRIMARY KEY, data JSONB NOT NULL);
+    CREATE TABLE IF NOT EXISTS bags      (id TEXT PRIMARY KEY, data JSONB NOT NULL);
   `);
   console.log('✅ Database klar');
 }
@@ -354,6 +355,45 @@ app.put('/api/boxes/:id', requireAuth, async (req, res) => {
 app.delete('/api/boxes/:id', requireAuth, async (req, res) => {
   try {
     await pool.query('DELETE FROM boxes WHERE id = $1', [req.params.id]);
+    res.json({ ok: true });
+  } catch { res.status(500).json({ error: 'Serverfeil' }); }
+});
+
+// ── Løse poser (uavhengige av esker) ──
+app.get('/api/bags', requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query("SELECT data FROM bags ORDER BY (data->>'timestamp') DESC");
+    res.json(rows.map(r => r.data));
+  } catch { res.status(500).json({ error: 'Serverfeil' }); }
+});
+
+app.post('/api/bags', requireAuth, async (req, res) => {
+  try {
+    const sporingsnummer = str(req.body.sporingsnummer || '', 100);
+    const vekt           = typeof req.body.vekt === 'number' ? Math.max(0, req.body.vekt) : 0;
+    const dato           = str(req.body.dato || '', 20);
+    const note           = str(req.body.note || '', 500);
+    if (!sporingsnummer || !vekt || !dato) return res.status(400).json({ error: 'Mangler påkrevde felt' });
+    const bag = { id: Date.now().toString(), timestamp: new Date().toISOString(), status: 'ledig', sporingsnummer, vekt, dato, note };
+    await pool.query('INSERT INTO bags (id, data) VALUES ($1, $2)', [bag.id, JSON.stringify(bag)]);
+    res.json({ ok: true, id: bag.id });
+  } catch { res.status(500).json({ error: 'Serverfeil' }); }
+});
+
+app.put('/api/bags/:id', requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT data FROM bags WHERE id = $1', [req.params.id]);
+    if (!rows.length) return res.status(404).json({ error: 'Ikke funnet' });
+    const updated = { ...rows[0].data };
+    if (req.body.status !== undefined) updated.status = str(String(req.body.status), 50);
+    await pool.query('UPDATE bags SET data = $1 WHERE id = $2', [JSON.stringify(updated), req.params.id]);
+    res.json({ ok: true });
+  } catch { res.status(500).json({ error: 'Serverfeil' }); }
+});
+
+app.delete('/api/bags/:id', requireAuth, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM bags WHERE id = $1', [req.params.id]);
     res.json({ ok: true });
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
 });

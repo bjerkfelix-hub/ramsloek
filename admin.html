@@ -523,6 +523,33 @@
   </div>
 </div>
 
+<!-- NY LØS POSE MODAL -->
+<div class="modal-overlay" id="newLooseBagModal">
+  <div class="modal">
+    <h3>Registrer løs pose</h3>
+    <div>
+      <label>Sporingsnummer</label>
+      <input type="text" id="lb_tracking" placeholder="F.eks. SPORX-001 eller skan strekkode…" />
+    </div>
+    <div>
+      <label>Vekt (g)</label>
+      <input type="number" id="lb_weight" placeholder="100" min="1" />
+    </div>
+    <div>
+      <label>Dato</label>
+      <input type="date" id="lb_date" />
+    </div>
+    <div>
+      <label>Kommentar (valgfritt)</label>
+      <textarea id="lb_note" placeholder="F.eks. plukket ved bekken…"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeNewLooseBagModal()">Avbryt</button>
+      <button class="btn-modal-confirm" onclick="submitNewLooseBag()">Registrer pose</button>
+    </div>
+  </div>
+</div>
+
 <!-- BEKREFT MODAL -->
 <div class="modal-overlay" id="confirmModal">
   <div class="modal">
@@ -622,6 +649,7 @@
       <div class="topbar-actions">
         <button class="btn-sm" id="btnAddOrder" onclick="toggleAddForm()">+ Legg til manuelt</button>
         <button class="btn-sm purple" id="btnNewBox" onclick="openNewBoxModal()" style="display:none;">+ Ny eske</button>
+        <button class="btn-sm" id="btnNewLooseBag" onclick="openNewLooseBagModal()" style="display:none;">+ Ny løs pose</button>
         <button class="btn-sm purple" onclick="renderAll()">↻ Oppdater</button>
       </div>
     </div>
@@ -673,6 +701,14 @@
       <div class="card-list" id="orderList"></div>
       <div class="card-list" id="inquiryList" style="display:none;"></div>
       <div class="card-list" id="boxList" style="display:none;"></div>
+      <div id="looseBagSection" style="display:none;">
+        <div style="display:flex;align-items:center;gap:0.8rem;margin:1.6rem 0 0.8rem;">
+          <div style="flex:1;height:1px;background:var(--border);"></div>
+          <span style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);">Løse poser</span>
+          <div style="flex:1;height:1px;background:var(--border);"></div>
+        </div>
+        <div class="card-list" id="looseBagList"></div>
+      </div>
       <div id="customerList" style="display:none;"></div>
     </div>
   </div>
@@ -919,18 +955,54 @@
   async function setInquiryStatus(id, status) { await api.put(`/api/inquiries/${id}`, { status }); renderAll(); }
   async function deleteInquiry(id) { if (!confirm('Slett henvendelsen permanent?')) return; await api.delete(`/api/inquiries/${id}`); renderAll(); }
 
+  // ── LØSE POSER MODAL ──
+  function openNewLooseBagModal() {
+    const now = new Date();
+    document.getElementById('lb_date').value = now.toISOString().split('T')[0];
+    document.getElementById('lb_tracking').value = '';
+    document.getElementById('lb_weight').value = '';
+    document.getElementById('lb_note').value = '';
+    document.getElementById('newLooseBagModal').classList.add('open');
+    setTimeout(() => document.getElementById('lb_tracking').focus(), 80);
+  }
+
+  function closeNewLooseBagModal() {
+    document.getElementById('newLooseBagModal').classList.remove('open');
+  }
+
+  async function submitNewLooseBag() {
+    const sporingsnummer = document.getElementById('lb_tracking').value.trim();
+    const vekt           = parseInt(document.getElementById('lb_weight').value) || 0;
+    const dato           = document.getElementById('lb_date').value;
+    const note           = document.getElementById('lb_note').value;
+    if (!sporingsnummer) { alert('Skriv inn sporingsnummer.'); return; }
+    if (!vekt)           { alert('Skriv inn vekt.'); return; }
+    if (!dato)           { alert('Velg dato.'); return; }
+    await api.post('/api/bags', { sporingsnummer, vekt, dato, note });
+    closeNewLooseBagModal();
+    renderAll();
+  }
+
+  async function deleteLooseBag(id) {
+    if (!confirm('Slett pose permanent?')) return;
+    await api.delete(`/api/bags/${id}`);
+    renderAll();
+  }
+
   // ── VIEWS ──
   function setView(view, el) {
     currentView = view;
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     el.classList.add('active');
-    document.getElementById('orderList').style.display    = view === 'bestillinger' ? 'flex' : 'none';
-    document.getElementById('inquiryList').style.display  = view === 'henvendelser'  ? 'flex' : 'none';
-    document.getElementById('boxList').style.display      = view === 'lager'         ? 'flex' : 'none';
-    document.getElementById('customerList').style.display = view === 'kunder'        ? 'block': 'none';
+    document.getElementById('orderList').style.display      = view === 'bestillinger' ? 'flex' : 'none';
+    document.getElementById('inquiryList').style.display    = view === 'henvendelser'  ? 'flex' : 'none';
+    document.getElementById('boxList').style.display        = view === 'lager'         ? 'flex' : 'none';
+    document.getElementById('looseBagSection').style.display= view === 'lager'         ? 'block': 'none';
+    document.getElementById('customerList').style.display   = view === 'kunder'        ? 'block': 'none';
     document.getElementById('orderFilterBar').style.display = view === 'bestillinger' ? 'flex' : 'none';
-    document.getElementById('btnAddOrder').style.display  = view === 'bestillinger' ? '' : 'none';
-    document.getElementById('btnNewBox').style.display    = view === 'lager'         ? '' : 'none';
+    document.getElementById('btnAddOrder').style.display    = view === 'bestillinger' ? '' : 'none';
+    document.getElementById('btnNewBox').style.display      = view === 'lager'         ? '' : 'none';
+    document.getElementById('btnNewLooseBag').style.display = view === 'lager'         ? '' : 'none';
     const titles = { bestillinger: 'Bestillinger', henvendelser: 'Henvendelser', lager: 'Lager & Smittesporing', kunder: 'Kunderegister' };
     document.getElementById('topbarTitle').textContent = titles[view] || view;
     renderAll();
@@ -938,12 +1010,43 @@
 
   // ── RENDER ──
   async function renderAll() {
-    const [orders, inquiries, boxes, consents] = await Promise.all([api.get('/api/orders'), api.get('/api/inquiries'), api.get('/api/boxes'), api.get('/api/consents')]);
-    renderStats(orders, inquiries, boxes);
+    const [orders, inquiries, boxes, consents, looseBags] = await Promise.all([
+      api.get('/api/orders'), api.get('/api/inquiries'), api.get('/api/boxes'),
+      api.get('/api/consents'), api.get('/api/bags')
+    ]);
+    renderStats(orders, inquiries, boxes, looseBags);
     if (currentView === 'bestillinger') renderOrders(orders);
     else if (currentView === 'henvendelser') renderInquiries(inquiries);
-    else if (currentView === 'lager') renderBoxes(boxes, orders);
+    else if (currentView === 'lager') { renderBoxes(boxes, orders); renderLooseBags(looseBags); }
     else if (currentView === 'kunder') renderCustomers(consents);
+  }
+
+  function renderLooseBags(bags) {
+    const list = document.getElementById('looseBagList');
+    if (!bags || !bags.length) {
+      list.innerHTML = `<div class="empty-state"><div class="icon">🛍️</div><p>Ingen løse poser registrert ennå.</p></div>`;
+      return;
+    }
+    list.innerHTML = [...bags].sort((a,b) => b.id - a.id).map(b => {
+      const statusPill = b.status === 'kassert'
+        ? `<span class="status-pill pill-avbestilt">Kassert</span>`
+        : `<span class="status-pill pill-venter">Ledig</span>`;
+      return `<div class="box-card ${b.status === 'kassert' ? 'status-kassert' : 'status-på-lager'}">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span class="box-tracking" style="font-size:0.95rem;">📦 ${esc(b.sporingsnummer)}</span>
+          ${statusPill}
+        </div>
+        <div class="box-meta">
+          <span>📅 ${b.dato || '–'}</span>
+          <span>⚖️ ${b.vekt}g</span>
+        </div>
+        ${b.note ? `<div style="font-size:0.82rem;color:var(--muted);">💬 ${esc(b.note)}</div>` : ''}
+        <div class="card-actions">
+          ${b.status !== 'kassert' ? `<button class="action-btn btn-cancel-order" onclick="api.put('/api/bags/${b.id}',{status:'kassert'}).then(renderAll)">Kassér</button>` : ''}
+          <button class="action-btn btn-delete" onclick="deleteLooseBag('${b.id}')">🗑</button>
+        </div>
+      </div>`;
+    }).join('');
   }
 
   function renderCustomers(consents) {
@@ -989,13 +1092,14 @@
     renderAll();
   }
 
-  function renderStats(orders, inquiries, boxes) {
+  function renderStats(orders, inquiries, boxes, looseBags) {
     const c = { alle: orders.length, venter: 0, bekreftet: 0, avbestilt: 0 };
     orders.forEach(o => c[o.status] = (c[o.status]||0)+1);
     const newInq = (inquiries||[]).filter(i => i.status === 'ny').length;
     const totalBoxes = (boxes||[]).length;
     const påLager = (boxes||[]).filter(b => b.status === 'på lager').length;
     const solgtBoxes = (boxes||[]).filter(b => b.status === 'solgt').length;
+    const løsePåLager = (looseBags||[]).filter(b => b.status === 'ledig').length;
 
     const badge = document.getElementById('inquiryBadge');
     badge.style.display = newInq > 0 ? 'inline-block' : 'none';
@@ -1010,6 +1114,7 @@
       <div class="stat-card"><div class="num yellow">${påLager}</div><div class="lbl">Esker på lager</div></div>
       <div class="stat-card"><div class="num green">${solgtBoxes}</div><div class="lbl">Esker solgt</div></div>
       <div class="stat-card"><div class="num">${totalBoxes}</div><div class="lbl">Esker totalt</div></div>
+      <div class="stat-card"><div class="num yellow">${løsePåLager}</div><div class="lbl">Løse poser (ledig)</div></div>
     `;
   }
 
