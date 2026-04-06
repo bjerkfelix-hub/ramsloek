@@ -295,17 +295,28 @@ app.get('/api/boxes', requireAuth, async (req, res) => {
 
 app.post('/api/boxes', requireAuth, async (req, res) => {
   try {
-    const pickDate     = str(req.body.pickDate, 20);
-    const area         = str(req.body.area, 200);
-    const bags         = typeof req.body.bags === 'number' ? Math.max(0, req.body.bags) : 0;
-    const weightPerBag = typeof req.body.weightPerBag === 'number' ? Math.max(0, req.body.weightPerBag) : 0;
-    const note         = str(req.body.note, 500);
+    const pickDate = str(req.body.pickDate, 20);
+    const area     = str(req.body.area, 200);
+    const pickTime = str(req.body.pickTime || '', 10);
+    const packTime = str(req.body.packTime || '', 10);
+    const note     = str(req.body.note || '', 500);
 
-    if (!pickDate || !area || !bags || !weightPerBag) return res.status(400).json({ error: 'Mangler påkrevde felt' });
+    if (!pickDate || !area) return res.status(400).json({ error: 'Mangler påkrevde felt' });
 
-    const { rows: existing } = await pool.query('SELECT COUNT(*) FROM boxes');
-    const num = (parseInt(existing[0].count) + 1).toString().padStart(3, '0');
-    const box = { id: Date.now().toString(), trackingId: `ESK-${num}`, timestamp: new Date().toISOString(), status: 'på lager', pickDate, area, bags, weightPerBag, totalWeight: bags * weightPerBag, note };
+    // Generer neste tracking-nummer basert på høyeste eksisterende
+    const { rows: all } = await pool.query("SELECT data->>'trackingId' AS tid FROM boxes");
+    const nums = all.map(r => parseInt((r.tid || '').replace('ESK-', '')) || 0);
+    const nextNum = (Math.max(0, ...nums) + 1).toString().padStart(3, '0');
+
+    const box = {
+      id: Date.now().toString(),
+      trackingId: `ESK-${nextNum}`,
+      timestamp: new Date().toISOString(),
+      status: 'på lager',
+      pickDate, area, pickTime, packTime, note,
+      bags: 0, weightPerBag: 0, totalWeight: 0,
+      poseList: []
+    };
     await pool.query('INSERT INTO boxes (id, data) VALUES ($1, $2)', [box.id, JSON.stringify(box)]);
     res.json({ ok: true, id: box.id, trackingId: box.trackingId });
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
@@ -315,7 +326,26 @@ app.put('/api/boxes/:id', requireAuth, async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT data FROM boxes WHERE id = $1', [req.params.id]);
     if (!rows.length) return res.status(404).json({ error: 'Ikke funnet' });
-    const updated = { ...rows[0].data, status: str(String(req.body.status || ''), 50) };
+    const box = rows[0].data;
+    const updated = { ...box };
+
+    // Oppdater status
+    if (req.body.status !== undefined) {
+      updated.status = str(String(req.body.status), 50);
+    }
+
+    // Legg til en pose
+    if (req.body.addBag !== undefined) {
+      const poseList = Array.isArray(updated.poseList) ? [...updated.poseList] : [];
+      const nr = poseList.length + 1;
+      const vekt = typeof req.body.addBag.vekt === 'number' ? Math.max(0, req.body.addBag.vekt) : 0;
+      const sporingsnummer = str(req.body.addBag.sporingsnummer || '', 100);
+      poseList.push({ nr, vekt, sporingsnummer });
+      updated.poseList = poseList;
+      updated.bags = poseList.length;
+      updated.totalWeight = poseList.reduce((s, p) => s + (p.vekt || 0), 0);
+    }
+
     await pool.query('UPDATE boxes SET data = $1 WHERE id = $2', [JSON.stringify(updated), req.params.id]);
     res.json({ ok: true });
   } catch { res.status(500).json({ error: 'Serverfeil' }); }

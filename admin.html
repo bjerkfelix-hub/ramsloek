@@ -484,16 +484,6 @@
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;">
       <div>
-        <label>Antall poser</label>
-        <input type="number" id="box_bags" placeholder="5" min="1" />
-      </div>
-      <div>
-        <label>Vekt per pose (g)</label>
-        <input type="number" id="box_weight" placeholder="100" min="1" />
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;">
-      <div>
         <label>Plukket kl.</label>
         <input type="time" id="box_pickTime" />
       </div>
@@ -509,6 +499,26 @@
     <div class="modal-actions">
       <button class="btn-modal-cancel" onclick="closeNewBoxModal()">Avbryt</button>
       <button class="btn-modal-confirm" onclick="submitNewBox()">Registrer eske</button>
+    </div>
+  </div>
+</div>
+
+<!-- LEGG TIL POSE MODAL -->
+<div class="modal-overlay" id="addBagModal">
+  <div class="modal">
+    <h3>Legg til pose i <span id="addBag_boxLabel" style="color:var(--purple);"></span></h3>
+    <input type="hidden" id="addBag_boxId" />
+    <div>
+      <label>Sporingsnummer</label>
+      <input type="text" id="addBag_tracking" placeholder="F.eks. SPORX-001 eller skan strekkode…" />
+    </div>
+    <div>
+      <label>Vekt (g)</label>
+      <input type="number" id="addBag_weight" placeholder="100" min="1" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeAddBagModal()">Avbryt</button>
+      <button class="btn-modal-confirm" onclick="submitAddBag()">Legg til pose</button>
     </div>
   </div>
 </div>
@@ -768,7 +778,8 @@
     (boxes || []).filter(b => b.status === 'på lager').forEach(b => {
       const opt = document.createElement('option');
       opt.value = b.id;
-      opt.textContent = `${b.trackingId} – ${b.pickDate || ''} – ${b.bags} poser (${b.area})`;
+      const poseCount = (b.poseList && b.poseList.length) || b.bags || 0;
+      opt.textContent = `${b.trackingId} – ${b.pickDate || ''} – ${poseCount} poser (${b.area})`;
       sel.appendChild(opt);
     });
     document.getElementById('confirmModal').classList.add('open');
@@ -799,8 +810,6 @@
     document.getElementById('box_pickTime').value = now.toTimeString().slice(0,5);
     document.getElementById('box_packTime').value = '';
     document.getElementById('box_area').value = '';
-    document.getElementById('box_bags').value = '';
-    document.getElementById('box_weight').value = '';
     document.getElementById('box_note').value = '';
     document.getElementById('newBoxModal').classList.add('open');
   }
@@ -810,17 +819,39 @@
   }
 
   async function submitNewBox() {
-    const date      = document.getElementById('box_date').value;
-    const area      = document.getElementById('box_area').value;
-    const bags      = parseInt(document.getElementById('box_bags').value) || 0;
-    const weight    = parseInt(document.getElementById('box_weight').value) || 0;
-    const pickTime  = document.getElementById('box_pickTime').value;
-    const packTime  = document.getElementById('box_packTime').value;
-    const note      = document.getElementById('box_note').value;
-    if (!date || !area || !bags || !weight) { alert('Fyll ut alle påkrevde felt.'); return; }
-    const poseList = Array.from({ length: bags }, (_, i) => ({ nr: i + 1, vekt: weight }));
-    await api.post('/api/boxes', { pickDate: date, area, bags, weightPerBag: weight, totalWeight: bags * weight, pickTime, packTime, poseList, note });
+    const date     = document.getElementById('box_date').value;
+    const area     = document.getElementById('box_area').value.trim();
+    const pickTime = document.getElementById('box_pickTime').value;
+    const packTime = document.getElementById('box_packTime').value;
+    const note     = document.getElementById('box_note').value;
+    if (!date || !area) { alert('Fyll ut dato og område.'); return; }
+    await api.post('/api/boxes', { pickDate: date, area, pickTime, packTime, note });
     closeNewBoxModal();
+    renderAll();
+  }
+
+  // ── LEGG TIL POSE ──
+  function openAddBagModal(boxId, trackingId) {
+    document.getElementById('addBag_boxId').value = boxId;
+    document.getElementById('addBag_boxLabel').textContent = trackingId;
+    document.getElementById('addBag_tracking').value = '';
+    document.getElementById('addBag_weight').value = '';
+    document.getElementById('addBagModal').classList.add('open');
+    setTimeout(() => document.getElementById('addBag_tracking').focus(), 80);
+  }
+
+  function closeAddBagModal() {
+    document.getElementById('addBagModal').classList.remove('open');
+  }
+
+  async function submitAddBag() {
+    const boxId        = document.getElementById('addBag_boxId').value;
+    const sporingsnummer = document.getElementById('addBag_tracking').value.trim();
+    const vekt         = parseInt(document.getElementById('addBag_weight').value) || 0;
+    if (!sporingsnummer) { alert('Skriv inn sporingsnummer.'); return; }
+    if (!vekt)           { alert('Skriv inn vekt.'); return; }
+    await api.put(`/api/boxes/${boxId}`, { addBag: { sporingsnummer, vekt } });
+    closeAddBagModal();
     renderAll();
   }
 
@@ -851,17 +882,26 @@
         <div class="box-meta">
           <span>📅 ${b.pickDate || '–'}</span>
           <span>📍 ${esc(b.area)}</span>
-          <span>⚖️ ${b.totalWeight}g totalt</span>
+          <span>⚖️ ${b.totalWeight || 0}g totalt</span>
           ${b.pickTime ? `<span>🌿 Plukket kl. ${b.pickTime}</span>` : ''}
           ${b.packTime ? `<span>📦 Pakket kl. ${b.packTime}</span>` : ''}
         </div>
         <div style="background:var(--surface);border-radius:6px;padding:0.6rem 0.8rem;">
-          <div style="font-size:0.75rem;color:var(--muted);margin-bottom:0.4rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Poser i esken</div>
-          <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
-            ${(b.poseList || Array.from({length: b.bags}, (_,i) => ({nr:i+1, vekt:b.weightPerBag}))).map(p =>
-              `<span style="background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:0.2rem 0.6rem;font-size:0.78rem;font-family:monospace;">Pose ${p.nr} – ${p.vekt}g</span>`
-            ).join('')}
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+            <div style="font-size:0.75rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Poser i esken (${(b.poseList||[]).length})</div>
+            ${b.status === 'på lager' ? `<button class="action-btn btn-confirm" style="padding:0.2rem 0.7rem;font-size:0.75rem;" onclick="openAddBagModal('${b.id}','${esc(b.trackingId)}')">+ Legg til pose</button>` : ''}
           </div>
+          ${(b.poseList||[]).length === 0
+            ? `<div style="font-size:0.8rem;color:var(--muted);font-style:italic;">Ingen poser lagt til ennå.</div>`
+            : `<div style="display:flex;flex-direction:column;gap:0.3rem;">
+                ${(b.poseList||[]).map(p => `
+                  <div style="display:flex;align-items:center;gap:0.8rem;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:0.3rem 0.7rem;font-size:0.8rem;">
+                    <span style="font-family:monospace;font-weight:600;color:var(--muted);min-width:2rem;">P${p.nr}</span>
+                    <span style="font-weight:600;color:var(--text);">${p.vekt}g</span>
+                    ${p.sporingsnummer ? `<span style="font-family:monospace;color:var(--purple);font-size:0.75rem;">📦 ${esc(p.sporingsnummer)}</span>` : `<span style="color:var(--muted);font-size:0.75rem;font-style:italic;">Ingen sporingsnr.</span>`}
+                  </div>`).join('')}
+              </div>`
+          }
         </div>
         ${b.note ? `<div style="font-size:0.82rem;color:var(--muted);">💬 ${esc(b.note)}</div>` : ''}
         ${ordersHtml}
