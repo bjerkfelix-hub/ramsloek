@@ -27,9 +27,9 @@ async function initDB() {
 
 // ── Brukere (passord aldri eksponert til klient) ──
 const USERS = {
-  'FelixWilliam':    { password: 'ramsloek2026',  role: 'admin',      initials: 'FW', display: 'FelixWilliam' },
-  'SverreFredriksen':{ password: 'ramsloek2026',  role: 'leveranser', initials: 'SF', display: 'Sverre' },
-  'EirikNordtug':    { password: 'ramsloekeirik', role: 'admin',      initials: 'EN', display: 'Eirik' }
+  'FelixWilliam':    { password: process.env.PW_FELIX,  role: 'admin',      initials: 'FW', display: 'FelixWilliam' },
+  'SverreFredriksen':{ password: process.env.PW_SVERRE, role: 'leveranser', initials: 'SF', display: 'Sverre' },
+  'EirikNordtug':    { password: process.env.PW_EIRIK,  role: 'admin',      initials: 'EN', display: 'Eirik' }
 };
 
 const sessions = new Map(); // token -> brukerinfo
