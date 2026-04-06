@@ -706,6 +706,8 @@
   }
 
   function logout() {
+    const token = sessionStorage.getItem('admin_token');
+    if (token) fetch('/api/logout', { method: 'POST', headers: { 'x-admin-token': token } }).catch(() => {});
     ['admin_token','admin_user','admin_role','admin_display','admin_initials'].forEach(k => sessionStorage.removeItem(k));
     location.reload();
   }
@@ -728,10 +730,11 @@
   // ── API ──
   const api = {
     _tok: () => sessionStorage.getItem('admin_token') || '',
-    get:    function(url)    { return fetch(url, { headers:{'x-admin-token':this._tok()} }).then(r => r.json()); },
-    put:    function(url, d) { return fetch(url, { method:'PUT',    headers:{'Content-Type':'application/json','x-admin-token':this._tok()}, body:JSON.stringify(d) }); },
-    delete: function(url)    { return fetch(url, { method:'DELETE', headers:{'x-admin-token':this._tok()} }); },
-    post:   function(url, d) { return fetch(url, { method:'POST',   headers:{'Content-Type':'application/json','x-admin-token':this._tok()}, body:JSON.stringify(d) }).then(r => r.json()); }
+    _check: function(r) { if (r.status === 401) { logout(); return {}; } return r.json(); },
+    get:    function(url)    { return fetch(url, { headers:{'x-admin-token':this._tok()} }).then(r => this._check(r)); },
+    put:    function(url, d) { return fetch(url, { method:'PUT',    headers:{'Content-Type':'application/json','x-admin-token':this._tok()}, body:JSON.stringify(d) }).then(r => this._check(r)); },
+    delete: function(url)    { return fetch(url, { method:'DELETE', headers:{'x-admin-token':this._tok()} }).then(r => this._check(r)); },
+    post:   function(url, d) { return fetch(url, { method:'POST',   headers:{'Content-Type':'application/json','x-admin-token':this._tok()}, body:JSON.stringify(d) }).then(r => this._check(r)); }
   };
 
   // ── BEKREFT MODAL ──
