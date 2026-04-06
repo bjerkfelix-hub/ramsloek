@@ -9,6 +9,9 @@ const helmet = require('helmet');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ── Trust Railway proxy (nødvendig for korrekt rate limiting) ──
+app.set('trust proxy', 1);
+
 // ── Sikkerhetshoder ──
 app.use(helmet({ contentSecurityPolicy: false })); // CSP av pga inline-script i HTML
 
@@ -122,6 +125,13 @@ function requireAuth(req, res, next) {
   next();
 }
 
+function requireAdmin(req, res, next) {
+  requireAuth(req, res, () => {
+    if (req.user.role !== 'admin') return res.status(403).json({ error: 'Ikke tilgang' });
+    next();
+  });
+}
+
 // ── E-post (Resend) ──
 const FROM_ADDRESS = process.env.FROM_EMAIL
   ? `Ramsløk Nesodden <${process.env.FROM_EMAIL}>`
@@ -161,15 +171,15 @@ app.post('/api/orders', publicLimiter, async (req, res) => {
     const note            = str(req.body.note, 500);
     const delivery        = str(req.body.delivery, 100);
     const deliveryAddress = str(req.body.deliveryAddress, 200);
-    const total    = typeof req.body.total === 'number' ? req.body.total : 0;
     const items    = Array.isArray(req.body.items)
       ? req.body.items.slice(0, 20).map(i => ({
           name:  str(i.name, 100),
-          qty:   typeof i.qty   === 'number' ? i.qty   : 0,
+          qty:   typeof i.qty   === 'number' ? Math.max(0, i.qty)   : 0,
           unit:  str(i.unit, 20),
-          price: typeof i.price === 'number' ? i.price : 0
+          price: typeof i.price === 'number' ? Math.max(0, i.price) : 0
         }))
       : [];
+    const total = Math.round(items.reduce((sum, i) => sum + i.qty * i.price, 0));
 
     if (!name || !phone) return res.status(400).json({ error: 'Navn og telefon er påkrevd' });
 
@@ -190,7 +200,7 @@ app.post('/api/orders', publicLimiter, async (req, res) => {
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
 });
 
-app.put('/api/orders/:id', requireAuth, async (req, res) => {
+app.put('/api/orders/:id', requireAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT data FROM orders WHERE id = $1', [req.params.id]);
     if (!rows.length) return res.status(404).json({ error: 'Ikke funnet' });
@@ -218,7 +228,7 @@ app.put('/api/orders/:id', requireAuth, async (req, res) => {
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
 });
 
-app.delete('/api/orders/:id', requireAuth, async (req, res) => {
+app.delete('/api/orders/:id', requireAdmin, async (req, res) => {
   try {
     await pool.query('DELETE FROM orders WHERE id = $1', [req.params.id]);
     res.json({ ok: true });
@@ -226,7 +236,7 @@ app.delete('/api/orders/:id', requireAuth, async (req, res) => {
 });
 
 // ── Henvendelses-API ──
-app.get('/api/inquiries', requireAuth, async (req, res) => {
+app.get('/api/inquiries', requireAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query("SELECT data FROM inquiries ORDER BY (data->>'id') DESC");
     res.json(rows.map(r => r.data));
@@ -254,7 +264,7 @@ app.post('/api/inquiries', publicLimiter, async (req, res) => {
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
 });
 
-app.put('/api/inquiries/:id', requireAuth, async (req, res) => {
+app.put('/api/inquiries/:id', requireAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT data FROM inquiries WHERE id = $1', [req.params.id]);
     if (!rows.length) return res.status(404).json({ error: 'Ikke funnet' });
@@ -264,7 +274,7 @@ app.put('/api/inquiries/:id', requireAuth, async (req, res) => {
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
 });
 
-app.delete('/api/inquiries/:id', requireAuth, async (req, res) => {
+app.delete('/api/inquiries/:id', requireAdmin, async (req, res) => {
   try {
     await pool.query('DELETE FROM inquiries WHERE id = $1', [req.params.id]);
     res.json({ ok: true });
@@ -272,14 +282,14 @@ app.delete('/api/inquiries/:id', requireAuth, async (req, res) => {
 });
 
 // ── Samtykke-API ──
-app.get('/api/consents', requireAuth, async (req, res) => {
+app.get('/api/consents', requireAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query("SELECT data FROM consents ORDER BY (data->>'timestamp') DESC");
     res.json(rows.map(r => r.data));
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
 });
 
-app.delete('/api/consents/:id', requireAuth, async (req, res) => {
+app.delete('/api/consents/:id', requireAdmin, async (req, res) => {
   try {
     await pool.query('DELETE FROM consents WHERE id = $1', [req.params.id]);
     res.json({ ok: true });
@@ -287,14 +297,14 @@ app.delete('/api/consents/:id', requireAuth, async (req, res) => {
 });
 
 // ── Lager/Esker-API ──
-app.get('/api/boxes', requireAuth, async (req, res) => {
+app.get('/api/boxes', requireAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query("SELECT data FROM boxes ORDER BY (data->>'id') DESC");
     res.json(rows.map(r => r.data));
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
 });
 
-app.post('/api/boxes', requireAuth, async (req, res) => {
+app.post('/api/boxes', requireAdmin, async (req, res) => {
   try {
     const pickDate = str(req.body.pickDate, 20);
     const area     = str(req.body.area, 200);
@@ -323,7 +333,7 @@ app.post('/api/boxes', requireAuth, async (req, res) => {
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
 });
 
-app.put('/api/boxes/:id', requireAuth, async (req, res) => {
+app.put('/api/boxes/:id', requireAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT data FROM boxes WHERE id = $1', [req.params.id]);
     if (!rows.length) return res.status(404).json({ error: 'Ikke funnet' });
@@ -352,7 +362,7 @@ app.put('/api/boxes/:id', requireAuth, async (req, res) => {
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
 });
 
-app.delete('/api/boxes/:id', requireAuth, async (req, res) => {
+app.delete('/api/boxes/:id', requireAdmin, async (req, res) => {
   try {
     await pool.query('DELETE FROM boxes WHERE id = $1', [req.params.id]);
     res.json({ ok: true });
@@ -360,14 +370,14 @@ app.delete('/api/boxes/:id', requireAuth, async (req, res) => {
 });
 
 // ── Løse poser (uavhengige av esker) ──
-app.get('/api/bags', requireAuth, async (req, res) => {
+app.get('/api/bags', requireAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query("SELECT data FROM bags ORDER BY (data->>'timestamp') DESC");
     res.json(rows.map(r => r.data));
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
 });
 
-app.post('/api/bags', requireAuth, async (req, res) => {
+app.post('/api/bags', requireAdmin, async (req, res) => {
   try {
     const sporingsnummer = str(req.body.sporingsnummer || '', 100);
     const vekt           = typeof req.body.vekt === 'number' ? Math.max(0, req.body.vekt) : 0;
@@ -380,7 +390,7 @@ app.post('/api/bags', requireAuth, async (req, res) => {
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
 });
 
-app.put('/api/bags/:id', requireAuth, async (req, res) => {
+app.put('/api/bags/:id', requireAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT data FROM bags WHERE id = $1', [req.params.id]);
     if (!rows.length) return res.status(404).json({ error: 'Ikke funnet' });
@@ -392,7 +402,7 @@ app.put('/api/bags/:id', requireAuth, async (req, res) => {
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
 });
 
-app.delete('/api/bags/:id', requireAuth, async (req, res) => {
+app.delete('/api/bags/:id', requireAdmin, async (req, res) => {
   try {
     await pool.query('DELETE FROM bags WHERE id = $1', [req.params.id]);
     res.json({ ok: true });
