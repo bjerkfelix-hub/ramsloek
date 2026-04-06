@@ -578,6 +578,9 @@
       <div class="nav-item" id="nav-lager" onclick="setView('lager', this)" style="display:none;">
         <span class="nav-icon">📦</span> Lager
       </div>
+      <div class="nav-item" id="nav-kunder" onclick="setView('kunder', this)" style="display:none;">
+        <span class="nav-icon">👥</span> Kunder
+      </div>
     </nav>
 
     <div class="sidebar-footer">
@@ -650,6 +653,7 @@
       <div class="card-list" id="orderList"></div>
       <div class="card-list" id="inquiryList" style="display:none;"></div>
       <div class="card-list" id="boxList" style="display:none;"></div>
+      <div id="customerList" style="display:none;"></div>
     </div>
   </div>
 </div>
@@ -692,6 +696,7 @@
     document.querySelector('.user-role').textContent = currentUser.role === 'admin' ? 'Admin' : 'Leveranser';
     if (currentUser.role === 'admin') {
       document.getElementById('nav-lager').style.display = '';
+      document.getElementById('nav-kunder').style.display = '';
     }
     if (currentUser.role === 'leveranser') {
       // Sverre ser bare bekreftet/venter og leveranse-fokus
@@ -857,21 +862,66 @@
     document.getElementById('orderList').style.display    = view === 'bestillinger' ? 'flex' : 'none';
     document.getElementById('inquiryList').style.display  = view === 'henvendelser'  ? 'flex' : 'none';
     document.getElementById('boxList').style.display      = view === 'lager'         ? 'flex' : 'none';
+    document.getElementById('customerList').style.display = view === 'kunder'        ? 'block': 'none';
     document.getElementById('orderFilterBar').style.display = view === 'bestillinger' ? 'flex' : 'none';
     document.getElementById('btnAddOrder').style.display  = view === 'bestillinger' ? '' : 'none';
     document.getElementById('btnNewBox').style.display    = view === 'lager'         ? '' : 'none';
-    const titles = { bestillinger: 'Bestillinger', henvendelser: 'Henvendelser', lager: 'Lager & Smittesporing' };
+    const titles = { bestillinger: 'Bestillinger', henvendelser: 'Henvendelser', lager: 'Lager & Smittesporing', kunder: 'Kunderegister' };
     document.getElementById('topbarTitle').textContent = titles[view] || view;
     renderAll();
   }
 
   // ── RENDER ──
   async function renderAll() {
-    const [orders, inquiries, boxes] = await Promise.all([api.get('/api/orders'), api.get('/api/inquiries'), api.get('/api/boxes')]);
+    const [orders, inquiries, boxes, consents] = await Promise.all([api.get('/api/orders'), api.get('/api/inquiries'), api.get('/api/boxes'), api.get('/api/consents')]);
     renderStats(orders, inquiries, boxes);
     if (currentView === 'bestillinger') renderOrders(orders);
     else if (currentView === 'henvendelser') renderInquiries(inquiries);
     else if (currentView === 'lager') renderBoxes(boxes, orders);
+    else if (currentView === 'kunder') renderCustomers(consents);
+  }
+
+  function renderCustomers(consents) {
+    const el = document.getElementById('customerList');
+    if (!consents || !consents.length) {
+      el.innerHTML = `<div class="empty-state"><div class="icon">👥</div><p>Ingen kunder registrert ennå.</p></div>`;
+      return;
+    }
+    el.innerHTML = `
+      <p style="font-size:0.8rem;color:var(--muted);margin-bottom:1rem;">
+        ${consents.length} kunde${consents.length !== 1 ? 'r' : ''} har godtatt kjøpsvilkårene.
+      </p>
+      <table style="width:100%;border-collapse:collapse;font-size:0.83rem;">
+        <thead>
+          <tr style="text-align:left;border-bottom:1px solid var(--border);color:var(--muted);">
+            <th style="padding:0.6rem 0.8rem;">Navn</th>
+            <th style="padding:0.6rem 0.8rem;">E-post</th>
+            <th style="padding:0.6rem 0.8rem;">Telefon</th>
+            <th style="padding:0.6rem 0.8rem;">Godtatt</th>
+            <th style="padding:0.6rem 0.8rem;">Vilkårsversjon</th>
+            <th style="padding:0.6rem 0.8rem;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${consents.map(c => {
+            const date = new Date(c.timestamp).toLocaleString('nb-NO', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+            return `<tr style="border-bottom:1px solid var(--border2);">
+              <td style="padding:0.6rem 0.8rem;color:var(--text);font-weight:500;">${esc(c.name)}</td>
+              <td style="padding:0.6rem 0.8rem;">${c.email ? `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : '–'}</td>
+              <td style="padding:0.6rem 0.8rem;">${esc(c.phone) || '–'}</td>
+              <td style="padding:0.6rem 0.8rem;font-family:monospace;font-size:0.78rem;">${date}</td>
+              <td style="padding:0.6rem 0.8rem;"><span style="background:var(--green-dim);color:var(--green);border-radius:4px;padding:0.15rem 0.5rem;font-size:0.72rem;">${esc(c.termsVersion)}</span></td>
+              <td style="padding:0.6rem 0.8rem;"><button class="action-btn btn-delete" onclick="deleteConsent('${c.id}')">🗑</button></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  async function deleteConsent(id) {
+    if (!confirm('Slett samtykke permanent? Dette bør kun gjøres ved slettingsforespørsel fra kunden (GDPR).')) return;
+    await api.delete(`/api/consents/${id}`);
+    renderAll();
   }
 
   function renderStats(orders, inquiries, boxes) {

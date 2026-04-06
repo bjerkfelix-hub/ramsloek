@@ -40,6 +40,7 @@ async function initDB() {
     CREATE TABLE IF NOT EXISTS orders    (id TEXT PRIMARY KEY, data JSONB NOT NULL);
     CREATE TABLE IF NOT EXISTS inquiries (id TEXT PRIMARY KEY, data JSONB NOT NULL);
     CREATE TABLE IF NOT EXISTS boxes     (id TEXT PRIMARY KEY, data JSONB NOT NULL);
+    CREATE TABLE IF NOT EXISTS consents  (id TEXT PRIMARY KEY, data JSONB NOT NULL);
   `);
   console.log('✅ Database klar');
 }
@@ -174,6 +175,10 @@ app.post('/api/orders', publicLimiter, async (req, res) => {
     const order = { id: Date.now().toString(), timestamp: new Date().toISOString(), status: 'venter', name, phone, email, note, delivery, deliveryAddress, total, items };
     await pool.query('INSERT INTO orders (id, data) VALUES ($1, $2)', [order.id, JSON.stringify(order)]);
 
+    // Lagre samtykke til kjøpsvilkår
+    const consent = { id: order.id, name, email, phone, timestamp: order.timestamp, termsVersion: '2026-04', orderId: order.id };
+    await pool.query('INSERT INTO consents (id, data) VALUES ($1, $2)', [consent.id, JSON.stringify(consent)]);
+
     const itemsText = items.map(i => `  - ${i.name}: ${i.qty} × ${i.unit} = ${i.qty * i.price} kr`).join('\n');
     await sendEmail(
       `Salg! – ${name}`,
@@ -261,6 +266,21 @@ app.put('/api/inquiries/:id', requireAuth, async (req, res) => {
 app.delete('/api/inquiries/:id', requireAuth, async (req, res) => {
   try {
     await pool.query('DELETE FROM inquiries WHERE id = $1', [req.params.id]);
+    res.json({ ok: true });
+  } catch { res.status(500).json({ error: 'Serverfeil' }); }
+});
+
+// ── Samtykke-API ──
+app.get('/api/consents', requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query("SELECT data FROM consents ORDER BY (data->>'timestamp') DESC");
+    res.json(rows.map(r => r.data));
+  } catch { res.status(500).json({ error: 'Serverfeil' }); }
+});
+
+app.delete('/api/consents/:id', requireAuth, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM consents WHERE id = $1', [req.params.id]);
     res.json({ ok: true });
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
 });
