@@ -222,6 +222,29 @@
     }
     .logout-btn:hover { color: var(--red); }
 
+    /* ── VELKOMST-TOAST ── */
+    .welcome-toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: var(--surface);
+      border: 1px solid var(--purple);
+      border-radius: 10px;
+      padding: 1rem 1.3rem;
+      max-width: 290px;
+      z-index: 500;
+      display: none;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.45);
+      animation: toastIn 0.3s ease;
+    }
+    .welcome-toast.show { display: block; }
+    .welcome-toast-title { font-size: 0.9rem; font-weight: 600; color: var(--text); margin-bottom: 0.3rem; }
+    .welcome-toast-msg   { font-size: 0.82rem; color: var(--muted); line-height: 1.45; }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
     /* Main */
     .main {
       margin-left: 220px;
@@ -469,6 +492,12 @@
   </style>
 </head>
 <body>
+
+<!-- VELKOMST-TOAST -->
+<div class="welcome-toast" id="welcomeToast">
+  <div class="welcome-toast-title" id="welcomeToastTitle"></div>
+  <div class="welcome-toast-msg" id="welcomeToastMsg"></div>
+</div>
 
 <!-- NY ESKE MODAL -->
 <div class="modal-overlay" id="newBoxModal">
@@ -759,7 +788,7 @@
         sessionStorage.setItem('admin_display', data.display);
         sessionStorage.setItem('admin_initials',data.initials);
         currentUser = { username, role: data.role, display: data.display, initials: data.initials };
-        showAdmin();
+        showAdmin(true);
       } else {
         document.getElementById('loginError').style.display = 'block';
       }
@@ -768,7 +797,7 @@
     }
   }
 
-  function showAdmin() {
+  function showAdmin(freshLogin = false) {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('adminScreen').classList.add('visible');
     // Tilpass UI til brukerrolle
@@ -788,6 +817,13 @@
       currentFilter = 'bekreftet';
       document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
       document.querySelector('.filter-pill[onclick*="bekreftet"]')?.classList.add('active');
+    }
+    if (freshLogin && currentUser.display === 'Edvard') {
+      const toast = document.getElementById('welcomeToast');
+      document.getElementById('welcomeToastTitle').textContent = 'Hei, Edvard! 🌿';
+      document.getElementById('welcomeToastMsg').textContent = 'Godt å ha deg med. Sesongen er kort – takk for at du stiller opp!';
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 7000);
     }
     renderAll();
   }
