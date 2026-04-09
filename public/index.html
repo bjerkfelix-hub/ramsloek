@@ -804,7 +804,7 @@
   <div class="container">
     <div class="sust-text">
       <h2 data-no="Kortreist betyr noe" data-en="Local sourcing matters">Kortreist betyr noe</h2>
-      <p data-no="Ramsløken reiser bare noen minutter fra skog til hente/leveringspunkt. Ingen kjølelager, ingen flyfrakt, ingen emballasjelinje." data-en="The wild garlic travels only minutes from forest to pickup/delivery point. No cold storage, no air freight, no packaging line.">Ramsløken reiser bare noen minutter fra skog til hente/leveringspunkt. Ingen kjølelager, ingen flyfrakt, ingen emballasjelinje.</p>
+      <p data-no="Ramsløken reiser bare noen minutter fra skog til hente/leveringspunkt. Plukket ved bestilling – ingen mellomledd, ingen flyfrakt." data-en="The wild garlic travels only minutes from forest to pickup/delivery point. Picked to order – no middlemen, no air freight.">Ramsløken reiser bare noen minutter fra skog til hente/leveringspunkt. Plukket ved bestilling – ingen mellomledd, ingen flyfrakt.</p>
     </div>
     <div class="sust-stats">
       <div class="stat">
@@ -1005,9 +1005,6 @@
         </div>
       </form>
     </div>
-    <div class="contact-info" style="margin-top:1.5rem;">
-      <div class="contact-chip">📍 Bellevue, Nesodden, Akershus</div>
-    </div>
   </div>
 </section>
 
@@ -1047,7 +1044,7 @@
 
 <!-- FOOTER -->
 <footer>
-  <p data-no-html="© 2026 Nesodden Ramsløk &nbsp;·&nbsp; Dont Panic AS &nbsp;·&nbsp; <a href='#' onclick='document.getElementById(\"termsModal\").style.display=\"flex\";return false;' style='color:var(--muted);text-decoration:underline;'>Kjøpsvilkår</a>" data-en-html="© 2026 Nesodden Ramsløk &nbsp;·&nbsp; Dont Panic AS &nbsp;·&nbsp; <a href='#' onclick='document.getElementById(\"termsModal\").style.display=\"flex\";return false;' style='color:var(--muted);text-decoration:underline;'>Terms</a>">© 2026 Nesodden Ramsløk &nbsp;·&nbsp; Dont Panic AS &nbsp;·&nbsp; <a href='#' onclick='document.getElementById("termsModal").style.display="flex";return false;' style='color:var(--muted);text-decoration:underline;'>Kjøpsvilkår</a></p>
+  <p>© 2026 Nesodden Ramsløk &nbsp;·&nbsp; Dont Panic AS &nbsp;·&nbsp; <a href="#" id="termsLink" style="color:var(--muted);text-decoration:underline;">Kjøpsvilkår</a></p>
 </footer>
 
 <script>
@@ -1094,6 +1091,10 @@
       document.getElementById('darkToggle').textContent = '☀️';
     }
     if (currentLang === 'en') applyLang('en');
+    document.getElementById('termsLink').addEventListener('click', function(e) {
+      e.preventDefault();
+      document.getElementById('termsModal').style.display = 'flex';
+    });
   });
 
   function showDeliveryInfo(val) {
