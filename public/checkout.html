@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bestill ramsløk – Nesodden Ramsløk</title>
+  <meta name="robots" content="noindex" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green: #2d6a4f;
+      --green-light: #5d9479;
+      --green-pale: #e4ede8;
+      --text: #1b1b1b;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --white: #ffffff;
+      --bg: #f5f7f5;
+      color-scheme: light;
+    }
+    html.dark {
+      --green: #4da882;
+      --green-light: #6aad8c;
+      --green-pale: #253f33;
+      --text: #e6edf3;
+      --muted: #9ba8b4;
+      --border: #3a4458;
+      --white: #1e2535;
+      --bg: #1a2030;
+      color-scheme: dark;
+    }
+
+    body {
+      font-family: 'Georgia', serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.5rem;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .topbar-logo {
+      font-size: 0.95rem;
+      font-weight: bold;
+      color: var(--green);
+      text-decoration: none;
+      letter-spacing: 0.02em;
+    }
+    .topbar-right { display: flex; gap: 0.5rem; align-items: center; }
+    .icon-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      width: 2rem;
+      height: 2rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      transition: background 0.15s;
+    }
+    .icon-btn:hover { background: var(--green-pale); }
+
+    /* ── LAYOUT ── */
+    .page {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    .page-title {
+      font-size: 1.5rem;
+      color: var(--text);
+      margin-bottom: 0.3rem;
+    }
+    .page-sub {
+      font-family: sans-serif;
+      font-size: 0.875rem;
+      color: var(--muted);
+      margin-bottom: 2rem;
+    }
+
+    .checkout-grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.4rem;
+    }
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: bold;
+      color: var(--text);
+      margin-bottom: 1rem;
+      padding-bottom: 0.7rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── PRODUCTS ── */
+    .product-list { display: flex; flex-direction: column; gap: 0.8rem; }
+
+    .product-row {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      padding: 0.8rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      transition: border-color 0.15s;
+    }
+    .product-row.selected { border-color: var(--green); background: var(--green-pale); }
+
+    .product-info { flex: 1; }
+    .product-name { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+    .product-desc { font-family: sans-serif; font-size: 0.78rem; color: var(--muted); margin-top: 0.15rem; }
+    .product-price { font-family: sans-serif; font-size: 0.85rem; font-weight: 700; color: var(--green); white-space: nowrap; }
+
+    .qty-control {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--white);
+    }
+    .qty-btn {
+      background: none;
+      border: none;
+      width: 2rem;
+      height: 2rem;
+      font-size: 1.1rem;
+      cursor: pointer;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.1s, color 0.1s;
+    }
+    .qty-btn:hover { background: var(--green-pale); color: var(--green); }
+    .qty-num {
+      width: 2rem;
+      text-align: center;
+      font-family: sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      line-height: 2rem;
+      user-select: none;
+    }
+
+    /* ── ORDER SUMMARY ── */
+    .summary-lines { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1rem; }
+    .summary-line {
+      display: flex;
+      justify-content: space-between;
+      font-family: sans-serif;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .summary-line strong { color: var(--text); }
+    .summary-total {
+      display: flex;
+      justify-content: space-between;
+      font-family: sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      padding-top: 0.7rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .empty-notice {
+      font-family: sans-serif;
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-align: center;
+      padding: 1.2rem 0;
+    }
+
+    /* ── VIPPS BANNER ── */
+    .vipps-banner {
+      background: var(--green-pale);
+      border: 1px solid var(--green-light);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-family: sans-serif;
+      font-size: 0.83rem;
+      color: var(--green);
+      margin-bottom: 1rem;
+      line-height: 1.45;
+    }
+
+    /* ── FORM ── */
+    .form-group { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0.9rem; }
+    .form-group label {
+      font-family: sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    input, select, textarea {
+      font-family: sans-serif;
+      font-size: 0.9rem;
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.6rem 0.85rem;
+      outline: none;
+      transition: border-color 0.15s;
+      width: 100%;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--green); }
+    textarea { min-height: 80px; resize: vertical; }
+
+    .delivery-info-box {
+      display: none;
+      margin-top: 0.5rem;
+      padding: 0.65rem 0.9rem;
+      background: var(--green-pale);
+      border: 1px solid var(--green-light);
+      border-radius: 8px;
+      font-family: sans-serif;
+      font-size: 0.82rem;
+      color: var(--green);
+    }
+
+    .terms-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.55rem;
+      font-family: sans-serif;
+      font-size: 0.83rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+    .terms-row input[type=checkbox] {
+      width: auto;
+      margin-top: 0.15rem;
+      accent-color: var(--green);
+      flex-shrink: 0;
+    }
+    .terms-row a { color: var(--green); text-decoration: underline; cursor: pointer; }
+
+    .submit-btn {
+      width: 100%;
+      background: var(--green);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 0.85rem;
+      font-family: sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      letter-spacing: 0.02em;
+    }
+    .submit-btn:hover { background: #1f4e38; transform: translateY(-1px); }
+    .submit-btn:disabled { background: #9ca3af; cursor: default; transform: none; }
+
+    .success-box {
+      display: none;
+      background: var(--green-pale);
+      border: 1px solid var(--green-light);
+      border-radius: 10px;
+      padding: 1.2rem;
+      font-family: sans-serif;
+      font-size: 0.9rem;
+      color: var(--green);
+      margin-top: 1rem;
+      line-height: 1.5;
+    }
+
+    .error-msg {
+      font-family: sans-serif;
+      font-size: 0.82rem;
+      color: #dc2626;
+      margin-top: 0.5rem;
+      display: none;
+    }
+
+    /* ── TERMS MODAL ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: var(--white);
+      border-radius: 14px;
+      padding: 2rem;
+      width: min(620px, 92vw);
+      max-height: 85vh;
+      overflow-y: auto;
+      position: relative;
+      font-family: sans-serif;
+    }
+    .modal-close {
+      position: absolute;
+      top: 0.9rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      font-size: 1.4rem;
+      cursor: pointer;
+      color: var(--muted);
+    }
+    .modal-box h2 { font-size: 1.1rem; margin-bottom: 1.3rem; color: var(--text); }
+    .modal-box h3 { font-size: 0.88rem; font-weight: 700; color: var(--text); margin-bottom: 0.3rem; }
+    .modal-box p { font-size: 0.82rem; color: var(--muted); margin-bottom: 1rem; line-height: 1.55; }
+    .modal-btn {
+      background: var(--green);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0.55rem 1.4rem;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 0.3rem;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 680px) {
+      .page { padding: 1.2rem 1rem 3rem; }
+      .page-title { font-size: 1.25rem; }
+      .checkout-grid { grid-template-columns: 1fr; }
+      /* Stick summary to top on mobile */
+      .summary-col { order: -1; }
+      input, select, textarea { font-size: 16px; }
+    }
+    @media (max-width: 400px) {
+      .page { padding: 1rem 0.75rem 2.5rem; }
+      .card { padding: 1rem; }
+      .product-name { font-size: 0.85rem; }
+      .product-desc { font-size: 0.74rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="topbar-logo" href="/">← Nesodden Ramsløk</a>
+  <div class="topbar-right">
+    <button class="icon-btn" id="darkToggle" onclick="toggleDark()" title="Bytt tema">🌙</button>
+  </div>
+</div>
+
+<div class="page">
+  <h1 class="page-title">Bestill ramsløk</h1>
+  <p class="page-sub">Velg produkter, fyll ut skjemaet og betal på Vipps – vi tar kontakt for å avtale levering.</p>
+
+  <div class="checkout-grid">
+
+    <!-- LEFT: Products + form -->
+    <div>
+
+      <!-- Products -->
+      <div class="card" style="margin-bottom:1.2rem;">
+        <div class="card-title">Velg produkter</div>
+        <div class="product-list">
+
+          <div class="product-row" id="row-stilk">
+            <div class="product-info">
+              <div class="product-name">Blader + løk/stilk</div>
+              <div class="product-desc">Plukket med stilk og løk – ferskest og mest holdbart</div>
+            </div>
+            <div class="product-price">40 kr / 100g</div>
+            <div class="qty-control">
+              <button class="qty-btn" onclick="changeQty('stilk', -1)">−</button>
+              <div class="qty-num" id="qty-stilk">0</div>
+              <button class="qty-btn" onclick="changeQty('stilk', 1)">+</button>
+            </div>
+          </div>
+
+          <div class="product-row" id="row-stilk250">
+            <div class="product-info">
+              <div class="product-name">Blader + løk/stilk 250g</div>
+              <div class="product-desc">Samme kvalitet – større mengde, perfekt til pesto</div>
+            </div>
+            <div class="product-price">100 kr / 250g</div>
+            <div class="qty-control">
+              <button class="qty-btn" onclick="changeQty('stilk250', -1)">−</button>
+              <div class="qty-num" id="qty-stilk250">0</div>
+              <button class="qty-btn" onclick="changeQty('stilk250', 1)">+</button>
+            </div>
+          </div>
+
+          <div class="product-row" id="row-pose">
+            <div class="product-info">
+              <div class="product-name">Familiepose</div>
+              <div class="product-desc">500g – for deg som vil sylte, lage pesto i store volum</div>
+            </div>
+            <div class="product-price">200 kr / 500g</div>
+            <div class="qty-control">
+              <button class="qty-btn" onclick="changeQty('pose', -1)">−</button>
+              <div class="qty-num" id="qty-pose">0</div>
+              <button class="qty-btn" onclick="changeQty('pose', 1)">+</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Form -->
+      <div class="card">
+        <div class="card-title">Dine opplysninger</div>
+
+        <div class="vipps-banner">
+          💳 Betal til Vipps-nummer <strong>[VIPPS]</strong> etter at du har sendt bestillingen – merk med fullt navn.
+        </div>
+
+        <form id="orderForm">
+          <div class="form-group">
+            <label for="name">Fullt navn</label>
+            <input type="text" id="name" placeholder="Ola Nordmann" required />
+          </div>
+          <div class="form-group">
+            <label for="phone">Telefonnummer</label>
+            <input type="tel" id="phone" placeholder="400 00 000" required />
+          </div>
+          <div class="form-group">
+            <label for="email">E-postadresse</label>
+            <input type="email" id="email" placeholder="ola@example.com" required />
+          </div>
+          <div class="form-group">
+            <label for="delivery">Henting eller levering?</label>
+            <select id="delivery" required onchange="onDeliveryChange(this.value)">
+              <option value="">Velg…</option>
+              <option value="Henting på Nesodden (lørdag)">⭐ Henting på Nesodden (lørdag – anbefalt)</option>
+              <option value="Henting i Oslo">Henting i Oslo (sted avtales)</option>
+              <option value="Levering i sentrale Oslo (+75 kr)">Levering i sentrale Oslo (+75 kr)</option>
+            </select>
+            <div class="delivery-info-box" id="deliveryInfo">
+              📍 Vi leverer innenfor <strong>Ring 2</strong> i Oslo. Vi tar kontakt for å avtale tidspunkt.
+            </div>
+            <div id="addressBox" style="display:none;margin-top:0.6rem;">
+              <label for="deliveryAddress" style="font-family:sans-serif;font-size:0.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;">Leveringsadresse</label>
+              <input type="text" id="deliveryAddress" placeholder="Gateadresse, postnummer, Oslo" style="margin-top:0.3rem;" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="note">Kommentar (valgfritt)</label>
+            <textarea id="note" placeholder="Ønsket tidspunkt, spørsmål, o.l."></textarea>
+          </div>
+
+          <div class="terms-row">
+            <input type="checkbox" id="termsAccept" required />
+            <label for="termsAccept">Jeg har lest og aksepterer <a onclick="openTerms()">kjøpsvilkårene</a></label>
+          </div>
+
+          <div class="error-msg" id="emptyCartError">⚠️ Velg minst ett produkt før du sender bestillingen.</div>
+
+          <button type="submit" class="submit-btn" id="submitBtn">Send bestilling</button>
+
+          <div class="success-box" id="successBox">
+            ✅ Takk for bestillingen! Vi tar kontakt snart for å bekrefte og avtale levering/henting.<br><br>
+            Husk å betale på Vipps-nummer <strong>[VIPPS]</strong> – merk med fullt navn.
+          </div>
+        </form>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: Summary -->
+    <div class="summary-col">
+      <div class="card" style="position:sticky;top:72px;">
+        <div class="card-title">Oppsummering</div>
+
+        <div id="summaryEmpty" class="empty-notice">Ingen produkter valgt ennå.</div>
+
+        <div id="summaryLines" class="summary-lines" style="display:none;"></div>
+
+        <div id="summaryTotal" class="summary-total" style="display:none;">
+          <span>Total</span>
+          <span id="totalAmount">0 kr</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TERMS MODAL -->
+<div class="modal-overlay" id="termsModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeTerms()">✕</button>
+    <h2>Kjøpsvilkår – Nesodden Ramsløk</h2>
+    <h3>1. Selger</h3>
+    <p>Dont Panic AS, Nesodden. Kontakt: felix@dontpanic.no</p>
+    <h3>2. Bestilling og betaling</h3>
+    <p>Bestilling legges inn via nettskjema. Betaling skjer via Vipps til oppgitt nummer – merk betalingen med fullt navn og hva du bestiller. Bestillingen er ikke bindende før betaling er mottatt.</p>
+    <h3>3. Levering og henting</h3>
+    <p>Vi tilbyr henting på Nesodden (lørdager i sesong), henting i Oslo på avtalt sted, eller hjemlevering innenfor Ring 2 i Oslo (+75 kr). Leveringstidspunkt avtales per SMS/e-post etter mottatt bestilling.</p>
+    <h3>4. Avbestilling</h3>
+    <p>Du kan fritt avbestille frem til vi har akseptert ordren. Etter aksept er ordren bindende, da varen plukkes på bestilling. Ved avbestilling etter aksept refunderes ikke betalingen.</p>
+    <h3>5. Kvalitet og reklamasjon</h3>
+    <p>Ramsløk er et ferskt og ubehandlet naturprodukt. Reklamasjon på kvalitet må meldes innen 24 timer etter mottak – send bilde til felix@dontpanic.no.</p>
+    <h3>6. Sesong og tilgjengelighet</h3>
+    <p>Ramsløk er et sesongprodukt, typisk april–mai. Vi forbeholder oss retten til å avvise bestillinger dersom forhold utenfor vår kontroll gjør levering umulig. Betalt beløp refunderes i sin helhet i slike tilfeller.</p>
+    <h3>7. Ansvarsfraskrivelse – forveksling med liljekonvall</h3>
+    <p>Ramsløk (Allium ursinum) kan forveksles med liljekonvall (Convallaria majalis), som er giftig. Kunden er ansvarlig for å kontrollere varene ved mottak. Dont Panic AS fraskriver seg ansvar for skade som følge av forveksling. Ved tvil – ikke spis, kontakt oss umiddelbart.</p>
+    <h3>8. Personvern</h3>
+    <p>Personopplysninger lagres i opptil 6 måneder for å håndtere bestillingen og deles ikke med tredjeparter. Kontakt felix@dontpanic.no for innsyn eller sletting.</p>
+    <button class="modal-btn" onclick="closeTerms()">Lukk</button>
+  </div>
+</div>
+
+<script>
+  const PRODUCTS = {
+    stilk:    { name: 'Blader + løk/stilk',      price: 40,  unit: '100g' },
+    stilk250: { name: 'Blader + løk/stilk 250g', price: 100, unit: '250g' },
+    pose:     { name: 'Familiepose',              price: 200, unit: '500g' },
+  };
+  const MAX_QTY = 20;
+  let qty = { stilk: 0, stilk250: 0, pose: 0 };
+
+  function changeQty(id, delta) {
+    qty[id] = Math.max(0, Math.min(MAX_QTY, qty[id] + delta));
+    document.getElementById('qty-' + id).textContent = qty[id];
+    document.getElementById('row-' + id).classList.toggle('selected', qty[id] > 0);
+    updateSummary();
+  }
+
+  function updateSummary() {
+    const lines = Object.entries(qty).filter(([,q]) => q > 0);
+    const summaryEmpty = document.getElementById('summaryEmpty');
+    const summaryLines = document.getElementById('summaryLines');
+    const summaryTotal = document.getElementById('summaryTotal');
+    const totalAmount  = document.getElementById('totalAmount');
+
+    if (lines.length === 0) {
+      summaryEmpty.style.display = '';
+      summaryLines.style.display = 'none';
+      summaryTotal.style.display = 'none';
+      return;
+    }
+
+    summaryEmpty.style.display = 'none';
+    summaryLines.style.display = '';
+    summaryTotal.style.display = '';
+
+    let total = 0;
+    summaryLines.innerHTML = lines.map(([id, q]) => {
+      const p = PRODUCTS[id];
+      const sub = p.price * q;
+      total += sub;
+      return `<div class="summary-line">
+        <span>${p.name} × ${q}</span>
+        <strong>${sub} kr</strong>
+      </div>`;
+    }).join('');
+
+    const delivery = document.getElementById('delivery').value;
+    if (delivery === 'Levering i sentrale Oslo (+75 kr)') {
+      total += 75;
+      summaryLines.innerHTML += `<div class="summary-line"><span>Levering Oslo</span><strong>75 kr</strong></div>`;
+    }
+
+    totalAmount.textContent = total + ' kr';
+  }
+
+  function onDeliveryChange(val) {
+    const isOslo = val === 'Levering i sentrale Oslo (+75 kr)';
+    document.getElementById('deliveryInfo').style.display = isOslo ? 'block' : 'none';
+    document.getElementById('addressBox').style.display  = isOslo ? 'block' : 'none';
+    document.getElementById('deliveryAddress').required  = isOslo;
+    updateSummary();
+  }
+
+  // Form submit
+  document.getElementById('orderForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const errEl = document.getElementById('emptyCartError');
+
+    const items = Object.entries(qty)
+      .filter(([,q]) => q > 0)
+      .map(([id, q]) => ({ id, qty: q, name: PRODUCTS[id].name, price: PRODUCTS[id].price, unit: PRODUCTS[id].unit }));
+
+    if (items.length === 0) {
+      errEl.style.display = 'block';
+      return;
+    }
+    errEl.style.display = 'none';
+
+    const btn = document.getElementById('submitBtn');
+    btn.textContent = 'Sender…';
+    btn.disabled = true;
+
+    const delivery = document.getElementById('delivery').value;
+    const address  = document.getElementById('deliveryAddress').value.trim();
+
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name:     document.getElementById('name').value.trim(),
+          phone:    document.getElementById('phone').value.trim(),
+          email:    document.getElementById('email').value.trim(),
+          delivery,
+          address:  address || undefined,
+          note:     document.getElementById('note').value.trim(),
+          items,
+        })
+      });
+      if (!res.ok) throw new Error();
+      document.getElementById('successBox').style.display = 'block';
+      btn.style.display = 'none';
+      this.querySelectorAll('input, select, textarea').forEach(el => el.disabled = true);
+    } catch {
+      btn.textContent = 'Send bestilling';
+      btn.disabled = false;
+      alert('Noe gikk galt – prøv igjen eller kontakt oss på felix@dontpanic.no');
+    }
+  });
+
+  // Terms modal
+  function openTerms()  { document.getElementById('termsModal').classList.add('open'); }
+  function closeTerms() { document.getElementById('termsModal').classList.remove('open'); }
+
+  // Dark mode
+  (function() {
+    const saved = localStorage.getItem('darkMode');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (saved === 'true' || (saved === null && prefersDark)) {
+      document.documentElement.classList.add('dark');
+      document.getElementById('darkToggle').textContent = '☀️';
+    }
+  })();
+
+  function toggleDark() {
+    const isDark = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('darkMode', isDark);
+    document.getElementById('darkToggle').textContent = isDark ? '☀️' : '🌙';
+  }
+</script>
+
+</body>
+</html>
