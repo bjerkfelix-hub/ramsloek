@@ -619,37 +619,40 @@
     }
 
     /* ── DARK MODE ── */
+    :root { color-scheme: light; }
+    html.dark { color-scheme: dark; }
+
     html.dark {
       --green: #4da882;
       --green-light: #6aad8c;
-      --green-pale: #1f3d32;
+      --green-pale: #253f33;
       --text: #e6edf3;
-      --muted: #8b949e;
-      --border: #333b47;
-      --white: #151920;
+      --muted: #9ba8b4;
+      --border: #3a4458;
+      --white: #1e2535;
     }
-    html.dark body { background: #151920; }
-    html.dark nav { background: rgba(21,25,32,0.95); }
-    html.dark .hero { background: linear-gradient(160deg, #162518 0%, #151920 60%); }
-    html.dark .feature-card { background: #1d2330; }
-    html.dark #produkter { background: #191e28; }
-    html.dark .product-card { background: #1d2330; }
-    html.dark #bestill { background: #162518; }
-    html.dark .order-box { background: #1d2330; border-color: #264035; }
-    html.dark .vipps-row { background: #162518; border-color: #264035; }
-    html.dark .order-summary { background: #162518; border-color: #264035; }
-    html.dark input, html.dark select, html.dark textarea { background: #1d2330; border-color: #333b47; color: var(--text); }
-    html.dark .sustainability-strip { background: #191e28; }
-    html.dark #kontakt { background: #191e28; }
-    html.dark .contact-chip { background: #1d2330; }
-    html.dark #henvendelse { background: #151920; }
-    html.dark .inquiry-box { background: #1d2330; }
-    html.dark .cart-drawer { background: #1d2330; }
-    html.dark .cart-footer { background: #191e28; }
-    html.dark .cart-qty button { background: #1d2330; }
-    html.dark .cart-qty button:hover { background: #264035; }
-    html.dark footer { background: #151920; }
-    html.dark .success-msg { background: #162518; border-color: #264035; }
+    html.dark body { background: #1a2030; }
+    html.dark nav { background: rgba(26,32,48,0.95); }
+    html.dark .hero { background: linear-gradient(160deg, #1e3328 0%, #1a2030 60%); }
+    html.dark .feature-card { background: #232d40; }
+    html.dark #produkter { background: #1e2438; }
+    html.dark .product-card { background: #232d40; }
+    html.dark #bestill { background: #1e3328; }
+    html.dark .order-box { background: #232d40; border-color: #2e5044; }
+    html.dark .vipps-row { background: #1e3328; border-color: #2e5044; }
+    html.dark .order-summary { background: #1e3328; border-color: #2e5044; }
+    html.dark input, html.dark select, html.dark textarea { background: #232d40; border-color: #3a4458; color: var(--text); }
+    html.dark .sustainability-strip { background: #1e2438; }
+    html.dark #kontakt { background: #1e2438; }
+    html.dark .contact-chip { background: #232d40; }
+    html.dark #henvendelse { background: #1a2030; }
+    html.dark .inquiry-box { background: #232d40; }
+    html.dark .cart-drawer { background: #232d40; }
+    html.dark .cart-footer { background: #1e2438; }
+    html.dark .cart-qty button { background: #232d40; }
+    html.dark .cart-qty button:hover { background: #2e5044; }
+    html.dark footer { background: #1a2030; }
+    html.dark .success-msg { background: #1e3328; border-color: #2e5044; }
 
     /* ── LANG TOGGLE ── */
     .lang-toggle {
@@ -1059,7 +1062,9 @@
 
   // ── DARK MODE ──
   (function() {
-    if (localStorage.getItem('darkMode') === 'true') {
+    const saved = localStorage.getItem('darkMode');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (saved === 'true' || (saved === null && prefersDark)) {
       document.documentElement.classList.add('dark');
     }
   })();
