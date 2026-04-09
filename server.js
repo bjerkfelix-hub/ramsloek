@@ -70,6 +70,23 @@ async function initDB() {
     CREATE TABLE IF NOT EXISTS boxes     (id TEXT PRIMARY KEY, data JSONB NOT NULL);
     CREATE TABLE IF NOT EXISTS consents  (id TEXT PRIMARY KEY, data JSONB NOT NULL);
     CREATE TABLE IF NOT EXISTS bags      (id TEXT PRIMARY KEY, data JSONB NOT NULL);
+    CREATE TABLE IF NOT EXISTS sessions  (
+      token TEXT PRIMARY KEY,
+      username TEXT NOT NULL,
+      role TEXT NOT NULL,
+      display TEXT NOT NULL,
+      initials TEXT NOT NULL,
+      created_at BIGINT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS audit_log (
+      id TEXT PRIMARY KEY,
+      timestamp TIMESTAMPTZ DEFAULT NOW(),
+      username TEXT NOT NULL,
+      action TEXT NOT NULL,
+      resource TEXT NOT NULL,
+      resource_id TEXT,
+      details JSONB
+    );
   `);
   console.log('✅ Database klar');
 }
@@ -100,7 +117,6 @@ const USERS = {
 };
 
 const SESSION_TTL = 8 * 60 * 60 * 1000; // 8 timer
-const sessions = new Map();
 
 // Hash passordene ved oppstart (kjøres én gang)
 const hashedPasswords = {};
@@ -113,13 +129,23 @@ async function initPasswords() {
   console.log('✅ Passord-hashing klar');
 }
 
-// Rydd utløpte sesjoner hvert 30. minutt
-setInterval(() => {
-  const now = Date.now();
-  for (const [token, session] of sessions.entries()) {
-    if (now - session.createdAt > SESSION_TTL) sessions.delete(token);
-  }
+// Rydd utløpte sesjoner i DB hvert 30. minutt
+setInterval(async () => {
+  try {
+    await pool.query('DELETE FROM sessions WHERE created_at < $1', [Date.now() - SESSION_TTL]);
+  } catch (e) { console.error('⚠️ Sesjon-opprydding feilet:', e.message); }
 }, 30 * 60 * 1000);
+
+// Audit-logg
+async function auditLog(username, action, resource, resourceId, details) {
+  try {
+    const id = Date.now().toString() + Math.random().toString(36).slice(2, 6);
+    await pool.query(
+      'INSERT INTO audit_log (id, username, action, resource, resource_id, details) VALUES ($1, $2, $3, $4, $5, $6)',
+      [id, username, action, resource, resourceId || null, JSON.stringify(details || {})]
+    );
+  } catch (e) { console.error('⚠️ Audit-logg feilet:', e.message); }
+}
 
 // ── Rate limiting ──
 const loginLimiter  = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false });
@@ -136,27 +162,35 @@ app.post('/api/login', loginLimiter, async (req, res) => {
       return res.status(401).json({ error: 'Feil brukernavn eller passord' });
     }
     const token = crypto.randomUUID();
-    sessions.set(token, { ...user, username, createdAt: Date.now() });
+    await pool.query(
+      'INSERT INTO sessions (token, username, role, display, initials, created_at) VALUES ($1, $2, $3, $4, $5, $6)',
+      [token, username, user.role, user.display, user.initials, Date.now()]
+    );
+    await auditLog(username, 'login', 'sesjon', null, {});
     res.json({ ok: true, token, role: user.role, display: user.display, initials: user.initials });
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
 });
 
-app.post('/api/logout', (req, res) => {
+app.post('/api/logout', async (req, res) => {
   const token = req.headers['x-admin-token'];
-  if (token) sessions.delete(token);
+  if (token) await pool.query('DELETE FROM sessions WHERE token = $1', [token]).catch(() => {});
   res.json({ ok: true });
 });
 
-function requireAuth(req, res, next) {
+async function requireAuth(req, res, next) {
   const token = req.headers['x-admin-token'];
-  if (!token || !sessions.has(token)) return res.status(401).json({ error: 'Ikke autorisert' });
-  const session = sessions.get(token);
-  if (Date.now() - session.createdAt > SESSION_TTL) {
-    sessions.delete(token);
-    return res.status(401).json({ error: 'Sesjon utløpt – logg inn på nytt' });
-  }
-  req.user = session;
-  next();
+  if (!token) return res.status(401).json({ error: 'Ikke autorisert' });
+  try {
+    const { rows } = await pool.query('SELECT * FROM sessions WHERE token = $1', [token]);
+    if (!rows.length) return res.status(401).json({ error: 'Ikke autorisert' });
+    const session = rows[0];
+    if (Date.now() - session.created_at > SESSION_TTL) {
+      await pool.query('DELETE FROM sessions WHERE token = $1', [token]);
+      return res.status(401).json({ error: 'Sesjon utløpt – logg inn på nytt' });
+    }
+    req.user = session;
+    next();
+  } catch { res.status(500).json({ error: 'Serverfeil' }); }
 }
 
 function requireAdmin(req, res, next) {
@@ -250,6 +284,7 @@ app.put('/api/orders/:id', requireAdmin, async (req, res) => {
 
     const updated = { ...rows[0].data, ...updates };
     await pool.query('UPDATE orders SET data = $1 WHERE id = $2', [JSON.stringify(updated), req.params.id]);
+    auditLog(req.user.username, 'oppdater', 'ordre', req.params.id, updates);
 
     if (updates.status === 'bekreftet' && updated.email) {
       const itemsText = (updated.items || []).map(i => `  - ${i.name}: ${i.qty} × ${i.unit}`).join('\n');
@@ -269,6 +304,7 @@ app.put('/api/orders/:id', requireAdmin, async (req, res) => {
 app.delete('/api/orders/:id', requireAdmin, async (req, res) => {
   try {
     await pool.query('DELETE FROM orders WHERE id = $1', [req.params.id]);
+    auditLog(req.user.username, 'slett', 'ordre', req.params.id, {});
     res.json({ ok: true });
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
 });
@@ -316,6 +352,7 @@ app.put('/api/inquiries/:id', requireAdmin, async (req, res) => {
 app.delete('/api/inquiries/:id', requireAdmin, async (req, res) => {
   try {
     await pool.query('DELETE FROM inquiries WHERE id = $1', [req.params.id]);
+    auditLog(req.user.username, 'slett', 'henvendelse', req.params.id, {});
     res.json({ ok: true });
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
 });
@@ -331,6 +368,7 @@ app.get('/api/consents', requireAdmin, async (req, res) => {
 app.delete('/api/consents/:id', requireAdmin, async (req, res) => {
   try {
     await pool.query('DELETE FROM consents WHERE id = $1', [req.params.id]);
+    auditLog(req.user.username, 'slett', 'samtykke', req.params.id, {});
     res.json({ ok: true });
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
 });
@@ -404,6 +442,7 @@ app.put('/api/boxes/:id', requireAdmin, async (req, res) => {
 app.delete('/api/boxes/:id', requireAdmin, async (req, res) => {
   try {
     await pool.query('DELETE FROM boxes WHERE id = $1', [req.params.id]);
+    auditLog(req.user.username, 'slett', 'eske', req.params.id, {});
     res.json({ ok: true });
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
 });
@@ -444,6 +483,7 @@ app.put('/api/bags/:id', requireAdmin, async (req, res) => {
 app.delete('/api/bags/:id', requireAdmin, async (req, res) => {
   try {
     await pool.query('DELETE FROM bags WHERE id = $1', [req.params.id]);
+    auditLog(req.user.username, 'slett', 'pose', req.params.id, {});
     res.json({ ok: true });
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
 });
