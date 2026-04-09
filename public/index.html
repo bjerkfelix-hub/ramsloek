@@ -45,8 +45,8 @@
 
     :root {
       --green: #2d6a4f;
-      --green-light: #52b788;
-      --green-pale: #d8f3dc;
+      --green-light: #5d9479;
+      --green-pale: #e4ede8;
       --text: #1b1b1b;
       --muted: #6b7280;
       --border: #e5e7eb;
@@ -103,7 +103,7 @@
       justify-content: center;
       text-align: center;
       padding: 4rem 2rem;
-      background: linear-gradient(160deg, #f0faf3 0%, #ffffff 60%);
+      background: linear-gradient(160deg, #f3f6f4 0%, #ffffff 60%);
       position: relative;
       overflow: hidden;
     }
@@ -113,7 +113,7 @@
       top: -80px; right: -80px;
       width: 420px; height: 420px;
       border-radius: 50%;
-      background: radial-gradient(circle, #b7e4c7 0%, transparent 70%);
+      background: radial-gradient(circle, #c8d8cf 0%, transparent 70%);
       opacity: 0.5;
       pointer-events: none;
     }
@@ -129,7 +129,7 @@
     .hero h1 {
       font-size: clamp(2.4rem, 6vw, 4.2rem);
       line-height: 1.1;
-      color: var(--green);
+      color: var(--text);
       max-width: 680px;
       margin-bottom: 1.4rem;
     }
@@ -194,7 +194,7 @@
     }
     h2 {
       font-size: clamp(1.6rem, 4vw, 2.2rem);
-      color: var(--green);
+      color: var(--text);
       margin-bottom: 1rem;
       line-height: 1.2;
     }
@@ -221,7 +221,7 @@
     .feature-icon { font-size: 1.8rem; margin-bottom: 0.8rem; }
     .feature-card h3 {
       font-size: 1rem;
-      color: var(--green);
+      color: var(--text);
       margin-bottom: 0.4rem;
     }
     .feature-card p {
@@ -305,7 +305,7 @@
       align-items: center;
       justify-content: center;
     }
-    .step h3 { font-size: 0.95rem; color: var(--green); margin-bottom: 0.3rem; }
+    .step h3 { font-size: 0.95rem; color: var(--text); margin-bottom: 0.3rem; }
     .step p { font-family: sans-serif; font-size: 0.85rem; color: var(--muted); }
 
     /* ── ORDER ── */
@@ -620,36 +620,36 @@
 
     /* ── DARK MODE ── */
     html.dark {
-      --green: #52b788;
-      --green-light: #74c69d;
-      --green-pale: #1b4332;
+      --green: #4da882;
+      --green-light: #6aad8c;
+      --green-pale: #1f3d32;
       --text: #e6edf3;
       --muted: #8b949e;
-      --border: #30363d;
-      --white: #0d1117;
+      --border: #333b47;
+      --white: #151920;
     }
-    html.dark body { background: #0d1117; }
-    html.dark nav { background: rgba(13,17,23,0.95); }
-    html.dark .hero { background: linear-gradient(160deg, #0d2818 0%, #0d1117 60%); }
-    html.dark .feature-card { background: #161b22; }
-    html.dark #produkter { background: #111519; }
-    html.dark .product-card { background: #161b22; }
-    html.dark #bestill { background: #0d2818; }
-    html.dark .order-box { background: #161b22; border-color: #1b4332; }
-    html.dark .vipps-row { background: #0d2818; border-color: #1b4332; }
-    html.dark .order-summary { background: #0d2818; border-color: #1b4332; }
-    html.dark input, html.dark select, html.dark textarea { background: #161b22; border-color: #30363d; color: var(--text); }
-    html.dark .sustainability-strip { background: #111519; }
-    html.dark #kontakt { background: #111519; }
-    html.dark .contact-chip { background: #161b22; }
-    html.dark #henvendelse { background: #0d1117; }
-    html.dark .inquiry-box { background: #161b22; }
-    html.dark .cart-drawer { background: #161b22; }
-    html.dark .cart-footer { background: #111519; }
-    html.dark .cart-qty button { background: #161b22; }
-    html.dark .cart-qty button:hover { background: #1b4332; }
-    html.dark footer { background: #0d1117; }
-    html.dark .success-msg { background: #0d2818; border-color: #1b4332; }
+    html.dark body { background: #151920; }
+    html.dark nav { background: rgba(21,25,32,0.95); }
+    html.dark .hero { background: linear-gradient(160deg, #162518 0%, #151920 60%); }
+    html.dark .feature-card { background: #1d2330; }
+    html.dark #produkter { background: #191e28; }
+    html.dark .product-card { background: #1d2330; }
+    html.dark #bestill { background: #162518; }
+    html.dark .order-box { background: #1d2330; border-color: #264035; }
+    html.dark .vipps-row { background: #162518; border-color: #264035; }
+    html.dark .order-summary { background: #162518; border-color: #264035; }
+    html.dark input, html.dark select, html.dark textarea { background: #1d2330; border-color: #333b47; color: var(--text); }
+    html.dark .sustainability-strip { background: #191e28; }
+    html.dark #kontakt { background: #191e28; }
+    html.dark .contact-chip { background: #1d2330; }
+    html.dark #henvendelse { background: #151920; }
+    html.dark .inquiry-box { background: #1d2330; }
+    html.dark .cart-drawer { background: #1d2330; }
+    html.dark .cart-footer { background: #191e28; }
+    html.dark .cart-qty button { background: #1d2330; }
+    html.dark .cart-qty button:hover { background: #264035; }
+    html.dark footer { background: #151920; }
+    html.dark .success-msg { background: #162518; border-color: #264035; }
 
     /* ── LANG TOGGLE ── */
     .lang-toggle {
