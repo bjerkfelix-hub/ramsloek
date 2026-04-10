@@ -13,7 +13,28 @@ const PORT = process.env.PORT || 3000;
 app.set('trust proxy', 1);
 
 // ── Sikkerhetshoder ──
-app.use(helmet({ contentSecurityPolicy: false })); // CSP av pga inline-script i HTML
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc:     ["'self'"],
+      scriptSrc:      ["'self'", "'unsafe-inline'"],   // inline-script påkrevd av HTML-filene
+      styleSrc:       ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      fontSrc:        ["'self'", 'https://fonts.gstatic.com'],
+      imgSrc:         ["'self'", 'data:'],
+      connectSrc:     ["'self'"],
+      frameAncestors: ["'none'"],
+      objectSrc:      ["'none'"],
+      baseUri:        ["'self'"],
+      formAction:     ["'self'"],
+      upgradeInsecureRequests: [],
+    }
+  }
+}));
+app.use((req, res, next) => {
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'geolocation=(), camera=(), microphone=(), payment=()');
+  next();
+});
 
 // ── Body-størrelse maks 20kb ──
 app.use(express.json({ limit: '20kb' }));
@@ -148,7 +169,7 @@ async function auditLog(username, action, resource, resourceId, details) {
 }
 
 // ── Rate limiting ──
-const loginLimiter  = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false });
+const loginLimiter  = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, skipSuccessfulRequests: true, standardHeaders: true, legacyHeaders: false });
 const publicLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
 
 app.post('/api/login', loginLimiter, async (req, res) => {
@@ -278,9 +299,11 @@ app.put('/api/orders/:id', requireAdmin, async (req, res) => {
     if (!rows.length) return res.status(404).json({ error: 'Ikke funnet' });
 
     // Kun tillatte felter kan oppdateres
+    const VALID_ORDER_STATUSES = new Set(['venter', 'bekreftet', 'avbestilt']);
     const allowed = ['status', 'pickupPlace', 'pickupTime', 'adminNote', 'boxId', 'bagId'];
     const updates = {};
     allowed.forEach(k => { if (req.body[k] !== undefined) updates[k] = str(String(req.body[k]), 500); });
+    if (updates.status !== undefined && !VALID_ORDER_STATUSES.has(updates.status)) delete updates.status;
 
     const updated = { ...rows[0].data, ...updates };
     await pool.query('UPDATE orders SET data = $1 WHERE id = $2', [JSON.stringify(updated), req.params.id]);
@@ -343,7 +366,9 @@ app.put('/api/inquiries/:id', requireAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT data FROM inquiries WHERE id = $1', [req.params.id]);
     if (!rows.length) return res.status(404).json({ error: 'Ikke funnet' });
-    const updated = { ...rows[0].data, status: str(req.body.status, 20) };
+    const VALID_INQUIRY_STATUSES = new Set(['ny', 'lest']);
+    const s = str(req.body.status, 20);
+    const updated = { ...rows[0].data, ...(VALID_INQUIRY_STATUSES.has(s) ? { status: s } : {}) };
     await pool.query('UPDATE inquiries SET data = $1 WHERE id = $2', [JSON.stringify(updated), req.params.id]);
     res.json({ ok: true });
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
@@ -418,8 +443,10 @@ app.put('/api/boxes/:id', requireAdmin, async (req, res) => {
     const updated = { ...box };
 
     // Oppdater status
+    const VALID_BOX_STATUSES = new Set(['på lager', 'solgt', 'kassert']);
     if (req.body.status !== undefined) {
-      updated.status = str(String(req.body.status), 50);
+      const s = str(String(req.body.status), 50);
+      if (VALID_BOX_STATUSES.has(s)) updated.status = s;
     }
 
     // Legg til en pose
@@ -473,7 +500,11 @@ app.put('/api/bags/:id', requireAdmin, async (req, res) => {
     const { rows } = await pool.query('SELECT data FROM bags WHERE id = $1', [req.params.id]);
     if (!rows.length) return res.status(404).json({ error: 'Ikke funnet' });
     const updated = { ...rows[0].data };
-    if (req.body.status !== undefined) updated.status = str(String(req.body.status), 50);
+    const VALID_BAG_STATUSES = new Set(['ledig', 'tildelt', 'levert']);
+    if (req.body.status !== undefined) {
+      const s = str(String(req.body.status), 50);
+      if (VALID_BAG_STATUSES.has(s)) updated.status = s;
+    }
     if (req.body.orderId !== undefined) updated.orderId = str(String(req.body.orderId), 50);
     await pool.query('UPDATE bags SET data = $1 WHERE id = $2', [JSON.stringify(updated), req.params.id]);
     res.json({ ok: true });

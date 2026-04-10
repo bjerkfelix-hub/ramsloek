@@ -1400,7 +1400,7 @@
         </div>
         ${o.note ? `<div class="card-note">💬 ${esc(o.note)}</div>` : ''}
         <div class="card-actions">
-          ${o.status!=='bekreftet' ? `<button class="action-btn btn-confirm" onclick="openConfirmModal('${o.id}','${esc(o.name)}')">Bekreft ✓</button>` : ''}
+          ${o.status!=='bekreftet' ? `<button class="action-btn btn-confirm" data-id="${o.id}" data-name="${esc(o.name)}" onclick="openConfirmModal(this.dataset.id, this.dataset.name)">Bekreft ✓</button>` : ''}
           ${o.status!=='avbestilt' ? `<button class="action-btn btn-cancel-order" onclick="setStatus('${o.id}','avbestilt')">Avbestill</button>` : ''}
           <button class="action-btn btn-delete" onclick="deleteOrder('${o.id}')">🗑</button>
         </div>
