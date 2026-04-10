@@ -924,13 +924,6 @@
       document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
       document.querySelector('.filter-pill[onclick*="bekreftet"]')?.classList.add('active');
     }
-    if (freshLogin && currentUser.display === 'Edvard') {
-      const toast = document.getElementById('welcomeToast');
-      document.getElementById('welcomeToastTitle').textContent = 'Hei, Edvard! 🌿';
-      document.getElementById('welcomeToastMsg').textContent = 'Godt å ha deg med. Sesongen er kort – takk for at du stiller opp!';
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 7000);
-    }
     renderAll();
   }
 
