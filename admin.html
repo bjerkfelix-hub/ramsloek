@@ -628,6 +628,10 @@
       <label>Kommentar (valgfritt)</label>
       <textarea id="box_note" placeholder="F.eks. ekstra frisk batch…"></textarea>
     </div>
+    <div style="display:flex;align-items:center;gap:0.6rem;margin-top:0.3rem;">
+      <input type="checkbox" id="box_kjølelager" style="width:auto;accent-color:var(--purple);" />
+      <label for="box_kjølelager" style="font-size:0.88rem;color:var(--muted);cursor:pointer;">❄️ Kjølelager</label>
+    </div>
     <div class="modal-actions">
       <button class="btn-modal-cancel" onclick="closeNewBoxModal()">Avbryt</button>
       <button class="btn-modal-confirm" onclick="submitNewBox()">Registrer eske</button>
@@ -1034,6 +1038,7 @@
     document.getElementById('box_packTime').value = '';
     document.getElementById('box_area').value = '';
     document.getElementById('box_note').value = '';
+    document.getElementById('box_kjølelager').checked = false;
     document.getElementById('newBoxModal').classList.add('open');
   }
 
@@ -1042,13 +1047,14 @@
   }
 
   async function submitNewBox() {
-    const date     = document.getElementById('box_date').value;
-    const area     = document.getElementById('box_area').value.trim();
-    const pickTime = document.getElementById('box_pickTime').value;
-    const packTime = document.getElementById('box_packTime').value;
-    const note     = document.getElementById('box_note').value;
+    const date       = document.getElementById('box_date').value;
+    const area       = document.getElementById('box_area').value.trim();
+    const pickTime   = document.getElementById('box_pickTime').value;
+    const packTime   = document.getElementById('box_packTime').value;
+    const note       = document.getElementById('box_note').value;
+    const kjølelager = document.getElementById('box_kjølelager').checked;
     if (!date || !area) { alert('Fyll ut dato og område.'); return; }
-    await api.post('/api/boxes', { pickDate: date, area, pickTime, packTime, note });
+    await api.post('/api/boxes', { pickDate: date, area, pickTime, packTime, note, kjølelager });
     closeNewBoxModal();
     renderAll();
   }
@@ -1084,26 +1090,53 @@
     renderAll();
   }
 
+  function boxFreshness(pickDate) {
+    if (!pickDate) return { days: null, label: '–', color: 'var(--muted)', urgent: false };
+    const days = Math.floor((Date.now() - new Date(pickDate)) / 86400000);
+    if (days <= 1) return { days, label: `🟢 Nyplukt (${days}d)`, color: 'var(--green)', urgent: false };
+    if (days <= 3) return { days, label: `🟡 ${days} dager gammel`, color: 'var(--yellow)', urgent: false };
+    return { days, label: `🔴 ${days} dager – selg nå!`, color: 'var(--red)', urgent: true };
+  }
+
   function renderBoxes(boxes, orders) {
     const list = document.getElementById('boxList');
     if (!boxes || !boxes.length) {
       list.innerHTML = `<div class="empty-state"><div class="icon">📦</div><p>Ingen esker registrert ennå.</p></div>`;
       return;
     }
-    list.innerHTML = [...boxes].sort((a,b) => b.id - a.id).map(b => {
+    // Sorter: ikke-kjølelager eldst først (høyest prioritet), deretter kjølelager eldst først
+    const sorted = [...boxes].sort((a, b) => {
+      if (a.status !== 'på lager' && b.status === 'på lager') return 1;
+      if (a.status === 'på lager' && b.status !== 'på lager') return -1;
+      const aKjøl = a.kjølelager ? 1 : 0;
+      const bKjøl = b.kjølelager ? 1 : 0;
+      if (aKjøl !== bKjøl) return aKjøl - bKjøl;
+      return (a.pickDate||'') < (b.pickDate||'') ? -1 : 1;
+    });
+    // Finn "selg først"-eske (eldste på lager, ikke kjølelager)
+    const sellFirst = sorted.find(b => b.status === 'på lager' && !b.kjølelager);
+
+    list.innerHTML = sorted.map(b => {
       const linkedOrders = orders.filter(o => o.boxId === b.id);
       const statusClass = b.status === 'solgt' ? 'status-solgt' : b.status === 'kassert' ? 'status-kassert' : 'status-på-lager';
       const statusPill = { 'på lager': `<span class="status-pill pill-venter">På lager</span>`, 'solgt': `<span class="status-pill pill-bekreftet">Solgt</span>`, 'kassert': `<span class="status-pill pill-avbestilt">Kassert</span>` }[b.status] || '';
+      const fresh = boxFreshness(b.pickDate);
+      const isSellFirst = sellFirst && b.id === sellFirst.id;
       const ordersHtml = linkedOrders.length
         ? `<div class="box-orders">🔍 Smittesporing: ${linkedOrders.map(o => `<span>${esc(o.name)} (${o.id})</span>`).join(', ')}</div>`
         : `<div class="box-orders" style="color:var(--muted)">Ikke koblet til noen bestilling ennå</div>`;
-      return `<div class="box-card ${statusClass}">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span class="box-tracking">${esc(b.trackingId)}</span>
+      return `<div class="box-card ${statusClass}" style="${isSellFirst ? 'border:2px solid var(--red);' : ''}">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.4rem;">
+          <div style="display:flex;align-items:center;gap:0.5rem;">
+            <span class="box-tracking">${esc(b.trackingId)}</span>
+            ${isSellFirst ? `<span style="background:var(--red-dim);color:var(--red);border:1px solid var(--red);border-radius:999px;font-size:0.7rem;font-weight:700;padding:0.1rem 0.6rem;">SELG FØRST</span>` : ''}
+          </div>
           ${statusPill}
         </div>
         <div class="box-meta">
           <span>📅 ${b.pickDate || '–'}</span>
+          <span style="color:${fresh.color};font-weight:600;">${fresh.label}</span>
+          ${b.kjølelager ? `<span style="color:#60a5fa;">❄️ Kjølelager</span>` : `<span style="color:var(--muted);">🌡️ Romtemp.</span>`}
           <span>📍 ${esc(b.area)}</span>
           <span>⚖️ ${b.totalWeight || 0}g totalt</span>
           ${b.pickTime ? `<span>🌿 Plukket kl. ${b.pickTime}</span>` : ''}
@@ -1129,6 +1162,7 @@
         ${b.note ? `<div style="font-size:0.82rem;color:var(--muted);">💬 ${esc(b.note)}</div>` : ''}
         ${ordersHtml}
         <div class="card-actions">
+          ${b.status === 'på lager' ? `<button class="action-btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);" onclick="api.put('/api/boxes/${b.id}',{kjølelager:${!b.kjølelager}}).then(renderAll)">${b.kjølelager ? '🌡️ Flytt ut av kjøl' : '❄️ Sett på kjøl'}</button>` : ''}
           ${b.status !== 'kassert' ? `<button class="action-btn btn-cancel-order" onclick="api.put('/api/boxes/${b.id}',{status:'kassert'}).then(renderAll)">Kassér</button>` : ''}
           <button class="action-btn btn-delete" onclick="deleteBox('${b.id}')">🗑</button>
         </div>
@@ -1138,6 +1172,7 @@
 
   // ── ACTIONS ──
   async function setStatus(id, status) { await api.put(`/api/orders/${id}`, { status }); renderAll(); }
+  async function markPaid(id) { await api.put(`/api/orders/${id}`, { paid: 'true', paidAt: new Date().toISOString() }); renderAll(); }
   async function deleteOrder(id) { if (!confirm('Slett ordren permanent?')) return; await api.delete(`/api/orders/${id}`); renderAll(); }
   async function setInquiryStatus(id, status) { await api.put(`/api/inquiries/${id}`, { status }); renderAll(); }
   async function deleteInquiry(id) { if (!confirm('Slett henvendelsen permanent?')) return; await api.delete(`/api/inquiries/${id}`); renderAll(); }
@@ -1401,6 +1436,9 @@
         ${o.note ? `<div class="card-note">💬 ${esc(o.note)}</div>` : ''}
         <div class="card-actions">
           ${o.status!=='bekreftet' ? `<button class="action-btn btn-confirm" data-id="${o.id}" data-name="${esc(o.name)}" onclick="openConfirmModal(this.dataset.id, this.dataset.name)">Bekreft ✓</button>` : ''}
+          ${o.paid==='true'
+            ? `<span class="status-pill pill-bekreftet">💰 Betalt</span>`
+            : o.status==='bekreftet' ? `<button class="action-btn btn-confirm" onclick="markPaid('${o.id}')">💰 Merk betalt</button>` : ''}
           ${o.status!=='avbestilt' ? `<button class="action-btn btn-cancel-order" onclick="setStatus('${o.id}','avbestilt')">Avbestill</button>` : ''}
           <button class="action-btn btn-delete" onclick="deleteOrder('${o.id}')">🗑</button>
         </div>

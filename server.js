@@ -311,7 +311,7 @@ app.put('/api/orders/:id', requireAdmin, async (req, res) => {
 
     // Kun tillatte felter kan oppdateres
     const VALID_ORDER_STATUSES = new Set(['venter', 'bekreftet', 'avbestilt']);
-    const allowed = ['status', 'pickupPlace', 'pickupTime', 'adminNote', 'boxId', 'bagId'];
+    const allowed = ['status', 'pickupPlace', 'pickupTime', 'adminNote', 'boxId', 'bagId', 'paid', 'paidAt'];
     const updates = {};
     allowed.forEach(k => { if (req.body[k] !== undefined) updates[k] = str(String(req.body[k]), 500); });
     if (updates.status !== undefined && !VALID_ORDER_STATUSES.has(updates.status)) delete updates.status;
@@ -326,7 +326,7 @@ app.put('/api/orders/:id', requireAdmin, async (req, res) => {
       const noteInfo = updated.adminNote ? `\nMelding fra oss: ${updated.adminNote}` : '';
       await sendEmail(
         'Ramsløk-bestillingen din er bekreftet! 🌿',
-        `Hei ${updated.name}!\n\nBestillingen din er bekreftet.\n\nDu har bestilt:\n${itemsText}\nTotal: ${updated.total} kr${pickupInfo}${noteInfo}\n\nHar du spørsmål? Ta kontakt på ${process.env.FROM_EMAIL || process.env.GMAIL_USER || 'bjerkfelix@gmail.com'}.\n\nMed vennlig hilsen,\nRamsløk Nesodden`,
+        `Hei ${updated.name}!\n\nBestillingen din er bekreftet.\n\nDu har bestilt:\n${itemsText}\nTotal: ${updated.total} kr${pickupInfo}${noteInfo}\n\nBetaling skjer ved henting/levering – kontant eller Vipps.\n\nHar du spørsmål? Ta kontakt på ${process.env.FROM_EMAIL || process.env.GMAIL_USER || 'bjerkfelix@gmail.com'}.\n\nMed vennlig hilsen,\nRamsløk Nesodden`,
         updated.email
       );
     }
@@ -419,11 +419,12 @@ app.get('/api/boxes', requireAdmin, async (req, res) => {
 
 app.post('/api/boxes', requireAdmin, async (req, res) => {
   try {
-    const pickDate = str(req.body.pickDate, 20);
-    const area     = str(req.body.area, 200);
-    const pickTime = str(req.body.pickTime || '', 10);
-    const packTime = str(req.body.packTime || '', 10);
-    const note     = str(req.body.note || '', 500);
+    const pickDate   = str(req.body.pickDate, 20);
+    const area       = str(req.body.area, 200);
+    const pickTime   = str(req.body.pickTime || '', 10);
+    const packTime   = str(req.body.packTime || '', 10);
+    const note       = str(req.body.note || '', 500);
+    const kjølelager = req.body.kjølelager === true || req.body.kjølelager === 'true';
 
     if (!pickDate || !area) return res.status(400).json({ error: 'Mangler påkrevde felt' });
 
@@ -437,7 +438,7 @@ app.post('/api/boxes', requireAdmin, async (req, res) => {
       trackingId: `ESK-${nextNum}`,
       timestamp: new Date().toISOString(),
       status: 'på lager',
-      pickDate, area, pickTime, packTime, note,
+      pickDate, area, pickTime, packTime, note, kjølelager,
       bags: 0, weightPerBag: 0, totalWeight: 0,
       poseList: []
     };
@@ -458,6 +459,9 @@ app.put('/api/boxes/:id', requireAdmin, async (req, res) => {
     if (req.body.status !== undefined) {
       const s = str(String(req.body.status), 50);
       if (VALID_BOX_STATUSES.has(s)) updated.status = s;
+    }
+    if (req.body.kjølelager !== undefined) {
+      updated.kjølelager = req.body.kjølelager === true || req.body.kjølelager === 'true';
     }
 
     // Legg til en pose

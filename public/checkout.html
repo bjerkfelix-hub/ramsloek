@@ -203,19 +203,6 @@
       padding: 1.2rem 0;
     }
 
-    /* ── VIPPS BANNER ── */
-    .vipps-banner {
-      background: var(--green-pale);
-      border: 1px solid var(--green-light);
-      border-radius: 8px;
-      padding: 0.75rem 1rem;
-      font-family: sans-serif;
-      font-size: 0.83rem;
-      color: var(--green);
-      margin-bottom: 1rem;
-      line-height: 1.45;
-    }
-
     /* ── FORM ── */
     .form-group { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0.9rem; }
     .form-group label {
@@ -382,7 +369,7 @@
 
 <div class="page">
   <h1 class="page-title">Bestill ramsløk</h1>
-  <p class="page-sub">Velg produkter, fyll ut skjemaet og betal på Vipps – vi tar kontakt for å avtale levering.</p>
+  <p class="page-sub">Velg produkter, fyll ut skjemaet – vi tar kontakt for å bekrefte og avtale levering. Betaling skjer ved henting.</p>
 
   <div class="checkout-grid">
 
@@ -440,10 +427,6 @@
       <div class="card">
         <div class="card-title">Dine opplysninger</div>
 
-        <div class="vipps-banner">
-          💳 Betal til Vipps-nummer <strong>[VIPPS]</strong> etter at du har sendt bestillingen – merk med fullt navn.
-        </div>
-
         <form id="orderForm">
           <div class="form-group">
             <label for="name">Fullt navn</label>
@@ -489,7 +472,7 @@
 
           <div class="success-box" id="successBox">
             ✅ Takk for bestillingen! Vi tar kontakt snart for å bekrefte og avtale levering/henting.<br><br>
-            Husk å betale på Vipps-nummer <strong>[VIPPS]</strong> – merk med fullt navn.
+            Betaling skjer ved henting/levering – kontant eller Vipps.
           </div>
         </form>
       </div>
@@ -523,7 +506,7 @@
     <h3>1. Selger</h3>
     <p>Dont Panic AS, Nesodden. Kontakt: felix@dontpanic.no</p>
     <h3>2. Bestilling og betaling</h3>
-    <p>Bestilling legges inn via nettskjema. Betaling skjer via Vipps til oppgitt nummer – merk betalingen med fullt navn og hva du bestiller. Bestillingen er ikke bindende før betaling er mottatt.</p>
+    <p>Bestilling legges inn via nettskjema. Betaling skjer ved henting eller levering – kontant eller Vipps. Bestillingen er ikke bindende før den er bekreftet av oss.</p>
     <h3>3. Levering og henting</h3>
     <p>Vi tilbyr henting på Nesodden (lørdager i sesong), henting i Oslo på avtalt sted, eller hjemlevering innenfor Ring 2 i Oslo (+75 kr). Leveringstidspunkt avtales per SMS/e-post etter mottatt bestilling.</p>
     <h3>4. Avbestilling</h3>
