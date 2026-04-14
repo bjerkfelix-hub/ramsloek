@@ -924,6 +924,13 @@
       document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
       document.querySelector('.filter-pill[onclick*="bekreftet"]')?.classList.add('active');
     }
+    if (freshLogin) {
+      const toast = document.getElementById('welcomeToast');
+      document.getElementById('welcomeToastTitle').textContent = `Hei, ${currentUser.display}! 👋`;
+      document.getElementById('welcomeToastMsg').textContent = `Innlogget som ${currentUser.role === 'admin' ? 'admin' : 'leveranser'}`;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 4000);
+    }
     renderAll();
   }
 

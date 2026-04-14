@@ -18,6 +18,7 @@ app.use(helmet({
     directives: {
       defaultSrc:     ["'self'"],
       scriptSrc:      ["'self'", "'unsafe-inline'"],   // inline-script påkrevd av HTML-filene
+      scriptSrcAttr:  ["'unsafe-inline'"],             // onclick/onchange-attributter
       styleSrc:       ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
       fontSrc:        ["'self'", 'https://fonts.gstatic.com'],
       imgSrc:         ["'self'", 'data:'],
@@ -133,7 +134,8 @@ const MAX_QTY = 50;
 const USERS = {
   'FelixWilliam':    { password: process.env.PW_FELIX,  role: 'admin',      initials: 'FW', display: 'FelixWilliam' },
   'SverreFredriksen':{ password: process.env.PW_SVERRE, role: 'leveranser', initials: 'SF', display: 'Sverre' },
-  'EirikNordtug':    { password: process.env.PW_EIRIK,  role: 'admin',      initials: 'EN', display: 'Eirik' }
+  'EirikNordtug':    { password: process.env.PW_EIRIK,  role: 'admin',      initials: 'EN', display: 'Eirik' },
+  'Edvard':          { password: process.env.PW_EDVARD, role: 'admin',      initials: 'ED', display: 'Edvard' }
 };
 
 const SESSION_TTL = 8 * 60 * 60 * 1000; // 8 timer
