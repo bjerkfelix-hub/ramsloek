@@ -922,12 +922,12 @@
             <option value="Henting i Oslo" data-no="Henting i Oslo (sted avtales)" data-en="Pickup in Oslo (location TBD)">Henting i Oslo (sted avtales)</option>
             <option value="Levering i sentrale Oslo (+75 kr)" data-no="Levering i sentrale Oslo (+75 kr)" data-en="Delivery in central Oslo (+75 kr)">Levering i sentrale Oslo (+75 kr)</option>
           </select>
-          <div id="deliveryInfo" style="display:none;margin-top:0.6rem;padding:0.7rem 1rem;background:var(--green-pale);border:1px solid var(--green-light);border-radius:8px;font-family:sans-serif;font-size:0.83rem;color:var(--green-dark);">
+          <div id="deliveryInfo" data-no-html="📍 Vi leverer innenfor <strong>Ring 2</strong> i Oslo. Vi tar kontakt etter bestilling for å avtale leveringstidspunkt." data-en-html="📍 We deliver within <strong>Ring 2</strong> in Oslo. We will contact you after ordering to arrange delivery time." style="display:none;margin-top:0.6rem;padding:0.7rem 1rem;background:var(--green-pale);border:1px solid var(--green-light);border-radius:8px;font-family:sans-serif;font-size:0.83rem;color:var(--green-dark);">
             📍 Vi leverer innenfor <strong>Ring 2</strong> i Oslo. Vi tar kontakt etter bestilling for å avtale leveringstidspunkt.
           </div>
           <div id="addressBox" style="display:none;margin-top:0.8rem;">
-            <label for="deliveryAddress" style="font-family:sans-serif;font-size:0.85rem;font-weight:500;">Din leveringsadresse</label>
-            <input type="text" id="deliveryAddress" placeholder="Gateadresse, postnummer, Oslo" style="margin-top:0.3rem;width:100%;padding:0.65rem 0.9rem;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.9rem;background:var(--white);color:var(--text);" />
+            <label for="deliveryAddress" data-no="Din leveringsadresse" data-en="Your delivery address" style="font-family:sans-serif;font-size:0.85rem;font-weight:500;">Din leveringsadresse</label>
+            <input type="text" id="deliveryAddress" placeholder="Gateadresse, postnummer, Oslo" data-ph-no="Gateadresse, postnummer, Oslo" data-ph-en="Street address, postal code, Oslo" style="margin-top:0.3rem;width:100%;padding:0.65rem 0.9rem;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.9rem;background:var(--white);color:var(--text);" />
           </div>
         </div>
         <div class="form-group">
@@ -936,7 +936,7 @@
         </div>
         <div style="display:flex;align-items:flex-start;gap:0.6rem;margin-bottom:0.8rem;font-family:sans-serif;font-size:0.85rem;color:var(--muted);">
           <input type="checkbox" id="termsAccept" style="margin-top:0.15rem;accent-color:var(--green);flex-shrink:0;" required />
-          <label for="termsAccept">Jeg har lest og aksepterer <a href="#" onclick='document.getElementById("termsModal").style.display="flex";return false;' style="color:var(--green);text-decoration:underline;">kjøpsvilkårene</a></label>
+          <label for="termsAccept"><span data-no="Jeg har lest og aksepterer" data-en="I have read and accept">Jeg har lest og aksepterer</span> <a href="#" onclick='document.getElementById("termsModal").style.display="flex";return false;' style="color:var(--green);text-decoration:underline;"><span data-no="kjøpsvilkårene" data-en="the terms">kjøpsvilkårene</span></a></label>
         </div>
         <button type="submit" class="btn" style="width:100%;" id="orderSubmitBtn" data-no="Send bestilling" data-en="Place order">Send bestilling</button>
         <div class="success-msg" id="successMsg" data-no-html="✅ Takk for bestillingen! Vi tar kontakt snart for å bekrefte og avtale levering/henting. Husk å betale på Vipps-nummer <strong>[VIPPS]</strong>." data-en-html="✅ Thank you for your order! We will be in touch soon to confirm and arrange delivery/pickup. Remember to pay via Vipps number <strong>[VIPPS]</strong>.">
@@ -1222,7 +1222,8 @@
     }
     const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
     const rows = cart.map(i => `<div class="order-summary-item"><span>${i.name} × ${i.qty} ${i.unit}</span><span>${i.price * i.qty} kr</span></div>`).join('');
-    document.getElementById('orderSummary').innerHTML = `<h4>Din bestilling</h4>${rows}<div class="order-summary-total"><span>Total</span><span>${total} kr</span></div>`;
+    const summaryHeading = currentLang === 'en' ? 'Your order' : 'Din bestilling';
+    document.getElementById('orderSummary').innerHTML = `<h4>${summaryHeading}</h4>${rows}<div class="order-summary-total"><span>Total</span><span>${total} kr</span></div>`;
     document.getElementById('orderSummaryBox').style.display = 'block';
   }
 
@@ -1236,7 +1237,7 @@
     document.getElementById('emptyCartMsg').style.display = 'none';
 
     const btn = document.getElementById('orderSubmitBtn');
-    btn.textContent = 'Sender…';
+    btn.textContent = currentLang === 'en' ? 'Sending…' : 'Sender…';
     btn.disabled = true;
 
     const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
@@ -1277,7 +1278,7 @@
   document.getElementById('contactForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const btn = this.querySelector('button[type=submit]');
-    btn.textContent = 'Sender…';
+    btn.textContent = currentLang === 'en' ? 'Sending…' : 'Sender…';
     btn.disabled = true;
     try {
       const res = await fetch('/api/inquiries', {
@@ -1306,7 +1307,7 @@
   document.getElementById('inquiryForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const btn = this.querySelector('button[type=submit]');
-    btn.textContent = 'Sender…';
+    btn.textContent = currentLang === 'en' ? 'Sending…' : 'Sender…';
     btn.disabled = true;
 
     const payload = {
