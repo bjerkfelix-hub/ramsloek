@@ -230,7 +230,8 @@ const FROM_ADDRESS = process.env.FROM_EMAIL
 async function sendEmail(subject, text, to) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) { console.warn('⚠️  RESEND_API_KEY mangler – e-post deaktivert'); return; }
-  const recipient = to || process.env.GMAIL_USER;
+  const adminEmail = process.env.ADMIN_EMAIL || process.env.FROM_EMAIL;
+  const recipient = to || adminEmail;
   try {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -316,7 +317,7 @@ app.put('/api/orders/:id', requireAdmin, async (req, res) => {
       const noteInfo = updated.adminNote ? `\nMelding fra oss: ${updated.adminNote}` : '';
       await sendEmail(
         'Ramsløk-bestillingen din er bekreftet! 🌿',
-        `Hei ${updated.name}!\n\nBestillingen din er bekreftet.\n\nDu har bestilt:\n${itemsText}\nTotal: ${updated.total} kr${pickupInfo}${noteInfo}\n\nHar du spørsmål? Ta kontakt på ${process.env.GMAIL_USER || 'bjerkfelix@gmail.com'}.\n\nMed vennlig hilsen,\nRamsløk Nesodden`,
+        `Hei ${updated.name}!\n\nBestillingen din er bekreftet.\n\nDu har bestilt:\n${itemsText}\nTotal: ${updated.total} kr${pickupInfo}${noteInfo}\n\nHar du spørsmål? Ta kontakt på ${process.env.FROM_EMAIL || 'bjerkfelix@gmail.com'}.\n\nMed vennlig hilsen,\nRamsløk Nesodden`,
         updated.email
       );
     }
