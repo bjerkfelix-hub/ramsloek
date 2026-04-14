@@ -232,6 +232,7 @@ async function sendEmail(subject, text, to) {
   if (!apiKey) { console.warn('⚠️  RESEND_API_KEY mangler – e-post deaktivert'); return; }
   const adminEmail = process.env.ADMIN_EMAIL || process.env.FROM_EMAIL;
   const recipient = to || adminEmail;
+  if (!recipient) { console.warn('⚠️  Ingen mottaker – sett ADMIN_EMAIL i Railway'); return; }
   try {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
