@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /bellevue
+
+Sitemap: https://ramsloek.no/sitemap.xml
