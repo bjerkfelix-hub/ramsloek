@@ -523,9 +523,10 @@ app.delete('/api/bags/:id', requireAdmin, async (req, res) => {
 });
 
 // ── Start ──
-Promise.all([initDB(), initBackupDB(), initPasswords()]).then(() => {
-  app.listen(PORT, () => console.log(`🌿 Server kjører på port ${PORT}`));
-}).catch(err => {
-  console.error('❌ Oppstartsfeil:', err.message || JSON.stringify(err));
-  process.exit(1);
+app.listen(PORT, () => {
+  console.log(`🌿 Server kjører på port ${PORT}`);
+  Promise.all([initDB(), initBackupDB(), initPasswords()]).catch(err => {
+    console.error('❌ Oppstartsfeil:', err.message || JSON.stringify(err));
+    process.exit(1);
+  });
 });
