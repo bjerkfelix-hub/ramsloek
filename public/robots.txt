@@ -3,4 +3,4 @@ Allow: /
 Disallow: /api/
 Disallow: /bellevue
 
-Sitemap: https://ramsloek.no/sitemap.xml
+Sitemap: https://xn--ramslk-oxa.no/sitemap.xml
