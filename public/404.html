@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light" />
+  <title>404 – Siden ble ikke funnet | Nesodden Ramsløk</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #2d6a4f;
+      --green-pale: #e4ede8;
+      --text: #1b1b1b;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --white: #ffffff;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Georgia', serif;
+      color: var(--text);
+      background: var(--white);
+      line-height: 1.65;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex; align-items: center;
+      height: 60px;
+    }
+    .nav-logo {
+      font-size: 1rem; font-weight: bold;
+      color: var(--green); letter-spacing: 0.02em;
+      text-decoration: none;
+    }
+    main {
+      flex: 1;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 4rem 2rem;
+    }
+    .error-code {
+      font-family: sans-serif;
+      font-size: 6rem; font-weight: 800;
+      color: var(--green-pale);
+      line-height: 1;
+      margin-bottom: 1rem;
+    }
+    .error-leaf {
+      font-size: 3rem;
+      margin-bottom: 1.5rem;
+    }
+    h1 {
+      font-size: 1.8rem;
+      color: var(--text);
+      margin-bottom: 0.8rem;
+    }
+    p {
+      color: var(--muted);
+      font-family: sans-serif;
+      font-size: 1rem;
+      max-width: 420px;
+      margin-bottom: 2.2rem;
+    }
+    .btn {
+      display: inline-block;
+      background: var(--green);
+      color: white;
+      text-decoration: none;
+      font-family: sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      padding: 0.8rem 1.8rem;
+      border-radius: 10px;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.88; }
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      font-family: sans-serif;
+      font-size: 0.8rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+    @media (max-width: 600px) {
+      .error-code { font-size: 4rem; }
+      h1 { font-size: 1.4rem; }
+      nav { padding: 0 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a class="nav-logo" href="/">Nesodden Ramsløk</a>
+  </nav>
+  <main>
+    <div class="error-leaf">🌿</div>
+    <div class="error-code">404</div>
+    <h1>Siden ble ikke funnet</h1>
+    <p>Denne siden eksisterer ikke. Den kan ha blitt flyttet, slettet eller du kan ha skrevet inn feil URL.</p>
+    <a class="btn" href="/">Tilbake til forsiden</a>
+  </main>
+  <footer>
+    &copy; 2026 Nesodden Ramsløk &mdash; Bellevue, Nesodden
+  </footer>
+</body>
+</html>
