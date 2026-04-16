@@ -604,6 +604,28 @@
       .nav-links { display: none; }
       nav { padding: 0 0.9rem; height: 52px; }
       .nav-logo { font-size: 0.9rem; }
+      .hamburger { display: flex; align-items: center; }
+
+      /* Mobilmeny-dropdown */
+      .nav-links.open {
+        display: flex !important;
+        flex-direction: column;
+        position: fixed;
+        top: 52px; left: 0; right: 0;
+        background: var(--white);
+        border-bottom: 1px solid var(--border);
+        padding: 0.5rem 0;
+        z-index: 99;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        gap: 0;
+      }
+      .nav-links.open li { border-bottom: 1px solid var(--border); }
+      .nav-links.open li:last-child { border-bottom: none; }
+      .nav-links.open a { display: block; padding: 0.85rem 1.2rem; font-size: 0.95rem; color: var(--text); }
+      .nav-links.open a:hover { background: var(--green-pale); color: var(--green); }
+
+      /* Handlekurv-ikon — skjul tekst, behold badge */
+      .cart-text { display: none; }
 
       /* Hero */
       .hero { padding: 2.8rem 0.9rem 2.2rem; min-height: auto; }
@@ -730,6 +752,19 @@
     }
     .dark-toggle:hover { background: var(--green-pale); color: var(--green); }
 
+    /* ── HAMBURGER ── */
+    .hamburger {
+      display: none;
+      background: none;
+      border: none;
+      font-size: 1.3rem;
+      line-height: 1;
+      cursor: pointer;
+      color: var(--text);
+      padding: 0.25rem 0.3rem;
+    }
+    .cart-text { /* span inside cart-btn with the word label */ }
+
     /* ── NATURSEKSJON (to-kolonne) ── */
     .nature-split {
       display: flex;
@@ -813,8 +848,9 @@
     <button class="lang-toggle" id="langToggle" onclick="toggleLang()">NO</button>
     <button class="dark-toggle" id="darkToggle" onclick="toggleDark()" title="Bytt tema">🌙</button>
     <button class="cart-btn" onclick="openCart()">
-      🛒 <span data-no="Handlekurv" data-en="Cart">Handlekurv</span> <span class="cart-count" id="cartCount">0</span>
+      🛒 <span class="cart-text" data-no="Handlekurv" data-en="Cart">Handlekurv</span> <span class="cart-count" id="cartCount">0</span>
     </button>
+    <button class="hamburger" id="hamburgerBtn" onclick="toggleMobileMenu()" aria-label="Meny">☰</button>
   </div>
 </nav>
 
@@ -1226,6 +1262,13 @@
     document.getElementById('darkToggle').textContent = isDark ? '☀️' : '🌙';
   }
 
+  function toggleMobileMenu() {
+    const menu = document.querySelector('.nav-links');
+    const btn = document.getElementById('hamburgerBtn');
+    const isOpen = menu.classList.toggle('open');
+    btn.textContent = isOpen ? '✕' : '☰';
+  }
+
   document.addEventListener('DOMContentLoaded', function() {
     if (document.documentElement.classList.contains('dark')) {
       document.getElementById('darkToggle').textContent = '☀️';
@@ -1234,6 +1277,13 @@
     document.getElementById('termsLink').addEventListener('click', function(e) {
       e.preventDefault();
       document.getElementById('termsModal').style.display = 'flex';
+    });
+    // Lukk mobilmeny ved klikk på lenke
+    document.querySelectorAll('.nav-links a').forEach(function(a) {
+      a.addEventListener('click', function() {
+        document.querySelector('.nav-links').classList.remove('open');
+        document.getElementById('hamburgerBtn').textContent = '☰';
+      });
     });
   });
 
