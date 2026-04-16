@@ -627,6 +627,42 @@
       /* Handlekurv-ikon — skjul tekst, behold badge */
       .cart-text { display: none; }
 
+      /* Skjul lang- og dark-toggle på mobil */
+      .lang-toggle { display: none; }
+      .dark-toggle { display: none; }
+
+      /* ── TVING LYS MODUS PÅ MOBIL ── */
+      html.dark {
+        --green: #2d6a4f;
+        --green-light: #5d9479;
+        --green-pale: #e4ede8;
+        --green-dark: #1b4332;
+        --text: #1b1b1b;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --white: #ffffff;
+      }
+      html.dark body { background: #ffffff; }
+      html.dark nav { background: rgba(255,255,255,0.95); }
+      html.dark .feature-card { background: #f9fafb; }
+      html.dark #produkter { background: #f9fafb; }
+      html.dark .product-card { background: #ffffff; }
+      html.dark #bestill { background: var(--green-pale); }
+      html.dark .order-box { background: #ffffff; border-color: #b7e4c7; }
+      html.dark .vipps-row { background: #f0faf3; border-color: #b7e4c7; }
+      html.dark .order-summary { background: #f0faf3; border-color: #b7e4c7; }
+      html.dark input, html.dark select, html.dark textarea { background: #ffffff; border-color: #e5e7eb; color: #1b1b1b; }
+      html.dark .sustainability-strip { background: white; }
+      html.dark #kontakt { background: #f9fafb; }
+      html.dark .contact-chip { background: #ffffff; }
+      html.dark #henvendelse { background: white; }
+      html.dark .inquiry-box { background: #f9fafb; }
+      html.dark .cart-drawer { background: white; }
+      html.dark .cart-footer { background: #f9fafb; }
+      html.dark .cart-qty button { background: white; }
+      html.dark footer { background: white; }
+      html.dark .success-msg { background: #e4ede8; border-color: #5d9479; }
+
       /* Hero */
       .hero { padding: 2.8rem 0.9rem 2.2rem; min-height: auto; }
       .hero h1 { font-size: 1.6rem; }
