@@ -602,7 +602,7 @@
     @media (max-width: 600px) {
       /* Nav */
       .nav-links { display: none; }
-      nav { padding: 0 0.9rem; height: 52px; }
+      nav { padding: 0 0.9rem; height: 60px; }
       .nav-logo { font-size: 0.9rem; }
       .hamburger { display: flex; align-items: center; }
 
@@ -610,13 +610,13 @@
       .nav-links.open {
         display: flex !important;
         flex-direction: column;
-        position: fixed;
-        top: 52px; left: 0; right: 0;
+        position: absolute;
+        top: 60px; left: 0; right: 0;
         background: var(--white);
-        border-bottom: 1px solid var(--border);
-        padding: 0.5rem 0;
-        z-index: 99;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        border-top: 1px solid var(--border);
+        padding: 1rem;
+        z-index: 999;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         gap: 0;
       }
       .nav-links.open li { border-bottom: 1px solid var(--border); }
