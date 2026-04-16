@@ -627,10 +627,6 @@
       /* Handlekurv-ikon — skjul tekst, behold badge */
       .cart-text { display: none; }
 
-      /* Skjul lang- og dark-toggle på mobil */
-      .lang-toggle { display: none; }
-      .dark-toggle { display: none; }
-
       /* ── TVING LYS MODUS PÅ MOBIL ── */
       html.dark {
         --green: #2d6a4f;
@@ -770,24 +766,6 @@
     }
     .lang-toggle:hover { background: var(--green-pale); color: var(--green); }
 
-    /* ── DARK TOGGLE BUTTON ── */
-    .dark-toggle {
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      width: 2.1rem;
-      height: 2.1rem;
-      font-size: 1rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--muted);
-      transition: background 0.2s, color 0.2s;
-      flex-shrink: 0;
-    }
-    .dark-toggle:hover { background: var(--green-pale); color: var(--green); }
-
     /* ── HAMBURGER ── */
     .hamburger {
       display: none;
@@ -882,7 +860,6 @@
   </ul>
   <div style="display:flex;align-items:center;gap:0.6rem;">
     <button class="lang-toggle" id="langToggle" onclick="toggleLang()">NO</button>
-    <button class="dark-toggle" id="darkToggle" onclick="toggleDark()" title="Bytt tema">🌙</button>
     <button class="cart-btn" onclick="openCart()">
       🛒 <span class="cart-text" data-no="Handlekurv" data-en="Cart">Handlekurv</span> <span class="cart-count" id="cartCount">0</span>
     </button>
