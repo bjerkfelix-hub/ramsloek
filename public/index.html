@@ -719,6 +719,42 @@
       flex-shrink: 0;
     }
     .dark-toggle:hover { background: var(--green-pale); color: var(--green); }
+
+    /* ── COOKIE-BANNER ── */
+    #cookieBanner {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--white);
+      border-top: 1px solid var(--border);
+      padding: 1rem 1.5rem;
+      z-index: 3000;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      font-family: sans-serif;
+      font-size: 0.83rem;
+      color: var(--muted);
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.08);
+    }
+    #cookieBanner p { margin: 0; max-width: 700px; line-height: 1.5; }
+    #cookieBanner button {
+      flex-shrink: 0;
+      background: var(--green);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0.5rem 1.2rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    #cookieBanner button:hover { opacity: 0.88; }
+    @media (max-width: 600px) {
+      #cookieBanner { flex-direction: column; align-items: flex-start; }
+      #cookieBanner button { align-self: flex-end; }
+    }
   </style>
 </head>
 <body>
@@ -1075,11 +1111,21 @@
     <h3 data-no="7. Ansvarsfraskrivelse – forveksling med liljekonvall" data-en="7. Disclaimer – confusion with lily of the valley" style="font-size:0.95rem;margin-bottom:0.4rem;color:var(--text);">7. Ansvarsfraskrivelse – forveksling med liljekonvall</h3>
     <p data-no="Ramsløk (Allium ursinum) kan i sjeldne tilfeller forveksles med liljekonvall (Convallaria majalis), som er giftig. Selv om vi plukker med stor omhu, kan vi ikke garantere at enkeltblader eller plantedeler av liljekonvall ikke forekommer i leveransen. Kunden er selv ansvarlig for å kontrollere varene ved mottak og oppbevare dem utilgjengelig for barn. Dont Panic AS fraskriver seg ethvert ansvar for skade eller sykdom som følge av forveksling eller feilidentifisering av planter i leveransen. Ved tvil – ikke spis, og kontakt oss umiddelbart." data-en="Wild garlic (Allium ursinum) can in rare cases be confused with lily of the valley (Convallaria majalis), which is poisonous. Although we pick with great care, we cannot guarantee that individual leaves or plant parts of lily of the valley do not occur in the delivery. The customer is responsible for checking the goods upon receipt and keeping them out of reach of children. Dont Panic AS disclaims any liability for injury or illness resulting from confusion or misidentification of plants in the delivery. If in doubt – do not eat, and contact us immediately." style="font-size:0.85rem;color:var(--muted);margin-bottom:1.2rem;">Ramsløk (Allium ursinum) kan i sjeldne tilfeller forveksles med liljekonvall (Convallaria majalis), som er giftig. Selv om vi plukker med stor omhu, kan vi ikke garantere at enkeltblader eller plantedeler av liljekonvall ikke forekommer i leveransen. Kunden er selv ansvarlig for å kontrollere varene ved mottak og oppbevare dem utilgjengelig for barn. Dont Panic AS fraskriver seg ethvert ansvar for skade eller sykdom som følge av forveksling eller feilidentifisering av planter i leveransen. Ved tvil – ikke spis, og kontakt oss umiddelbart.</p>
 
-    <h3 data-no="8. Personvern" data-en="8. Privacy" style="font-size:0.95rem;margin-bottom:0.4rem;color:var(--text);">8. Personvern</h3>
-    <p data-no="Personopplysninger (navn, telefon, e-post) lagres i opptil 6 måneder for å håndtere bestillingen og eventuell reklamasjon, og deles ikke med tredjeparter. Kontakt felix@dontpanic.no for innsyn eller sletting." data-en="Personal data (name, phone, email) is stored for up to 6 months to handle the order and any complaints, and is not shared with third parties. Contact felix@dontpanic.no for access or deletion." style="font-size:0.85rem;color:var(--muted);margin-bottom:1.2rem;">Personopplysninger (navn, telefon, e-post) lagres i opptil 6 måneder for å håndtere bestillingen og eventuell reklamasjon, og deles ikke med tredjeparter utover det som er nødvendig for betaling via Vipps. Kontakt felix@dontpanic.no for innsyn eller sletting.</p>
+    <h3 data-no="8. Personvern og GDPR" data-en="8. Privacy and GDPR" style="font-size:0.95rem;margin-bottom:0.4rem;color:var(--text);">8. Personvern og GDPR</h3>
+    <p data-no="Behandlingsansvarlig: Dont Panic AS, Nesodden. Kontakt: bjerkfelix@gmail.com" data-en="Data controller: Dont Panic AS, Nesodden. Contact: bjerkfelix@gmail.com" style="font-size:0.85rem;color:var(--muted);margin-bottom:0.8rem;">Behandlingsansvarlig: Dont Panic AS, Nesodden. Kontakt: bjerkfelix@gmail.com</p>
+    <p data-no="Hva vi samler inn: Navn, e-postadresse og telefonnummer fra bestillings- og henvendelsesskjemaet. Ved valg av levering til adresse lagrer vi også leveringsadressen din." data-en="What we collect: Name, email address and phone number from the order and inquiry forms. If you choose delivery to an address, we also store your delivery address." style="font-size:0.85rem;color:var(--muted);margin-bottom:0.8rem;">Hva vi samler inn: Navn, e-postadresse og telefonnummer fra bestillings- og henvendelsesskjemaet. Ved valg av levering til adresse lagrer vi også leveringsadressen din.</p>
+    <p data-no="Hva brukes det til: Behandle bestillingen din, sende ordrebekreftelse og avtale henting eller levering. Opplysningene brukes ikke til markedsføring." data-en="Purpose: Processing your order, sending order confirmation and arranging pickup or delivery. The data is not used for marketing." style="font-size:0.85rem;color:var(--muted);margin-bottom:0.8rem;">Hva brukes det til: Behandle bestillingen din, sende ordrebekreftelse og avtale henting eller levering. Opplysningene brukes ikke til markedsføring.</p>
+    <p data-no="Lagringstid: Opplysningene lagres i vår database i opptil 6 måneder og slettes deretter. Ingen opplysninger deles med tredjeparter." data-en="Storage: Data is kept in our database for up to 6 months and then deleted. No data is shared with third parties." style="font-size:0.85rem;color:var(--muted);margin-bottom:0.8rem;">Lagringstid: Opplysningene lagres i vår database i opptil 6 måneder og slettes deretter. Ingen opplysninger deles med tredjeparter.</p>
+    <p data-no="Dine rettigheter: Du kan når som helst be om innsyn i, retting av eller sletting av dine opplysninger. Send e-post til bjerkfelix@gmail.com. Du kan også klage til Datatilsynet på datatilsynet.no." data-en="Your rights: You can at any time request access to, correction of or deletion of your data. Email bjerkfelix@gmail.com. You can also file a complaint with the Norwegian Data Protection Authority at datatilsynet.no." style="font-size:0.85rem;color:var(--muted);margin-bottom:1.2rem;">Dine rettigheter: Du kan når som helst be om innsyn i, retting av eller sletting av dine opplysninger. Send e-post til bjerkfelix@gmail.com. Du kan også klage til Datatilsynet på <a href="https://datatilsynet.no" target="_blank" rel="noopener" style="color:var(--green);">datatilsynet.no</a>.</p>
 
     <button onclick="document.getElementById('termsModal').style.display='none'" data-no="Lukk" data-en="Close" style="margin-top:0.5rem;background:var(--green);color:white;border:none;border-radius:8px;padding:0.6rem 1.5rem;font-size:0.9rem;font-weight:600;cursor:pointer;">Lukk</button>
   </div>
+</div>
+
+<!-- COOKIE-BANNER -->
+<div id="cookieBanner">
+  <p data-no="🍪 Vi bruker kun teknisk nødvendige data lokalt i nettleseren din (handlekurv, språkvalg, fargemodus). Ingen sporings-cookies eller analyse." data-en="🍪 We only store technically necessary data locally in your browser (cart, language preference, colour theme). No tracking cookies or analytics.">🍪 Vi bruker kun teknisk nødvendige data lokalt i nettleseren din (handlekurv, språkvalg, fargemodus). Ingen sporings-cookies eller analyse.</p>
+  <button onclick="acceptCookies()" data-no="Jeg forstår" data-en="Got it">Jeg forstår</button>
 </div>
 
 <!-- FOOTER -->
@@ -1088,6 +1134,17 @@
 </footer>
 
 <script>
+  // ── COOKIE-BANNER ──
+  (function() {
+    if (!localStorage.getItem('cookieConsent')) {
+      document.getElementById('cookieBanner').style.display = 'flex';
+    }
+  })();
+  function acceptCookies() {
+    localStorage.setItem('cookieConsent', '1');
+    document.getElementById('cookieBanner').style.display = 'none';
+  }
+
   // ── SPRÅK ──
   let currentLang = localStorage.getItem('lang') || 'no';
 
