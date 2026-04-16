@@ -1221,7 +1221,7 @@
     const orders = await api.get('/api/orders');
     const sel = document.getElementById('assignBag_orderId');
     sel.innerHTML = '<option value="">– Velg bestilling –</option>';
-    (orders || []).filter(o => o.status !== 'avbestilt').sort((a,b) => b.id - a.id).forEach(o => {
+    (orders || []).filter(o => o.status !== 'avbestilt').sort((a,b) => new Date(b.timestamp||0) - new Date(a.timestamp||0)).forEach(o => {
       const opt = document.createElement('option');
       opt.value = o.id;
       const items = (o.items||[]).map(i => i.name).join(', ');
@@ -1306,7 +1306,7 @@
       list.innerHTML = `<div class="empty-state"><div class="icon">🛍️</div><p>${q ? 'Ingen poser matcher søket.' : 'Ingen løse poser registrert ennå.'}</p></div>`;
       return;
     }
-    list.innerHTML = [...bags].sort((a,b) => b.id - a.id).map(b => {
+    list.innerHTML = [...bags].sort((a,b) => new Date(b.timestamp||0) - new Date(a.timestamp||0)).map(b => {
       const isTildelt = b.status === 'tildelt';
       const isKassert = b.status === 'kassert';
       const statusPill = isKassert
@@ -1405,7 +1405,7 @@
   }
 
   function renderOrders(orders, looseBags, boxes) {
-    const filtered = orders.filter(o => currentFilter==='alle' || o.status===currentFilter).sort((a,b)=>b.id-a.id);
+    const filtered = orders.filter(o => currentFilter==='alle' || o.status===currentFilter).sort((a,b)=>new Date(b.timestamp||0)-new Date(a.timestamp||0));
     const list = document.getElementById('orderList');
     if (!filtered.length) { list.innerHTML = `<div class="empty-state"><div class="icon">📦</div><p>Ingen bestillinger ${currentFilter!=='alle'?'med denne statusen':''} ennå.</p></div>`; return; }
 
@@ -1450,11 +1450,11 @@
     const list = document.getElementById('inquiryList');
     if (!inquiries||!inquiries.length) { list.innerHTML = `<div class="empty-state"><div class="icon">💬</div><p>Ingen henvendelser ennå.</p></div>`; return; }
 
-    list.innerHTML = [...inquiries].sort((a,b)=>b.id-a.id).map(i => {
+    list.innerHTML = [...inquiries].sort((a,b)=>new Date(b.timestamp||0)-new Date(a.timestamp||0)).map(i => {
       const date = new Date(i.timestamp||parseInt(i.id));
       const dateStr = date.toLocaleString('nb-NO', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
       const isNew = i.status==='ny';
-      const replyHref = i.email ? `mailto:${i.email}?subject=${encodeURIComponent('Svar på din henvendelse')}&body=${encodeURIComponent('Hei '+i.name+',\n\n')}` : '#';
+      const replyHref = i.email ? `mailto:${esc(i.email)}?subject=${encodeURIComponent('Svar på din henvendelse')}&body=${encodeURIComponent('Hei '+i.name+',\n\n')}` : '#';
 
       return `<div class="order-card" style="border-left:3px solid ${isNew?'var(--yellow)':'var(--border)'}">
         <div class="card-header">
@@ -1491,7 +1491,7 @@
       subject = encodeURIComponent('Angående din ramsløk-bestilling');
       body = encodeURIComponent(`Hei ${o.name},\n\n`);
     }
-    return `mailto:${o.email}?subject=${subject}&body=${body}`;
+    return `mailto:${esc(o.email)}?subject=${subject}&body=${body}`;
   }
 
   function setFilter(filter, el) {

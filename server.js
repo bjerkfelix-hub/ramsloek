@@ -119,7 +119,8 @@ function str(val, max = 200) {
   return val.trim().slice(0, max);
 }
 function isEmail(val) {
-  return typeof val === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim()) && val.length <= 200;
+  // Exclude characters that can break HTML attributes or be used for injection
+  return typeof val === 'string' && /^[^\s@"'<>&]+@[^\s@"'<>&]+\.[^\s@"'<>&]+$/.test(val.trim()) && val.length <= 200;
 }
 
 // ── Prisliste (eneste gyldige produkter og priser) ──
@@ -164,7 +165,7 @@ setInterval(async () => {
 // Audit-logg
 async function auditLog(username, action, resource, resourceId, details) {
   try {
-    const id = Date.now().toString() + Math.random().toString(36).slice(2, 6);
+    const id = crypto.randomUUID();
     await pool.query(
       'INSERT INTO audit_log (id, username, action, resource, resource_id, details) VALUES ($1, $2, $3, $4, $5, $6)',
       [id, username, action, resource, resourceId || null, JSON.stringify(details || {})]
@@ -173,8 +174,9 @@ async function auditLog(username, action, resource, resourceId, details) {
 }
 
 // ── Rate limiting ──
-const loginLimiter  = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, skipSuccessfulRequests: true, standardHeaders: true, legacyHeaders: false });
+const loginLimiter  = rateLimit({ windowMs: 15 * 60 * 1000, max: 5,  skipSuccessfulRequests: true, standardHeaders: true, legacyHeaders: false });
 const publicLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
+const logoutLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
 
 app.post('/api/login', loginLimiter, async (req, res) => {
   try {
@@ -196,7 +198,7 @@ app.post('/api/login', loginLimiter, async (req, res) => {
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
 });
 
-app.post('/api/logout', async (req, res) => {
+app.post('/api/logout', logoutLimiter, async (req, res) => {
   const token = req.headers['x-admin-token'];
   if (token) await pool.query('DELETE FROM sessions WHERE token = $1', [token]).catch(() => {});
   res.json({ ok: true });
@@ -253,7 +255,7 @@ async function sendEmail(subject, text, to) {
 // ── Ordre-API ──
 app.get('/api/orders', requireAuth, async (req, res) => {
   try {
-    const { rows } = await pool.query("SELECT data FROM orders ORDER BY (data->>'id') DESC");
+    const { rows } = await pool.query("SELECT data FROM orders ORDER BY (data->>'timestamp') DESC");
     res.json(rows.map(r => r.data));
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
 });
@@ -271,21 +273,22 @@ app.post('/api/orders', publicLimiter, async (req, res) => {
           .filter(i => PRICE_LIST[i.id] || PRICE_LIST[str(i.name, 100)])
           .map(i => {
             const product = PRICE_LIST[i.id] || Object.values(PRICE_LIST).find(p => p.name === str(i.name, 100));
-            const qty = typeof i.qty === 'number' ? Math.min(Math.max(0, Math.floor(i.qty)), MAX_QTY) : 0;
-            return product ? { name: product.name, qty, unit: product.unit, price: product.price } : null;
+            const qty = typeof i.qty === 'number' ? Math.min(Math.max(1, Math.floor(i.qty)), MAX_QTY) : 0;
+            return product && qty >= 1 ? { name: product.name, qty, unit: product.unit, price: product.price } : null;
           })
           .filter(Boolean)
       : [];
     const total = Math.round(items.reduce((sum, i) => sum + i.qty * i.price, 0));
 
     if (!name || !phone) return res.status(400).json({ error: 'Navn og telefon er påkrevd' });
+    if (!items.length) return res.status(400).json({ error: 'Ingen gyldige produkter i bestillingen' });
 
-    const order = { id: Date.now().toString(), timestamp: new Date().toISOString(), status: 'venter', name, phone, email, note, delivery, deliveryAddress, total, items };
+    const order = { id: crypto.randomUUID(), timestamp: new Date().toISOString(), status: 'venter', name, phone, email, note, delivery, deliveryAddress, total, items };
     await pool.query('INSERT INTO orders (id, data) VALUES ($1, $2)', [order.id, JSON.stringify(order)]);
     backupWrite('INSERT INTO orders (id, data) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data', [order.id, JSON.stringify(order)]);
 
     // Lagre samtykke til kjøpsvilkår
-    const consent = { id: order.id, name, email, phone, timestamp: order.timestamp, termsVersion: '2026-04', orderId: order.id };
+    const consent = { id: crypto.randomUUID(), name, email, phone, timestamp: order.timestamp, termsVersion: '2026-04', orderId: order.id };
     await pool.query('INSERT INTO consents (id, data) VALUES ($1, $2)', [consent.id, JSON.stringify(consent)]);
     backupWrite('INSERT INTO consents (id, data) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data', [consent.id, JSON.stringify(consent)]);
 
@@ -349,7 +352,7 @@ app.delete('/api/orders/:id', requireAdmin, async (req, res) => {
 // ── Henvendelses-API ──
 app.get('/api/inquiries', requireAdmin, async (req, res) => {
   try {
-    const { rows } = await pool.query("SELECT data FROM inquiries ORDER BY (data->>'id') DESC");
+    const { rows } = await pool.query("SELECT data FROM inquiries ORDER BY (data->>'timestamp') DESC");
     res.json(rows.map(r => r.data));
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
 });
@@ -363,7 +366,7 @@ app.post('/api/inquiries', publicLimiter, async (req, res) => {
 
     if (!name || !message) return res.status(400).json({ error: 'Navn og melding er påkrevd' });
 
-    const inquiry = { id: Date.now().toString(), timestamp: new Date().toISOString(), status: 'ny', name, email, phone, message };
+    const inquiry = { id: crypto.randomUUID(), timestamp: new Date().toISOString(), status: 'ny', name, email, phone, message };
     await pool.query('INSERT INTO inquiries (id, data) VALUES ($1, $2)', [inquiry.id, JSON.stringify(inquiry)]);
     backupWrite('INSERT INTO inquiries (id, data) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data', [inquiry.id, JSON.stringify(inquiry)]);
 
@@ -415,7 +418,7 @@ app.delete('/api/consents/:id', requireAdmin, async (req, res) => {
 // ── Lager/Esker-API ──
 app.get('/api/boxes', requireAdmin, async (req, res) => {
   try {
-    const { rows } = await pool.query("SELECT data FROM boxes ORDER BY (data->>'id') DESC");
+    const { rows } = await pool.query("SELECT data FROM boxes ORDER BY (data->>'timestamp') DESC");
     res.json(rows.map(r => r.data));
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
 });
@@ -437,7 +440,7 @@ app.post('/api/boxes', requireAdmin, async (req, res) => {
     const nextNum = (Math.max(0, ...nums) + 1).toString().padStart(3, '0');
 
     const box = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       trackingId: `ESK-${nextNum}`,
       timestamp: new Date().toISOString(),
       status: 'på lager',
@@ -495,7 +498,7 @@ app.delete('/api/boxes/:id', requireAdmin, async (req, res) => {
 // ── Løse poser (uavhengige av esker) ──
 app.get('/api/bags', requireAdmin, async (req, res) => {
   try {
-    const { rows } = await pool.query("SELECT data FROM bags ORDER BY (data->>'timestamp') DESC");
+    const { rows } = await pool.query("SELECT data FROM bags ORDER BY (data->>'timestamp') DESC NULLS LAST");
     res.json(rows.map(r => r.data));
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
 });
@@ -507,7 +510,7 @@ app.post('/api/bags', requireAdmin, async (req, res) => {
     const dato           = str(req.body.dato || '', 20);
     const note           = str(req.body.note || '', 500);
     if (!sporingsnummer || !vekt || !dato) return res.status(400).json({ error: 'Mangler påkrevde felt' });
-    const bag = { id: Date.now().toString(), timestamp: new Date().toISOString(), status: 'ledig', sporingsnummer, vekt, dato, note };
+    const bag = { id: crypto.randomUUID(), timestamp: new Date().toISOString(), status: 'ledig', sporingsnummer, vekt, dato, note };
     await pool.query('INSERT INTO bags (id, data) VALUES ($1, $2)', [bag.id, JSON.stringify(bag)]);
     res.json({ ok: true, id: bag.id });
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
