@@ -1214,9 +1214,7 @@
 
   // ── DARK MODE ──
   (function() {
-    const saved = localStorage.getItem('darkMode');
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    if (saved === 'true' || (saved === null && prefersDark)) {
+    if (localStorage.getItem('darkMode') === 'true') {
       document.documentElement.classList.add('dark');
     }
   })();
