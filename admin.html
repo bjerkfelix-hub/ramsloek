@@ -829,13 +829,15 @@
           <div class="field-group">
             <label>Produkt</label>
             <select id="a_product" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.8rem;color:var(--text);font-family:inherit;font-size:0.85rem;outline:none;">
-              <option value="Ramsløkblader">Ramsløkblader (100g)</option>
-              <option value="Blader + løk/stilk">Blader + løk/stilk (100g)</option>
-              <option value="Blader + løk/stilk 250g">Blader + løk/stilk (250g)</option>
-              <option value="Familiepose (500g)">Familiepose (500g)</option>
+              <option value="stilk_fersk">Blader + løk/stilk – Fersk (100g, 60 kr)</option>
+              <option value="stilk250_fersk">Blader + løk/stilk – Fersk (250g, 120 kr)</option>
+              <option value="pose_fersk">Familiepose – Fersk (500g, 240 kr)</option>
+              <option value="stilk">Blader + løk/stilk – Frossen (100g, 50 kr)</option>
+              <option value="stilk250">Blader + løk/stilk – Frossen (250g, 100 kr)</option>
+              <option value="pose">Familiepose – Frossen (500g, 200 kr)</option>
             </select>
           </div>
-          <div class="field-group"><label>Mengde</label><input type="text" id="a_amount" placeholder="f.eks. 200g" /></div>
+          <div class="field-group"><label>Antall</label><input type="number" id="a_qty" placeholder="1" min="1" max="50" value="1" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.8rem;color:var(--text);font-family:inherit;font-size:0.85rem;outline:none;" /></div>
           <div class="field-group">
             <label>Levering</label>
             <select id="a_delivery" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.8rem;color:var(--text);font-family:inherit;font-size:0.85rem;outline:none;">
@@ -1510,15 +1512,18 @@
     const name = document.getElementById('a_name').value.trim();
     const phone = document.getElementById('a_phone').value.trim();
     if (!name||!phone) { alert('Navn og telefon er påkrevd.'); return; }
-    await api.post('/api/orders', {
+    const qty = Math.max(1, parseInt(document.getElementById('a_qty').value) || 1);
+    const result = await api.post('/api/orders', {
       name, phone,
       email: document.getElementById('a_email').value.trim(),
-      items: [{ name: document.getElementById('a_product').value, qty: 1, unit: document.getElementById('a_amount').value.trim()||'stk', price: 0 }],
+      items: [{ id: document.getElementById('a_product').value, qty }],
       delivery: document.getElementById('a_delivery').value,
       note: document.getElementById('a_note').value.trim(),
       total: 0
     });
-    ['a_name','a_phone','a_email','a_amount','a_note'].forEach(id => document.getElementById(id).value='');
+    if (result.error) { alert('Feil: ' + result.error); return; }
+    ['a_name','a_phone','a_email','a_note'].forEach(id => document.getElementById(id).value='');
+    document.getElementById('a_qty').value = '1';
     toggleAddForm();
     renderAll();
   }
