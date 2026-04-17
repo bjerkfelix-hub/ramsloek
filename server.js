@@ -307,7 +307,10 @@ app.post('/api/orders', publicLimiter, async (req, res) => {
     }
 
     res.json({ ok: true, id: order.id });
-  } catch { res.status(500).json({ error: 'Serverfeil' }); }
+  } catch (err) {
+    console.error('POST /api/orders feil:', err);
+    res.status(500).json({ error: 'Serverfeil' });
+  }
 });
 
 app.put('/api/orders/:id', requireAdmin, async (req, res) => {

@@ -1325,7 +1325,7 @@
     btn.classList.add('added');
     setTimeout(() => { btn.textContent = currentLang === 'en' ? '+ Add to cart' : '+ Legg i kurv'; btn.classList.remove('added'); }, 1500);
     saveCart();
-    updateCartUI();
+    try { updateCartUI(); } catch(e) { console.error('updateCartUI feilet:', e); }
     openCart();
   }
 
@@ -1420,7 +1420,7 @@
       delivery:        document.getElementById('delivery').value,
       deliveryAddress: document.getElementById('deliveryAddress').value.trim(),
       note:            document.getElementById('note').value.trim(),
-      items:    cart.map(i => ({ name: i.name, qty: i.qty, unit: i.unit, price: i.price })),
+      items:    cart.map(i => ({ id: i.id, name: i.name, qty: i.qty, unit: i.unit, price: i.price })),
       total
     };
 
