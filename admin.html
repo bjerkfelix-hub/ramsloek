@@ -1511,21 +1511,25 @@
   async function addOrderManually() {
     const name = document.getElementById('a_name').value.trim();
     const phone = document.getElementById('a_phone').value.trim();
-    if (!name||!phone) { alert('Navn og telefon er påkrevd.'); return; }
+    if (!name || !phone) { alert('Navn og telefon er påkrevd.'); return; }
     const qty = Math.max(1, parseInt(document.getElementById('a_qty').value) || 1);
-    const result = await api.post('/api/orders', {
-      name, phone,
-      email: document.getElementById('a_email').value.trim(),
-      items: [{ id: document.getElementById('a_product').value, qty }],
-      delivery: document.getElementById('a_delivery').value,
-      note: document.getElementById('a_note').value.trim(),
-      total: 0
-    });
-    if (result.error) { alert('Feil: ' + result.error); return; }
-    ['a_name','a_phone','a_email','a_note'].forEach(id => document.getElementById(id).value='');
-    document.getElementById('a_qty').value = '1';
-    toggleAddForm();
-    renderAll();
+    try {
+      const result = await api.post('/api/admin/orders', {
+        name, phone,
+        email: document.getElementById('a_email').value.trim(),
+        items: [{ id: document.getElementById('a_product').value, qty }],
+        delivery: document.getElementById('a_delivery').value,
+        note: document.getElementById('a_note').value.trim()
+      });
+      if (result.error) { alert('Feil: ' + result.error); return; }
+      ['a_name','a_phone','a_email','a_note'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('a_qty').value = '1';
+      toggleAddForm();
+      renderAll();
+    } catch (err) {
+      console.error('addOrderManually feil:', err);
+      alert('Nettverksfeil – prøv igjen.');
+    }
   }
 
   if (sessionStorage.getItem('admin_token')) renderAll();

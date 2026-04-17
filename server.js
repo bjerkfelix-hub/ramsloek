@@ -543,6 +543,42 @@ app.delete('/api/bags/:id', requireAdmin, async (req, res) => {
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
 });
 
+// ── Admin-opprettet ordre (bypasser samtykke og e-post) ──
+app.post('/api/admin/orders', requireAdmin, async (req, res) => {
+  try {
+    const name     = str(req.body.name, 100);
+    const phone    = str(req.body.phone, 20);
+    const email    = isEmail(req.body.email) ? req.body.email.trim() : '';
+    const note     = str(req.body.note, 500);
+    const delivery = str(req.body.delivery, 100);
+
+    if (!name || !phone) return res.status(400).json({ error: 'Navn og telefon er påkrevd' });
+
+    const rawItems = Array.isArray(req.body.items) ? req.body.items.slice(0, 20) : [];
+    const items = rawItems.map(i => {
+      const product = PRICE_LIST[str(i.id, 50)];
+      const qty = typeof i.qty === 'number' ? Math.min(Math.max(1, Math.floor(i.qty)), MAX_QTY) : 1;
+      return product ? { name: product.name, qty, unit: product.unit, price: product.price } : null;
+    }).filter(Boolean);
+
+    if (!items.length) return res.status(400).json({ error: 'Ingen gyldige produkter' });
+
+    const total = Math.round(items.reduce((sum, i) => sum + i.qty * i.price, 0));
+    const order = {
+      id: crypto.randomUUID(), timestamp: new Date().toISOString(),
+      status: 'venter', name, phone, email, note, delivery, total, items, source: 'admin'
+    };
+
+    await pool.query('INSERT INTO orders (id, data) VALUES ($1, $2)', [order.id, JSON.stringify(order)]);
+    await auditLog(req.user.username, 'opprett', 'ordre', order.id, { name, source: 'admin' });
+
+    res.json({ ok: true, id: order.id });
+  } catch (err) {
+    console.error('POST /api/admin/orders feil:', err);
+    res.status(500).json({ error: 'Serverfeil' });
+  }
+});
+
 // ── 404 ──
 app.use((req, res) => {
   res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
