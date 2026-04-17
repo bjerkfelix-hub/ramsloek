@@ -555,10 +555,18 @@ app.post('/api/admin/orders', requireAdmin, async (req, res) => {
     if (!name || !phone) return res.status(400).json({ error: 'Navn og telefon er påkrevd' });
 
     const rawItems = Array.isArray(req.body.items) ? req.body.items.slice(0, 20) : [];
+    console.log('POST /api/admin/orders – mottatt items:', JSON.stringify(rawItems));
     const items = rawItems.map(i => {
-      const product = PRICE_LIST[str(i.id, 50)];
       const qty = typeof i.qty === 'number' ? Math.min(Math.max(1, Math.floor(i.qty)), MAX_QTY) : 1;
-      return product ? { name: product.name, qty, unit: product.unit, price: product.price } : null;
+      // 1) Lookup by PRICE_LIST key (id-felt)
+      const byId = PRICE_LIST[str(i.id, 50)];
+      if (byId) return { name: byId.name, qty, unit: byId.unit, price: byId.price };
+      // 2) Lookup by exact product name
+      const byName = Object.values(PRICE_LIST).find(p => p.name === str(i.name, 100));
+      if (byName) return { name: byName.name, qty, unit: byName.unit, price: byName.price };
+      // 3) Free-form fallback (admin er autentisert – stol på input)
+      const label = str(i.name || i.id || '', 100);
+      return label ? { name: label, qty, unit: str(i.unit || 'stk', 50), price: 0 } : null;
     }).filter(Boolean);
 
     if (!items.length) return res.status(400).json({ error: 'Ingen gyldige produkter' });
