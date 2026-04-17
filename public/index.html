@@ -470,18 +470,20 @@
       position: fixed;
       inset: 0;
       background: rgba(0,0,0,0.3);
-      z-index: 200;
+      z-index: 999;
     }
     .cart-overlay.open { display: block; }
     .cart-drawer {
       position: fixed;
-      top: 0; right: 0; bottom: 0;
-      width: min(420px, 100vw);
+      top: 0; right: 0;
+      height: 100vh;
+      width: 380px;
       background: white;
       box-shadow: -4px 0 30px rgba(0,0,0,0.12);
-      z-index: 201;
+      z-index: 1000;
       display: flex;
       flex-direction: column;
+      overflow-y: auto;
       transform: translateX(100%);
       transition: transform 0.3s ease;
     }
