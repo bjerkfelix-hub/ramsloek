@@ -627,38 +627,6 @@
       /* Handlekurv-ikon — skjul tekst, behold badge */
       .cart-text { display: none; }
 
-      /* ── TVING LYS MODUS PÅ MOBIL ── */
-      html.dark {
-        --green: #2d6a4f;
-        --green-light: #5d9479;
-        --green-pale: #e4ede8;
-        --green-dark: #1b4332;
-        --text: #1b1b1b;
-        --muted: #6b7280;
-        --border: #e5e7eb;
-        --white: #ffffff;
-      }
-      html.dark body { background: #ffffff; }
-      html.dark nav { background: rgba(255,255,255,0.95); }
-      html.dark .feature-card { background: #f9fafb; }
-      html.dark #produkter { background: #f9fafb; }
-      html.dark .product-card { background: #ffffff; }
-      html.dark #bestill { background: var(--green-pale); }
-      html.dark .order-box { background: #ffffff; border-color: #b7e4c7; }
-      html.dark .vipps-row { background: #f0faf3; border-color: #b7e4c7; }
-      html.dark .order-summary { background: #f0faf3; border-color: #b7e4c7; }
-      html.dark input, html.dark select, html.dark textarea { background: #ffffff; border-color: #e5e7eb; color: #1b1b1b; }
-      html.dark .sustainability-strip { background: white; }
-      html.dark #kontakt { background: #f9fafb; }
-      html.dark .contact-chip { background: #ffffff; }
-      html.dark #henvendelse { background: white; }
-      html.dark .inquiry-box { background: #f9fafb; }
-      html.dark .cart-drawer { background: white; }
-      html.dark .cart-footer { background: #f9fafb; }
-      html.dark .cart-qty button { background: white; }
-      html.dark footer { background: white; }
-      html.dark .success-msg { background: #e4ede8; border-color: #5d9479; }
-
       /* Hero */
       .hero { padding: 2.8rem 0.9rem 2.2rem; min-height: auto; }
       .hero h1 { font-size: 1.6rem; }
@@ -711,42 +679,6 @@
       .btn { padding: 0.75rem 1.2rem; font-size: 0.92rem; width: 100%; text-align: center; }
       .hero div > .btn { width: auto; }
     }
-
-    /* ── DARK MODE ── */
-    :root { color-scheme: light; }
-    html.dark { color-scheme: dark; }
-
-    html.dark {
-      --green: #4da882;
-      --green-light: #6aad8c;
-      --green-pale: #253f33;
-      --text: #e6edf3;
-      --muted: #9ba8b4;
-      --border: #3a4458;
-      --white: #1e2535;
-    }
-    html.dark body { background: #1a2030; }
-    html.dark nav { background: rgba(26,32,48,0.95); }
-    html.dark .hero { background-image: linear-gradient(rgba(0,10,5,0.42), rgba(0,10,5,0.38)), url('/hero-bg.jpg'); }
-    html.dark .feature-card { background: #232d40; }
-    html.dark #produkter { background: #1e2438; }
-    html.dark .product-card { background: #232d40; }
-    html.dark #bestill { background: #1e3328; }
-    html.dark .order-box { background: #232d40; border-color: #2e5044; }
-    html.dark .vipps-row { background: #1e3328; border-color: #2e5044; }
-    html.dark .order-summary { background: #1e3328; border-color: #2e5044; }
-    html.dark input, html.dark select, html.dark textarea { background: #232d40; border-color: #3a4458; color: var(--text); }
-    html.dark .sustainability-strip { background: #1e2438; }
-    html.dark #kontakt { background: #1e2438; }
-    html.dark .contact-chip { background: #232d40; }
-    html.dark #henvendelse { background: #1a2030; }
-    html.dark .inquiry-box { background: #232d40; }
-    html.dark .cart-drawer { background: #232d40; }
-    html.dark .cart-footer { background: #1e2438; }
-    html.dark .cart-qty button { background: #232d40; }
-    html.dark .cart-qty button:hover { background: #2e5044; }
-    html.dark footer { background: #1a2030; }
-    html.dark .success-msg { background: #1e3328; border-color: #2e5044; }
 
     /* ── LANG TOGGLE ── */
     .lang-toggle {
@@ -1262,19 +1194,6 @@
     applyLang(currentLang);
   }
 
-  // ── DARK MODE ──
-  (function() {
-    if (localStorage.getItem('darkMode') === 'true') {
-      document.documentElement.classList.add('dark');
-    }
-  })();
-
-  function toggleDark() {
-    const isDark = document.documentElement.classList.toggle('dark');
-    localStorage.setItem('darkMode', isDark);
-    document.getElementById('darkToggle').textContent = isDark ? '☀️' : '🌙';
-  }
-
   function toggleMobileMenu() {
     const menu = document.querySelector('.nav-links');
     const btn = document.getElementById('hamburgerBtn');
@@ -1283,9 +1202,6 @@
   }
 
   document.addEventListener('DOMContentLoaded', function() {
-    if (document.documentElement.classList.contains('dark')) {
-      document.getElementById('darkToggle').textContent = '☀️';
-    }
     if (currentLang === 'en') applyLang('en');
     document.getElementById('termsLink').addEventListener('click', function(e) {
       e.preventDefault();
