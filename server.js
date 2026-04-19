@@ -333,7 +333,7 @@ app.put('/api/orders/:id', requireAdmin, async (req, res) => {
 
     // Kun tillatte felter kan oppdateres
     const VALID_ORDER_STATUSES = new Set(['venter', 'bekreftet', 'avbestilt']);
-    const allowed = ['status', 'pickupPlace', 'pickupTime', 'adminNote', 'note', 'boxId', 'bagId', 'paid', 'paidAt'];
+    const allowed = ['status', 'pickupPlace', 'pickupTime', 'adminNote', 'note', 'pickedBy', 'boxId', 'bagId', 'paid', 'paidAt'];
     const updates = {};
     allowed.forEach(k => { if (req.body[k] !== undefined) updates[k] = str(String(req.body[k]), 500); });
     if (updates.status !== undefined && !VALID_ORDER_STATUSES.has(updates.status)) delete updates.status;

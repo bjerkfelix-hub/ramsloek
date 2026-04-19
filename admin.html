@@ -1443,6 +1443,17 @@
           ${linkedBox ? `<span>📦 Eske: <strong style="font-family:monospace;color:var(--purple);">${esc(linkedBox.trackingId)}</strong></span>` : ''}
           ${linkedBag ? `<span>🛍️ Pose: <strong style="font-family:monospace;color:var(--purple);">${esc(linkedBag.sporingsnummer)}</strong> (${linkedBag.vekt}g)</span>` : ''}
         </div>
+        <div id="picked-display-${o.id}">
+          ${o.pickedBy ? `<div class="card-note" style="background:var(--green-dim);border-color:#0f4d1a;">🧑‍🌾 Plukket av: <strong>${esc(o.pickedBy)}</strong></div>` : '<span style="font-size:0.78rem;color:var(--muted);font-style:italic;">Ikke registrert plukker</span>'}
+          <button class="action-btn" style="padding:0.2rem 0.5rem;font-size:0.73rem;margin-top:0.3rem;background:transparent;border:1px solid var(--border);color:var(--muted);" data-val="${esc(o.pickedBy||'')}" onclick="startEditField('picked','${o.id}',this.dataset.val)">✏️ Rediger</button>
+        </div>
+        <div id="picked-edit-${o.id}" style="display:none;margin-top:0.3rem;">
+          <input type="text" id="picked-input-${o.id}" style="width:100%;background:var(--surface);border:1px solid var(--purple);border-radius:6px;padding:0.45rem 0.7rem;color:var(--text);font-family:inherit;font-size:0.82rem;outline:none;" placeholder="Navn på plukker…" />
+          <div style="display:flex;gap:0.4rem;margin-top:0.4rem;">
+            <button class="action-btn btn-confirm" style="padding:0.25rem 0.7rem;font-size:0.78rem;" onclick="saveField('picked','${o.id}','pickedBy')">Lagre</button>
+            <button class="action-btn btn-delete" style="padding:0.25rem 0.7rem;font-size:0.78rem;" onclick="cancelEditField('picked','${o.id}')">Avbryt</button>
+          </div>
+        </div>
         <div id="note-display-${o.id}">
           ${o.note ? `<div class="card-note">💬 ${esc(o.note)}</div>` : '<span style="font-size:0.78rem;color:var(--muted);font-style:italic;">Ingen kommentar</span>'}
           <button class="action-btn" style="padding:0.2rem 0.5rem;font-size:0.73rem;margin-top:0.3rem;background:transparent;border:1px solid var(--border);color:var(--muted);" data-note="${esc(o.note||'')}" onclick="startEditNote('${o.id}',this.dataset.note)">✏️ Rediger</button>
@@ -1549,6 +1560,26 @@
       console.error('addOrderManually feil:', err);
       alert('Nettverksfeil – prøv igjen.');
     }
+  }
+
+  function startEditField(prefix, id, currentVal) {
+    document.getElementById(prefix + '-display-' + id).style.display = 'none';
+    const editDiv = document.getElementById(prefix + '-edit-' + id);
+    editDiv.style.display = 'block';
+    const input = document.getElementById(prefix + '-input-' + id);
+    input.value = currentVal;
+    input.focus();
+  }
+
+  function cancelEditField(prefix, id) {
+    document.getElementById(prefix + '-display-' + id).style.display = '';
+    document.getElementById(prefix + '-edit-' + id).style.display = 'none';
+  }
+
+  async function saveField(prefix, id, fieldName) {
+    const val = document.getElementById(prefix + '-input-' + id).value.trim();
+    await api.put('/api/orders/' + id, { [fieldName]: val });
+    renderAll();
   }
 
   function startEditNote(id, currentNote) {
