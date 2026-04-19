@@ -1420,9 +1420,17 @@
       const linkedBag = o.bagId ? (looseBags||[]).find(b => b.id === o.bagId) : null;
       const linkedBox = o.boxId ? (boxes||[]).find(b => b.id === o.boxId) : null;
 
+      const orderNum = o.orderNumber || '';
+      const trackNum  = o.trackingNumber || '';
       return `<div class="order-card status-${o.status}">
         <div class="card-header">
-          <div><div class="card-name">${esc(o.name)}</div><div class="card-time">${dateStr} · ${o.id}</div></div>
+          <div>
+            <div class="card-name">
+              ${esc(o.name)}
+              ${orderNum ? `<span style="font-family:monospace;font-size:0.75rem;font-weight:700;color:var(--purple);background:var(--purple-dim);border-radius:4px;padding:0.1rem 0.45rem;margin-left:0.5rem;vertical-align:middle;">${esc(orderNum)}</span>` : ''}
+            </div>
+            <div class="card-time">${dateStr}${trackNum ? ` · <span style="font-family:monospace;color:var(--muted);">Sporing: ${esc(trackNum)}</span>` : ` · <span style="opacity:0.5;">${o.id.slice(0,8)}…</span>`}</div>
+          </div>
           <span class="status-pill ${pillClass}">${statusLabel}</span>
         </div>
         <div class="card-meta">

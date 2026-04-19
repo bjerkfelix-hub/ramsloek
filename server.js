@@ -109,8 +109,18 @@ async function initDB() {
       resource_id TEXT,
       details JSONB
     );
+    CREATE TABLE IF NOT EXISTS counters (name TEXT PRIMARY KEY, value BIGINT NOT NULL DEFAULT 0);
+    INSERT INTO counters (name, value) VALUES ('orders', 0) ON CONFLICT (name) DO NOTHING;
   `);
   console.log('✅ Database klar');
+}
+
+async function nextCounter(name) {
+  const { rows } = await pool.query(
+    'UPDATE counters SET value = value + 1 WHERE name = $1 RETURNING value',
+    [name]
+  );
+  return Number(rows[0].value);
 }
 
 // ── Input-validering ──
@@ -283,7 +293,10 @@ app.post('/api/orders', publicLimiter, async (req, res) => {
     if (!name || !phone) return res.status(400).json({ error: 'Navn og telefon er påkrevd' });
     if (!items.length) return res.status(400).json({ error: 'Ingen gyldige produkter i bestillingen' });
 
-    const order = { id: crypto.randomUUID(), timestamp: new Date().toISOString(), status: 'venter', name, phone, email, note, delivery, deliveryAddress, total, items };
+    const num = await nextCounter('orders');
+    const orderNumber   = 'RS-' + String(num).padStart(4, '0');
+    const trackingNumber = 'SP-' + String(num).padStart(4, '0');
+    const order = { id: crypto.randomUUID(), timestamp: new Date().toISOString(), status: 'venter', orderNumber, trackingNumber, name, phone, email, note, delivery, deliveryAddress, total, items };
     await pool.query('INSERT INTO orders (id, data) VALUES ($1, $2)', [order.id, JSON.stringify(order)]);
     backupWrite('INSERT INTO orders (id, data) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data', [order.id, JSON.stringify(order)]);
 
@@ -572,9 +585,12 @@ app.post('/api/admin/orders', requireAdmin, async (req, res) => {
     if (!items.length) return res.status(400).json({ error: 'Ingen gyldige produkter' });
 
     const total = Math.round(items.reduce((sum, i) => sum + i.qty * i.price, 0));
+    const num = await nextCounter('orders');
+    const orderNumber    = 'RS-' + String(num).padStart(4, '0');
+    const trackingNumber = 'SP-' + String(num).padStart(4, '0');
     const order = {
       id: crypto.randomUUID(), timestamp: new Date().toISOString(),
-      status: 'venter', name, phone, email, note, delivery, total, items, source: 'admin'
+      status: 'venter', orderNumber, trackingNumber, name, phone, email, note, delivery, total, items, source: 'admin'
     };
 
     await pool.query('INSERT INTO orders (id, data) VALUES ($1, $2)', [order.id, JSON.stringify(order)]);
