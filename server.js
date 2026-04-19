@@ -308,16 +308,8 @@ app.post('/api/orders', publicLimiter, async (req, res) => {
     const itemsText = items.map(i => `  - ${i.name}: ${i.qty} × ${i.unit} = ${i.qty * i.price} kr`).join('\n');
     await sendEmail(
       `Salg! – ${name}`,
-      `Ny ramsløk-bestilling!\n\nNavn: ${name}\nTelefon: ${phone}\nE-post: ${email}\n\nProdukter:\n${itemsText}\n\nTotal: ${total} kr\nLevering: ${delivery}\nKommentar: ${note || '–'}\n\nOrdre-ID: ${order.id}\nTidspunkt: ${new Date(order.timestamp).toLocaleString('nb-NO')}`
+      `Ny ramsløk-bestilling!\n\nNavn: ${name}\nTelefon: ${phone}\nE-post: ${email}\n\nProdukter:\n${itemsText}\n\nTotal: ${total} kr\nLevering: ${delivery}\nKommentar: ${note || '–'}\n\nOrdre-ID: ${order.id}\nBestillingsnr: ${orderNumber}\nTidspunkt: ${new Date(order.timestamp).toLocaleString('nb-NO')}`
     );
-
-    if (email) {
-      await sendEmail(
-        'Vi har mottatt bestillingen din! 🌿',
-        `Hei ${name}!\n\nTakk for bestillingen din. Vi har mottatt den og tar kontakt når den er klar.\n\nDu har bestilt:\n${itemsText}\n\nTotal: ${total} kr\nLevering: ${delivery || '–'}\n\nHar du spørsmål? Svar på denne e-posten eller kontakt oss på ${process.env.FROM_EMAIL || process.env.GMAIL_USER || 'bjerkfelix@gmail.com'}.\n\nMed vennlig hilsen,\nRamsløk Nesodden`,
-        email
-      );
-    }
 
     res.json({ ok: true, id: order.id });
   } catch (err) {
