@@ -334,17 +334,6 @@ app.put('/api/orders/:id', requireAdmin, async (req, res) => {
     await pool.query('UPDATE orders SET data = $1 WHERE id = $2', [JSON.stringify(updated), req.params.id]);
     auditLog(req.user.username, 'oppdater', 'ordre', req.params.id, updates);
 
-    if (updates.status === 'bekreftet' && updated.email) {
-      const itemsText = (updated.items || []).map(i => `  - ${i.name}: ${i.qty} × ${i.unit}`).join('\n');
-      const pickupInfo = updated.pickupTime ? `\nHentested: ${updated.pickupPlace || '–'}\nTidspunkt: ${updated.pickupTime}` : '';
-      const noteInfo = updated.adminNote ? `\nMelding fra oss: ${updated.adminNote}` : '';
-      await sendEmail(
-        'Ramsløk-bestillingen din er bekreftet! 🌿',
-        `Hei ${updated.name}!\n\nBestillingen din er bekreftet.\n\nDu har bestilt:\n${itemsText}\nTotal: ${updated.total} kr${pickupInfo}${noteInfo}\n\nBetaling skjer ved henting/levering – kontant eller Vipps.\n\nHar du spørsmål? Ta kontakt på ${process.env.FROM_EMAIL || process.env.GMAIL_USER || 'bjerkfelix@gmail.com'}.\n\nMed vennlig hilsen,\nRamsløk Nesodden`,
-        updated.email
-      );
-    }
-
     res.json({ ok: true });
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
 });
