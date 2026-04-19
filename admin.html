@@ -1435,7 +1435,17 @@
           ${linkedBox ? `<span>📦 Eske: <strong style="font-family:monospace;color:var(--purple);">${esc(linkedBox.trackingId)}</strong></span>` : ''}
           ${linkedBag ? `<span>🛍️ Pose: <strong style="font-family:monospace;color:var(--purple);">${esc(linkedBag.sporingsnummer)}</strong> (${linkedBag.vekt}g)</span>` : ''}
         </div>
-        ${o.note ? `<div class="card-note">💬 ${esc(o.note)}</div>` : ''}
+        <div id="note-display-${o.id}">
+          ${o.note ? `<div class="card-note">💬 ${esc(o.note)}</div>` : '<span style="font-size:0.78rem;color:var(--muted);font-style:italic;">Ingen kommentar</span>'}
+          <button class="action-btn" style="padding:0.2rem 0.5rem;font-size:0.73rem;margin-top:0.3rem;background:transparent;border:1px solid var(--border);color:var(--muted);" data-note="${esc(o.note||'')}" onclick="startEditNote('${o.id}',this.dataset.note)">✏️ Rediger</button>
+        </div>
+        <div id="note-edit-${o.id}" style="display:none;margin-top:0.3rem;">
+          <textarea id="note-input-${o.id}" style="width:100%;background:var(--surface);border:1px solid var(--purple);border-radius:6px;padding:0.5rem 0.7rem;color:var(--text);font-family:inherit;font-size:0.82rem;resize:vertical;min-height:60px;outline:none;" placeholder="Legg til kommentar…"></textarea>
+          <div style="display:flex;gap:0.4rem;margin-top:0.4rem;">
+            <button class="action-btn btn-confirm" style="padding:0.25rem 0.7rem;font-size:0.78rem;" onclick="saveNote('${o.id}')">Lagre</button>
+            <button class="action-btn btn-delete" style="padding:0.25rem 0.7rem;font-size:0.78rem;" onclick="cancelEditNote('${o.id}')">Avbryt</button>
+          </div>
+        </div>
         <div class="card-actions">
           ${o.status!=='bekreftet' ? `<button class="action-btn btn-confirm" data-id="${o.id}" data-name="${esc(o.name)}" onclick="openConfirmModal(this.dataset.id, this.dataset.name)">Bekreft ✓</button>` : ''}
           ${o.paid==='true'
@@ -1531,6 +1541,26 @@
       console.error('addOrderManually feil:', err);
       alert('Nettverksfeil – prøv igjen.');
     }
+  }
+
+  function startEditNote(id, currentNote) {
+    document.getElementById('note-display-' + id).style.display = 'none';
+    const editDiv = document.getElementById('note-edit-' + id);
+    editDiv.style.display = 'block';
+    const ta = document.getElementById('note-input-' + id);
+    ta.value = currentNote;
+    ta.focus();
+  }
+
+  function cancelEditNote(id) {
+    document.getElementById('note-display-' + id).style.display = '';
+    document.getElementById('note-edit-' + id).style.display = 'none';
+  }
+
+  async function saveNote(id) {
+    const note = document.getElementById('note-input-' + id).value.trim();
+    await api.put('/api/orders/' + id, { note });
+    renderAll();
   }
 
   if (sessionStorage.getItem('admin_token')) renderAll();
