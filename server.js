@@ -584,6 +584,83 @@ app.post('/api/admin/orders', requireAdmin, async (req, res) => {
   }
 });
 
+// ── DIREKTE SALG (admin) ──
+app.post('/api/admin/direct-sale', requireAdmin, async (req, res) => {
+  try {
+    const name    = str(req.body.name, 100);
+    const phone   = str(req.body.phone, 20);
+    const email   = isEmail(req.body.email) ? req.body.email.trim() : '';
+    const note    = str(req.body.note, 500);
+    const bagId   = req.body.bagId  ? str(req.body.bagId,  100) : null;
+    const boxId   = req.body.boxId  ? str(req.body.boxId,  100) : null;
+    const paid    = req.body.paid   ? true : false;
+    const paymentMethod = str(req.body.paymentMethod || '', 50);
+
+    if (!name || !phone) return res.status(400).json({ error: 'Navn og telefon er påkrevd' });
+
+    const rawItems = Array.isArray(req.body.items) ? req.body.items.slice(0, 20) : [];
+    const items = rawItems.map(i => {
+      const qty = typeof i.qty === 'number' ? Math.min(Math.max(1, Math.floor(i.qty)), MAX_QTY) : 1;
+      const byId = PRICE_LIST[str(i.id, 50)];
+      if (byId) return { name: byId.name, qty, unit: byId.unit, price: byId.price };
+      const byName = Object.values(PRICE_LIST).find(p => p.name === str(i.name, 100));
+      if (byName) return { name: byName.name, qty, unit: byName.unit, price: byName.price };
+      const label = str(i.name || i.id || '', 100);
+      return label ? { name: label, qty, unit: str(i.unit || 'stk', 50), price: 0 } : null;
+    }).filter(Boolean);
+
+    if (!items.length) return res.status(400).json({ error: 'Ingen gyldige produkter' });
+
+    // Valider pose om oppgitt
+    if (bagId) {
+      const { rows } = await pool.query('SELECT data FROM bags WHERE id = $1', [bagId]);
+      if (!rows.length) return res.status(404).json({ error: 'Pose ikke funnet' });
+      if (rows[0].data.status === 'kassert') return res.status(400).json({ error: 'Posen er kassert' });
+    }
+
+    const total = Math.round(items.reduce((sum, i) => sum + i.qty * i.price, 0));
+    const num = await nextCounter('orders');
+    const orderNumber    = 'RS-' + String(num).padStart(4, '0');
+    const trackingNumber = 'SP-' + String(num).padStart(4, '0');
+    const now = new Date().toISOString();
+
+    const order = {
+      id: crypto.randomUUID(), timestamp: now,
+      status: 'bekreftet', orderNumber, trackingNumber,
+      name, phone, email, note,
+      delivery: 'Direkte salg',
+      total, items, source: 'admin',
+      ...(bagId && { bagId }),
+      ...(boxId && { boxId }),
+      ...(paid  && { paid: 'true', paidAt: now }),
+      ...(paid && paymentMethod && { paymentMethod }),
+    };
+
+    await pool.query('INSERT INTO orders (id, data) VALUES ($1, $2)', [order.id, JSON.stringify(order)]);
+
+    if (bagId) {
+      const { rows } = await pool.query('SELECT data FROM bags WHERE id = $1', [bagId]);
+      if (rows.length) {
+        const updated = { ...rows[0].data, status: 'tildelt', orderId: order.id };
+        await pool.query('UPDATE bags SET data = $1 WHERE id = $2', [JSON.stringify(updated), bagId]);
+      }
+    }
+    if (boxId) {
+      const { rows } = await pool.query('SELECT data FROM boxes WHERE id = $1', [boxId]);
+      if (rows.length) {
+        const updated = { ...rows[0].data, status: 'solgt' };
+        await pool.query('UPDATE boxes SET data = $1 WHERE id = $2', [JSON.stringify(updated), boxId]);
+      }
+    }
+
+    await auditLog(req.user.username, 'direkte-salg', 'ordre', order.id, { name, bagId, boxId, total });
+    res.json({ ok: true, id: order.id, orderNumber, trackingNumber });
+  } catch (err) {
+    console.error('POST /api/admin/direct-sale feil:', err);
+    res.status(500).json({ error: 'Serverfeil' });
+  }
+});
+
 // ── 404 ──
 app.use((req, res) => {
   res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
