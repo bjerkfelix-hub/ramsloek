@@ -711,6 +711,79 @@
   </div>
 </div>
 
+<!-- REDIGER BESTILLING MODAL -->
+<div class="modal-overlay" id="editOrderModal">
+  <div class="modal" style="width:min(580px,94vw);max-height:92vh;overflow-y:auto;">
+    <h3>✏️ Rediger bestilling – <span id="edit_label" style="font-family:monospace;color:var(--purple);"></span></h3>
+
+    <!-- Pose-velger -->
+    <div>
+      <label>Pose (sporingsnummer) – kan endres eller fjernes</label>
+      <div id="edit_bagSearch" style="position:relative;">
+        <input type="text" id="edit_bagInput" placeholder="Søk eller skan sporingsnummer…"
+               oninput="edit_filterBags()" autocomplete="off"
+               onfocus="this.style.borderColor='var(--purple)'" onblur="this.style.borderColor='var(--border)'" />
+        <div id="edit_bagResults" style="display:none;position:absolute;left:0;right:0;background:var(--surface2);border:1px solid var(--border);border-radius:6px;z-index:20;margin-top:3px;max-height:180px;overflow-y:auto;"></div>
+      </div>
+      <div id="edit_selectedBag" style="display:none;margin-top:0.5rem;"></div>
+    </div>
+
+    <!-- Eske-velger -->
+    <div>
+      <label>Eske (smittesporing) – valgfritt</label>
+      <select id="edit_box"><option value="">– Ingen eske –</option></select>
+    </div>
+
+    <!-- Kundeinformasjon -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;">
+      <div><label>Navn *</label><input type="text" id="edit_name" /></div>
+      <div><label>Telefon *</label><input type="tel" id="edit_phone" /></div>
+      <div style="grid-column:1/-1;"><label>E-post</label><input type="email" id="edit_email" /></div>
+    </div>
+
+    <!-- Produkter -->
+    <div>
+      <label style="margin-bottom:0.5rem;">Produkter *</label>
+      <div id="edit_productRows"></div>
+      <button onclick="edit_addProductRow()"
+              style="background:none;border:1px dashed var(--border);border-radius:6px;color:var(--muted);cursor:pointer;padding:0.35rem 0.9rem;font-size:0.8rem;font-family:inherit;width:100%;margin-top:0.3rem;"
+              onmouseover="this.style.borderColor='var(--purple)';this.style.color='var(--purple)'"
+              onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">+ Legg til produkt</button>
+    </div>
+
+    <!-- Status + levering -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;">
+      <div>
+        <label>Status</label>
+        <select id="edit_status">
+          <option value="venter">Venter</option>
+          <option value="bekreftet">Bekreftet</option>
+          <option value="avbestilt">Avbestilt</option>
+        </select>
+      </div>
+      <div>
+        <label>Levering</label>
+        <input type="text" id="edit_delivery" placeholder="Henting / Levering…" />
+      </div>
+    </div>
+
+    <!-- Plukksted + tid -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;">
+      <div><label>Hentested</label><input type="text" id="edit_pickupPlace" placeholder="Nesodden / Oslo…" /></div>
+      <div><label>Hentetid</label><input type="text" id="edit_pickupTime" placeholder="Lørdag kl. 12:00…" /></div>
+    </div>
+
+    <!-- Kommentar + admin-melding -->
+    <div><label>Kundens kommentar</label><input type="text" id="edit_note" /></div>
+    <div><label>Melding fra oss (admin-notat)</label><textarea id="edit_adminNote" rows="2"></textarea></div>
+
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeEditOrderModal()">Avbryt</button>
+      <button class="btn-modal-confirm" onclick="submitEditOrder()">Lagre endringer ✓</button>
+    </div>
+  </div>
+</div>
+
 <!-- DIREKTE SALG MODAL -->
 <div class="modal-overlay" id="directSaleModal">
   <div class="modal" style="width:min(540px,93vw);max-height:90vh;overflow-y:auto;">
@@ -1306,12 +1379,214 @@
     const bagId = assignBag_id;
     const orderId = document.getElementById('assignBag_orderId').value;
     if (!orderId) { alert('Velg en bestilling.'); return; }
-    await Promise.all([
-      api.put(`/api/bags/${bagId}`, { status: 'tildelt', orderId }),
-      api.put(`/api/orders/${orderId}`, { bagId })
-    ]);
+    // Server-side swap håndterer både frigjøring av evt. tidligere kobling og ny tildeling atomisk
+    await api.put(`/api/orders/${orderId}`, { bagId });
     closeAssignBagModal();
     renderAll();
+  }
+
+  async function freeLooseBag(bagId) {
+    const bag = allLooseBags.find(b => b.id === bagId);
+    if (!confirm(`Frigjør pose ${bag?.sporingsnummer || bagId}? Den vil bli koblet fra bestillingen og bli ledig igjen.`)) return;
+    // Hvis posen er koblet til en bestilling, fjern koblingen via order-PUT (server frigjør posen automatisk)
+    if (bag?.orderId) {
+      await api.put(`/api/orders/${bag.orderId}`, { bagId: '' });
+    } else {
+      await api.put(`/api/bags/${bagId}`, { status: 'ledig' });
+    }
+    renderAll();
+  }
+
+  // ── PRODUKT-KATALOG (speil av server-PRICE_LIST) ──
+  const PRODUCT_CATALOG = {
+    'stilk_fersk':    { label: 'Blader + løk/stilk – Fersk (100g, 60 kr)',          name: 'Blader + løk/stilk – Fersk' },
+    'stilk250_fersk': { label: 'Blader + løk/stilk – Fersk (250g, 120 kr)',         name: 'Blader + løk/stilk 250g – Fersk' },
+    'pose_fersk':     { label: 'Familiepose – Fersk (500g, 240 kr)',                name: 'Familiepose – Fersk' },
+    'stilk':          { label: 'Blader + løk/stilk – Frossen (100g, 50 kr)',        name: 'Blader + løk/stilk – Frossen' },
+    'stilk250':       { label: 'Blader + løk/stilk 250g – Frossen (250g, 100 kr)',  name: 'Blader + løk/stilk 250g – Frossen' },
+    'pose':           { label: 'Familiepose – Frossen (500g, 200 kr)',              name: 'Familiepose – Frossen' },
+  };
+  function findProductIdByName(name) {
+    const entry = Object.entries(PRODUCT_CATALOG).find(([id, p]) => p.name === name);
+    return entry ? entry[0] : null;
+  }
+
+  // ── REDIGER BESTILLING ──
+  let edit_orderId = null;
+  let edit_bags = [];
+  let edit_selectedBagId = null;
+
+  async function openEditOrderModal(id) {
+    const orders = await api.get('/api/orders');
+    const order = (orders || []).find(o => o.id === id);
+    if (!order) { alert('Bestilling ikke funnet.'); return; }
+    edit_orderId = id;
+
+    document.getElementById('edit_label').textContent = order.orderNumber || id.slice(0, 8);
+    document.getElementById('edit_name').value        = order.name || '';
+    document.getElementById('edit_phone').value       = order.phone || '';
+    document.getElementById('edit_email').value       = order.email || '';
+    document.getElementById('edit_delivery').value    = order.delivery || '';
+    document.getElementById('edit_pickupPlace').value = order.pickupPlace || '';
+    document.getElementById('edit_pickupTime').value  = order.pickupTime || '';
+    document.getElementById('edit_note').value        = order.note || '';
+    document.getElementById('edit_adminNote').value   = order.adminNote || '';
+    document.getElementById('edit_status').value      = order.status || 'venter';
+
+    // Pose: lastes etter at modalen åpnes
+    edit_selectedBagId = order.bagId || null;
+    const [bags, boxes] = await Promise.all([api.get('/api/bags'), api.get('/api/boxes')]);
+    // Inkluder alle ledige + den som allerede er tildelt denne bestillingen
+    edit_bags = (bags || []).filter(b => b.status === 'ledig' || b.id === edit_selectedBagId);
+
+    if (edit_selectedBagId) {
+      const bag = (bags || []).find(b => b.id === edit_selectedBagId);
+      if (bag) edit_renderSelectedBag(bag);
+      else edit_clearBag();
+    } else {
+      edit_clearBag();
+    }
+
+    // Eske-dropdown
+    const boxSel = document.getElementById('edit_box');
+    boxSel.innerHTML = '<option value="">– Ingen eske –</option>';
+    (boxes || []).filter(b => b.status === 'på lager' || b.id === order.boxId).forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b.id;
+      opt.textContent = `${b.trackingId} – ${b.pickDate || ''} (${b.area || '–'})`;
+      if (b.id === order.boxId) opt.selected = true;
+      boxSel.appendChild(opt);
+    });
+
+    // Produktrader: pre-fyll fra eksisterende items
+    const container = document.getElementById('edit_productRows');
+    container.innerHTML = '';
+    (order.items || []).forEach(it => {
+      edit_addProductRow(findProductIdByName(it.name) || 'stilk_fersk', it.qty, it.name);
+    });
+    if (!container.children.length) edit_addProductRow();
+
+    document.getElementById('editOrderModal').classList.add('open');
+  }
+
+  function closeEditOrderModal() {
+    edit_orderId = null;
+    edit_selectedBagId = null;
+    document.getElementById('editOrderModal').classList.remove('open');
+  }
+
+  function edit_filterBags() {
+    const q = document.getElementById('edit_bagInput').value.trim().toLowerCase();
+    const resultsEl = document.getElementById('edit_bagResults');
+    if (!q) { resultsEl.style.display = 'none'; resultsEl.innerHTML = ''; return; }
+    const matches = edit_bags.filter(b => (b.sporingsnummer || '').toLowerCase().includes(q));
+    if (!matches.length) {
+      resultsEl.innerHTML = '<div style="padding:0.6rem 0.8rem;color:var(--muted);font-size:0.82rem;">Ingen poser funnet</div>';
+    } else {
+      resultsEl.innerHTML = matches.slice(0, 8).map(b =>
+        `<div class="ds-bag-option" onclick="edit_selectBag('${b.id}')">
+          <span style="font-weight:600;color:var(--purple);font-family:monospace;">📦 ${esc(b.sporingsnummer)}</span>
+          <span style="color:var(--muted);font-size:0.78rem;margin-left:0.6rem;">${b.vekt}g · ${b.dato || '–'}${b.status === 'tildelt' ? ' · ⚠️ Allerede tildelt' : ''}</span>
+        </div>`
+      ).join('');
+    }
+    resultsEl.style.display = 'block';
+  }
+
+  function edit_selectBag(id) {
+    const bag = edit_bags.find(b => b.id === id);
+    if (!bag) return;
+    edit_selectedBagId = id;
+    edit_renderSelectedBag(bag);
+  }
+
+  function edit_renderSelectedBag(bag) {
+    document.getElementById('edit_bagSearch').style.display = 'none';
+    const el = document.getElementById('edit_selectedBag');
+    el.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--purple);border-radius:6px;padding:0.55rem 0.85rem;">
+        <div>
+          <span style="font-family:monospace;font-weight:700;color:var(--purple);">📦 ${esc(bag.sporingsnummer)}</span>
+          <span style="color:var(--muted);font-size:0.8rem;margin-left:0.6rem;">${bag.vekt}g · ${bag.dato || '–'}</span>
+        </div>
+        <button onclick="edit_clearBag()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.2rem;line-height:1;padding:0 0.3rem;" title="Fjern pose-kobling">×</button>
+      </div>`;
+    el.style.display = 'block';
+  }
+
+  function edit_clearBag() {
+    edit_selectedBagId = null;
+    document.getElementById('edit_bagSearch').style.display = '';
+    document.getElementById('edit_selectedBag').style.display = 'none';
+    document.getElementById('edit_bagInput').value = '';
+    document.getElementById('edit_bagResults').innerHTML = '';
+    document.getElementById('edit_bagResults').style.display = 'none';
+  }
+
+  function edit_addProductRow(selectedId, qty, customName) {
+    const container = document.getElementById('edit_productRows');
+    const row = document.createElement('div');
+    row.className = 'ds-product-row';
+    row.style.cssText = 'display:flex;gap:0.5rem;align-items:center;margin-bottom:0.5rem;';
+    const options = Object.entries(PRODUCT_CATALOG).map(([id, p]) =>
+      `<option value="${id}"${id === selectedId ? ' selected' : ''}>${p.label}</option>`
+    ).join('');
+    const customOption = (customName && !findProductIdByName(customName))
+      ? `<option value="__custom" data-name="${esc(customName)}" selected>Tilpasset: ${esc(customName)}</option>`
+      : '';
+    row.innerHTML = `
+      <select class="ds-product-select" style="flex:1;">
+        ${customOption}
+        ${options}
+      </select>
+      <input type="number" class="ds-product-qty" min="1" max="50" value="${qty || 1}" style="width:64px;text-align:center;" title="Antall" />
+      <button onclick="this.closest('.ds-product-row').remove()"
+              style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;padding:0.3rem 0.55rem;font-size:1rem;flex-shrink:0;"
+              title="Fjern">×</button>`;
+    container.appendChild(row);
+  }
+
+  async function submitEditOrder() {
+    if (!edit_orderId) return;
+    const name  = document.getElementById('edit_name').value.trim();
+    const phone = document.getElementById('edit_phone').value.trim();
+    if (!name || !phone) { alert('Navn og telefon er påkrevd.'); return; }
+
+    const rows = [...document.querySelectorAll('#edit_productRows .ds-product-row')];
+    if (!rows.length) { alert('Legg til minst ett produkt.'); return; }
+    const items = rows.map(r => {
+      const sel = r.querySelector('.ds-product-select');
+      const qty = parseInt(r.querySelector('.ds-product-qty').value) || 1;
+      if (sel.value === '__custom') {
+        return { name: sel.options[sel.selectedIndex].dataset.name, qty };
+      }
+      return { id: sel.value, qty };
+    });
+
+    try {
+      const result = await api.put(`/api/orders/${edit_orderId}`, {
+        name, phone,
+        email:       document.getElementById('edit_email').value.trim(),
+        delivery:    document.getElementById('edit_delivery').value.trim(),
+        pickupPlace: document.getElementById('edit_pickupPlace').value.trim(),
+        pickupTime:  document.getElementById('edit_pickupTime').value.trim(),
+        note:        document.getElementById('edit_note').value.trim(),
+        adminNote:   document.getElementById('edit_adminNote').value.trim(),
+        status:      document.getElementById('edit_status').value,
+        boxId:       document.getElementById('edit_box').value,
+        bagId:       edit_selectedBagId || '',
+        items
+      });
+      if (result.error) { alert('Feil: ' + result.error); return; }
+      // Hvis ny eske ble valgt, marker den som solgt (tilsvarende confirm-modalen)
+      const newBoxId = document.getElementById('edit_box').value;
+      if (newBoxId) await api.put(`/api/boxes/${newBoxId}`, { status: 'solgt' });
+      closeEditOrderModal();
+      renderAll();
+    } catch (err) {
+      console.error('submitEditOrder feil:', err);
+      alert('Nettverksfeil – prøv igjen.');
+    }
   }
 
   // ── DIREKTE SALG ──
@@ -1528,6 +1803,8 @@
         ${b.note ? `<div style="font-size:0.82rem;color:var(--muted);">💬 ${esc(b.note)}</div>` : ''}
         <div class="card-actions">
           ${!isTildelt && !isKassert ? `<button class="action-btn btn-confirm" onclick="openAssignBagModal('${b.id}')">Tildel til bestilling</button>` : ''}
+          ${isTildelt ? `<button class="action-btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);" onclick="openAssignBagModal('${b.id}')">🔄 Bytt bestilling</button>` : ''}
+          ${isTildelt ? `<button class="action-btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);" onclick="freeLooseBag('${b.id}')">↺ Frigjør pose</button>` : ''}
           ${!isKassert ? `<button class="action-btn btn-cancel-order" onclick="api.put('/api/bags/${b.id}',{status:'kassert'}).then(renderAll)">Kassér</button>` : ''}
           <button class="action-btn btn-delete" onclick="deleteLooseBag('${b.id}')">🗑</button>
         </div>
@@ -1665,6 +1942,7 @@
         </div>
         <div class="card-actions">
           ${o.status!=='bekreftet' ? `<button class="action-btn btn-confirm" data-id="${o.id}" data-name="${esc(o.name)}" onclick="openConfirmModal(this.dataset.id, this.dataset.name)">Bekreft ✓</button>` : ''}
+          <button class="action-btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);" onclick="openEditOrderModal('${o.id}')">✏️ Rediger</button>
           ${o.paid==='true'
             ? `<span class="status-pill pill-bekreftet">💰 Betalt</span>`
             : o.status==='bekreftet' ? `<button class="action-btn btn-confirm" onclick="markPaid('${o.id}')">💰 Merk betalt</button>` : ''}

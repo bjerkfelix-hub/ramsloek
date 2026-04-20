@@ -322,20 +322,85 @@ app.put('/api/orders/:id', requireAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT data FROM orders WHERE id = $1', [req.params.id]);
     if (!rows.length) return res.status(404).json({ error: 'Ikke funnet' });
+    const existing = rows[0].data;
 
-    // Kun tillatte felter kan oppdateres
     const VALID_ORDER_STATUSES = new Set(['venter', 'bekreftet', 'avbestilt']);
-    const allowed = ['status', 'pickupPlace', 'pickupTime', 'adminNote', 'note', 'pickedBy', 'boxId', 'bagId', 'paid', 'paidAt'];
+    const fieldLimits = {
+      name: 100, phone: 20, email: 100, delivery: 100,
+      status: 50, pickupPlace: 100, pickupTime: 100,
+      adminNote: 500, note: 500, pickedBy: 100,
+      boxId: 100, bagId: 100, paid: 10, paidAt: 50
+    };
+    const allowedStr = Object.keys(fieldLimits);
     const updates = {};
-    allowed.forEach(k => { if (req.body[k] !== undefined) updates[k] = str(String(req.body[k]), 500); });
+    allowedStr.forEach(k => {
+      if (req.body[k] !== undefined) updates[k] = str(String(req.body[k]), fieldLimits[k]);
+    });
     if (updates.status !== undefined && !VALID_ORDER_STATUSES.has(updates.status)) delete updates.status;
+    if (updates.email !== undefined && updates.email && !isEmail(updates.email)) delete updates.email;
 
-    const updated = { ...rows[0].data, ...updates };
+    // Items + auto-rekalkulert total
+    if (Array.isArray(req.body.items)) {
+      const rawItems = req.body.items.slice(0, 20);
+      const items = rawItems.map(i => {
+        const qty = typeof i.qty === 'number' ? Math.min(Math.max(1, Math.floor(i.qty)), MAX_QTY) : 1;
+        const byId = PRICE_LIST[str(i.id, 50)];
+        if (byId) return { name: byId.name, qty, unit: byId.unit, price: byId.price };
+        const byName = Object.values(PRICE_LIST).find(p => p.name === str(i.name, 100));
+        if (byName) return { name: byName.name, qty, unit: byName.unit, price: byName.price };
+        const label = str(i.name || i.id || '', 100);
+        return label ? { name: label, qty, unit: str(i.unit || 'stk', 50), price: typeof i.price === 'number' ? i.price : 0 } : null;
+      }).filter(Boolean);
+      if (items.length) {
+        updates.items = items;
+        updates.total = Math.round(items.reduce((sum, i) => sum + i.qty * i.price, 0));
+      }
+    }
+
+    // Atomisk pose-swap: håndterer både frigjøring av gammel pose og kobling av ny
+    const oldBagId = existing.bagId || '';
+    const newBagId = updates.bagId !== undefined ? updates.bagId : oldBagId;
+    if (newBagId !== oldBagId) {
+      // Frigjør gammel pose for denne bestillingen
+      if (oldBagId) {
+        const r = await pool.query('SELECT data FROM bags WHERE id = $1', [oldBagId]);
+        if (r.rows.length) {
+          const updatedBag = { ...r.rows[0].data, status: 'ledig' };
+          delete updatedBag.orderId;
+          await pool.query('UPDATE bags SET data = $1 WHERE id = $2', [JSON.stringify(updatedBag), oldBagId]);
+        }
+      }
+      // Tildel ny pose – og hvis posen var koblet til en annen bestilling, fjern koblingen der
+      if (newBagId) {
+        const r = await pool.query('SELECT data FROM bags WHERE id = $1', [newBagId]);
+        if (r.rows.length) {
+          const bagData = r.rows[0].data;
+          if (bagData.orderId && bagData.orderId !== req.params.id) {
+            const otherR = await pool.query('SELECT data FROM orders WHERE id = $1', [bagData.orderId]);
+            if (otherR.rows.length) {
+              const otherOrder = { ...otherR.rows[0].data };
+              delete otherOrder.bagId;
+              await pool.query('UPDATE orders SET data = $1 WHERE id = $2', [JSON.stringify(otherOrder), bagData.orderId]);
+            }
+          }
+          const updatedBag = { ...bagData, status: 'tildelt', orderId: req.params.id };
+          await pool.query('UPDATE bags SET data = $1 WHERE id = $2', [JSON.stringify(updatedBag), newBagId]);
+        }
+      }
+    }
+
+    const updated = { ...existing, ...updates };
+    if (updates.bagId === '') delete updated.bagId;
+    if (updates.boxId === '') delete updated.boxId;
+
     await pool.query('UPDATE orders SET data = $1 WHERE id = $2', [JSON.stringify(updated), req.params.id]);
     auditLog(req.user.username, 'oppdater', 'ordre', req.params.id, updates);
 
     res.json({ ok: true });
-  } catch { res.status(500).json({ error: 'Serverfeil' }); }
+  } catch (err) {
+    console.error('PUT /api/orders/:id feil:', err);
+    res.status(500).json({ error: 'Serverfeil' });
+  }
 });
 
 app.delete('/api/orders/:id', requireAdmin, async (req, res) => {
