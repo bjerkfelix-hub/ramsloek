@@ -147,7 +147,7 @@ const MAX_QTY = 50;
 // ── Auth ──
 const USERS = {
   'FelixWilliam':    { password: process.env.PW_FELIX,  role: 'admin',      initials: 'FW', display: 'FelixWilliam' },
-  'SverreFredriksen':{ password: process.env.PW_SVERRE, role: 'leveranser', initials: 'SF', display: 'Sverre' },
+  'SverreFredriksen':{ password: process.env.PW_SVERRE, role: 'admin',      initials: 'SF', display: 'Sverre' },
   'EirikNordtug':    { password: process.env.PW_EIRIK,  role: 'admin',      initials: 'EN', display: 'Eirik' },
   'Edvard':          { password: process.env.PW_EDVARD, role: 'admin',      initials: 'ED', display: 'Edvard' }
 };
