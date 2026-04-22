@@ -924,6 +924,9 @@
       <div class="nav-item" id="nav-kunder" onclick="setView('kunder', this)" style="display:none;">
         <span class="nav-icon">👥</span> Kunder
       </div>
+      <div class="nav-item" id="nav-salg" onclick="setView('salg', this)" style="display:none;">
+        <span class="nav-icon">💰</span> Salgsregister
+      </div>
     </nav>
 
     <div class="sidebar-footer">
@@ -1013,6 +1016,33 @@
         <div class="card-list" id="looseBagList"></div>
       </div>
       <div id="customerList" style="display:none;"></div>
+
+      <!-- Salgsregister -->
+      <div id="salesView" style="display:none;">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem;margin-bottom:1.5rem;">
+          <h3 style="margin-bottom:0.9rem;font-size:0.95rem;">💰 Registrer nytt salg</h3>
+          <div style="display:grid;grid-template-columns:1.4fr 0.6fr 1fr 1fr;gap:0.7rem;margin-bottom:0.7rem;">
+            <div class="field-group">
+              <label>Produkt *</label>
+              <select id="sale_product" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:0.55rem 0.8rem;color:var(--text);font-family:inherit;font-size:0.85rem;outline:none;">
+                <option value="Blader + løk/stilk – Fersk">Blader + løk/stilk – Fersk (100g)</option>
+                <option value="Blader + løk/stilk 250g – Fersk">Blader + løk/stilk – Fersk (250g)</option>
+                <option value="Familiepose – Fersk">Familiepose – Fersk (500g)</option>
+                <option value="Blader + løk/stilk – Frossen">Blader + løk/stilk – Frossen (100g)</option>
+                <option value="Blader + løk/stilk 250g – Frossen">Blader + løk/stilk – Frossen (250g)</option>
+                <option value="Familiepose – Frossen">Familiepose – Frossen (500g)</option>
+              </select>
+            </div>
+            <div class="field-group"><label>Antall *</label><input type="number" id="sale_qty" min="1" max="50" value="1" /></div>
+            <div class="field-group"><label>Kundenavn *</label><input type="text" id="sale_customer" placeholder="Ola Nordmann" /></div>
+            <div class="field-group"><label>Plukket av</label><input type="text" id="sale_pickedBy" placeholder="Felix" /></div>
+          </div>
+          <div class="field-group" style="margin-bottom:0.8rem;"><label>Notat</label><input type="text" id="sale_note" placeholder="Valgfritt…" /></div>
+          <button class="btn-sm purple" onclick="submitSale()">Lagre salg</button>
+        </div>
+        <h3 style="margin-bottom:0.7rem;font-size:0.9rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;">Alle salg</h3>
+        <div id="salesList"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1056,6 +1086,7 @@
     if (currentUser.role === 'admin') {
       document.getElementById('nav-lager').style.display = '';
       document.getElementById('nav-kunder').style.display = '';
+      document.getElementById('nav-salg').style.display = '';
     }
     if (currentUser.role === 'leveranser') {
       // Sverre ser bare bekreftet/venter og leveranse-fokus
@@ -1733,12 +1764,13 @@
     document.getElementById('boxList').style.display        = view === 'lager'         ? 'flex' : 'none';
     document.getElementById('looseBagSection').style.display= view === 'lager'         ? 'block': 'none';
     document.getElementById('customerList').style.display   = view === 'kunder'        ? 'block': 'none';
+    document.getElementById('salesView').style.display      = view === 'salg'          ? 'block': 'none';
     document.getElementById('orderFilterBar').style.display = view === 'bestillinger' ? 'flex' : 'none';
     document.getElementById('btnAddOrder').style.display    = view === 'bestillinger' ? '' : 'none';
     document.getElementById('btnDirectSale').style.display  = view === 'bestillinger' ? '' : 'none';
     document.getElementById('btnNewBox').style.display      = view === 'lager'         ? '' : 'none';
     document.getElementById('btnNewLooseBag').style.display = view === 'lager'         ? '' : 'none';
-    const titles = { bestillinger: 'Bestillinger', henvendelser: 'Henvendelser', lager: 'Lager & Smittesporing', kunder: 'Kunderegister' };
+    const titles = { bestillinger: 'Bestillinger', henvendelser: 'Henvendelser', lager: 'Lager & Smittesporing', kunder: 'Kunderegister', salg: 'Salgsregister' };
     document.getElementById('topbarTitle').textContent = titles[view] || view;
     renderAll();
   }
@@ -1754,6 +1786,69 @@
     else if (currentView === 'henvendelser') renderInquiries(inquiries);
     else if (currentView === 'lager') { renderBoxes(boxes, orders); renderLooseBags(looseBags); }
     else if (currentView === 'kunder') renderCustomers(consents);
+    else if (currentView === 'salg') fetchAndRenderSales();
+  }
+
+  // ── SALGSREGISTER ──
+  async function fetchAndRenderSales() {
+    const sales = await api.get('/api/admin/sales');
+    renderSales(sales || []);
+  }
+
+  function renderSales(sales) {
+    const list = document.getElementById('salesList');
+    if (!sales.length) {
+      list.innerHTML = `<div class="empty-state"><div class="icon">💰</div><p>Ingen salg registrert ennå.</p></div>`;
+      return;
+    }
+    list.innerHTML = `
+      <table style="width:100%;border-collapse:collapse;font-size:0.83rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
+        <thead>
+          <tr style="background:var(--surface2);text-align:left;">
+            <th style="padding:0.6rem 0.8rem;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border);">Dato</th>
+            <th style="padding:0.6rem 0.8rem;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border);">Produkt</th>
+            <th style="padding:0.6rem 0.8rem;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border);text-align:center;">Antall</th>
+            <th style="padding:0.6rem 0.8rem;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border);">Kunde</th>
+            <th style="padding:0.6rem 0.8rem;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border);">Plukket av</th>
+            <th style="padding:0.6rem 0.8rem;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border);">Notat</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${sales.map(s => {
+            const d = s.timestamp ? new Date(s.timestamp).toLocaleString('nb-NO', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '–';
+            return `<tr style="border-bottom:1px solid var(--border2);">
+              <td style="padding:0.55rem 0.8rem;color:var(--muted);font-size:0.78rem;white-space:nowrap;">${esc(d)}</td>
+              <td style="padding:0.55rem 0.8rem;">${esc(s.product || '')}</td>
+              <td style="padding:0.55rem 0.8rem;text-align:center;font-weight:600;">${s.qty}</td>
+              <td style="padding:0.55rem 0.8rem;">${esc(s.customer || '')}</td>
+              <td style="padding:0.55rem 0.8rem;color:${s.picked_by ? 'var(--text)' : 'var(--muted)'};">${s.picked_by ? esc(s.picked_by) : '–'}</td>
+              <td style="padding:0.55rem 0.8rem;color:var(--muted);font-size:0.8rem;">${s.note ? esc(s.note) : ''}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  async function submitSale() {
+    const product  = document.getElementById('sale_product').value;
+    const qty      = parseInt(document.getElementById('sale_qty').value) || 0;
+    const customer = document.getElementById('sale_customer').value.trim();
+    const pickedBy = document.getElementById('sale_pickedBy').value.trim();
+    const note     = document.getElementById('sale_note').value.trim();
+    if (!customer) { alert('Skriv inn kundenavn.'); return; }
+    if (!qty || qty < 1) { alert('Antall må være minst 1.'); return; }
+    try {
+      const result = await api.post('/api/admin/sales', { product, qty, customer, pickedBy, note });
+      if (result.error) { alert('Feil: ' + result.error); return; }
+      document.getElementById('sale_qty').value = 1;
+      document.getElementById('sale_customer').value = '';
+      document.getElementById('sale_pickedBy').value = '';
+      document.getElementById('sale_note').value = '';
+      fetchAndRenderSales();
+    } catch (err) {
+      console.error('submitSale feil:', err);
+      alert('Nettverksfeil – prøv igjen.');
+    }
   }
 
   function filterLooseBags() {

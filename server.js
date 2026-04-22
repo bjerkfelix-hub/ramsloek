@@ -111,6 +111,15 @@ async function initDB() {
     );
     CREATE TABLE IF NOT EXISTS counters (name TEXT PRIMARY KEY, value BIGINT NOT NULL DEFAULT 0);
     INSERT INTO counters (name, value) VALUES ('orders', 0) ON CONFLICT (name) DO NOTHING;
+    CREATE TABLE IF NOT EXISTS sales (
+      id TEXT PRIMARY KEY,
+      product TEXT NOT NULL,
+      qty INTEGER NOT NULL,
+      customer TEXT NOT NULL,
+      picked_by TEXT,
+      note TEXT,
+      timestamp TIMESTAMPTZ DEFAULT NOW()
+    );
   `);
   console.log('✅ Database klar');
 }
@@ -409,6 +418,40 @@ app.delete('/api/orders/:id', requireAdmin, async (req, res) => {
     auditLog(req.user.username, 'slett', 'ordre', req.params.id, {});
     res.json({ ok: true });
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
+});
+
+// ── Salgsregister ──
+app.get('/api/admin/sales', requireAdmin, async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT id, product, qty, customer, picked_by, note, timestamp FROM sales ORDER BY timestamp DESC');
+    res.json(rows);
+  } catch (err) {
+    console.error('GET /api/admin/sales feil:', err);
+    res.status(500).json({ error: 'Serverfeil' });
+  }
+});
+
+app.post('/api/admin/sales', requireAdmin, async (req, res) => {
+  try {
+    const product  = str(req.body.product, 100);
+    const customer = str(req.body.customer, 100);
+    const pickedBy = str(req.body.pickedBy ?? req.body.picked_by, 100);
+    const note     = str(req.body.note, 500);
+    const qty      = typeof req.body.qty === 'number' ? Math.min(Math.max(1, Math.floor(req.body.qty)), MAX_QTY) : parseInt(req.body.qty);
+    if (!product || !customer || !qty || qty < 1) {
+      return res.status(400).json({ error: 'Produkt, antall og kunde er påkrevd' });
+    }
+    const id = crypto.randomUUID();
+    await pool.query(
+      'INSERT INTO sales (id, product, qty, customer, picked_by, note) VALUES ($1, $2, $3, $4, $5, $6)',
+      [id, product, qty, customer, pickedBy || null, note || null]
+    );
+    auditLog(req.user.username, 'opprett', 'salg', id, { product, qty, customer });
+    res.json({ ok: true, id });
+  } catch (err) {
+    console.error('POST /api/admin/sales feil:', err);
+    res.status(500).json({ error: 'Serverfeil' });
+  }
 });
 
 // ── Henvendelses-API ──
