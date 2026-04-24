@@ -1340,6 +1340,23 @@
     }).join('');
   }
 
+  // ── PER-POSE PLUKKER ──
+  async function saveItemPickers(orderId, count) {
+    const map = {};
+    for (let i = 0; i < count; i++) {
+      const el = document.getElementById(`picker-${orderId}-${i}`);
+      if (!el) continue;
+      const val = el.value.trim();
+      if (val) map[i] = val;
+    }
+    try {
+      await api.put(`/api/orders/${orderId}`, { pickedBy: map });
+    } catch (err) {
+      console.error('saveItemPickers feil:', err);
+      alert('Kunne ikke lagre plukker.');
+    }
+  }
+
   // ── ACTIONS ──
   async function setStatus(id, status) { await api.put(`/api/orders/${id}`, { status }); renderAll(); }
   async function markPaid(id) { await api.put(`/api/orders/${id}`, { paid: 'true', paidAt: new Date().toISOString() }); renderAll(); }
@@ -2013,16 +2030,21 @@
           ${linkedBox ? `<span>📦 Eske: <strong style="font-family:monospace;color:var(--purple);">${esc(linkedBox.trackingId)}</strong></span>` : ''}
           ${linkedBag ? `<span>🛍️ Pose: <strong style="font-family:monospace;color:var(--purple);">${esc(linkedBag.sporingsnummer)}</strong> (${linkedBag.vekt}g)</span>` : ''}
         </div>
-        <div id="picked-display-${o.id}">
-          ${o.pickedBy ? `<div class="card-note" style="background:var(--green-dim);border-color:#0f4d1a;">🧑‍🌾 Plukket av: <strong>${esc(o.pickedBy)}</strong></div>` : '<span style="font-size:0.78rem;color:var(--muted);font-style:italic;">Ikke registrert plukker</span>'}
-          <button class="action-btn" style="padding:0.2rem 0.5rem;font-size:0.73rem;margin-top:0.3rem;background:transparent;border:1px solid var(--border);color:var(--muted);" data-val="${esc(o.pickedBy||'')}" onclick="startEditField('picked','${o.id}',this.dataset.val)">✏️ Rediger</button>
-        </div>
-        <div id="picked-edit-${o.id}" style="display:none;margin-top:0.3rem;">
-          <input type="text" id="picked-input-${o.id}" style="width:100%;background:var(--surface);border:1px solid var(--purple);border-radius:6px;padding:0.45rem 0.7rem;color:var(--text);font-family:inherit;font-size:0.82rem;outline:none;" placeholder="Navn på plukker…" />
-          <div style="display:flex;gap:0.4rem;margin-top:0.4rem;">
-            <button class="action-btn btn-confirm" style="padding:0.25rem 0.7rem;font-size:0.78rem;" onclick="saveField('picked','${o.id}','pickedBy')">Lagre</button>
-            <button class="action-btn btn-delete" style="padding:0.25rem 0.7rem;font-size:0.78rem;" onclick="cancelEditField('picked','${o.id}')">Avbryt</button>
-          </div>
+        <div class="card-pickers" style="background:var(--green-dim);border:1px solid #0f4d1a;border-radius:6px;padding:0.55rem 0.8rem;margin-top:0.4rem;">
+          <div style="font-size:0.72rem;color:var(--green);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.45rem;">🧑‍🌾 Plukket av (per pose)</div>
+          ${typeof o.pickedBy === 'string' && o.pickedBy ? `<div style="font-size:0.7rem;color:var(--muted);font-style:italic;margin-bottom:0.4rem;">⚠️ Eldre felles plukker: <strong>${esc(o.pickedBy)}</strong> – fyll inn på nytt per pose</div>` : ''}
+          ${(o.items || []).length === 0 ? '<div style="font-size:0.78rem;color:var(--muted);font-style:italic;">Ingen produkter i ordren.</div>' : (o.items || []).map((item, idx) => {
+            const pickerMap = (o.pickedBy && typeof o.pickedBy === 'object' && !Array.isArray(o.pickedBy)) ? o.pickedBy : {};
+            const picker = pickerMap[idx] || pickerMap[String(idx)] || '';
+            return `<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.3rem;">
+              <span style="flex:1;font-size:0.78rem;color:var(--text);">${esc(item.name)} <span style="color:var(--muted);">×${item.qty}</span></span>
+              <input type="text" id="picker-${o.id}-${idx}" value="${esc(picker)}" placeholder="Navn på plukker…"
+                     data-order="${o.id}" data-count="${(o.items||[]).length}"
+                     onchange="saveItemPickers(this.dataset.order, parseInt(this.dataset.count))"
+                     style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:0.3rem 0.55rem;color:var(--text);font-size:0.8rem;font-family:inherit;outline:none;"
+                     onfocus="this.style.borderColor='var(--purple)'" onblur="this.style.borderColor='var(--border)'" />
+            </div>`;
+          }).join('')}
         </div>
         <div id="note-display-${o.id}">
           ${o.note ? `<div class="card-note">💬 ${esc(o.note)}</div>` : '<span style="font-size:0.78rem;color:var(--muted);font-style:italic;">Ingen kommentar</span>'}

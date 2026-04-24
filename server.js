@@ -337,7 +337,7 @@ app.put('/api/orders/:id', requireAdmin, async (req, res) => {
     const fieldLimits = {
       name: 100, phone: 20, email: 100, delivery: 100,
       status: 50, pickupPlace: 100, pickupTime: 100,
-      adminNote: 500, note: 500, pickedBy: 100,
+      adminNote: 500, note: 500,
       boxId: 100, bagId: 100, paid: 10, paidAt: 50
     };
     const allowedStr = Object.keys(fieldLimits);
@@ -347,6 +347,21 @@ app.put('/api/orders/:id', requireAdmin, async (req, res) => {
     });
     if (updates.status !== undefined && !VALID_ORDER_STATUSES.has(updates.status)) delete updates.status;
     if (updates.email !== undefined && updates.email && !isEmail(updates.email)) delete updates.email;
+
+    // pickedBy: nå et map { itemIndex: pukkerNavn } per pose i bestillingen
+    if (req.body.pickedBy !== undefined) {
+      if (req.body.pickedBy && typeof req.body.pickedBy === 'object' && !Array.isArray(req.body.pickedBy)) {
+        const cleaned = {};
+        for (const [k, v] of Object.entries(req.body.pickedBy)) {
+          const key = str(String(k), 50);
+          const val = str(String(v ?? ''), 100);
+          if (key && val) cleaned[key] = val;
+        }
+        updates.pickedBy = cleaned;
+      } else {
+        updates.pickedBy = {};
+      }
+    }
 
     // Items + auto-rekalkulert total
     if (Array.isArray(req.body.items)) {
