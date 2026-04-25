@@ -2144,9 +2144,12 @@
 
   function renderStats(orders, inquiries, boxes, looseBags) {
     const c = { alle: 0, venter: 0, bekreftet: 0, avbestilt: 0, arkivert: 0 };
+    let inntjentArkivert = 0, forventetBekreftet = 0;
     orders.forEach(o => {
       c[o.status] = (c[o.status]||0)+1;
       if (o.status !== 'arkivert') c.alle++;
+      if (o.status === 'arkivert') inntjentArkivert += parseInt(o.total)||0;
+      if (o.status === 'bekreftet') forventetBekreftet += parseInt(o.total)||0;
     });
     const arkivBadge = document.getElementById('arkivBadge');
     if (arkivBadge) { arkivBadge.style.display = c.arkivert > 0 ? 'inline-block' : 'none'; arkivBadge.textContent = c.arkivert; }
@@ -2165,10 +2168,17 @@
       <div class="stat-card"><div class="num yellow">${c.venter}</div><div class="lbl">Venter</div></div>
       <div class="stat-card"><div class="num green">${c.bekreftet}</div><div class="lbl">Bekreftet</div></div>
       <div class="stat-card"><div class="num red">${c.avbestilt}</div><div class="lbl">Avbestilt</div></div>
+      <div class="stat-card" style="border-left:3px solid var(--green);">
+        <div class="num green">${inntjentArkivert} kr</div>
+        <div class="lbl">Inntjent (arkivert)</div>
+      </div>
+      <div class="stat-card" style="border-left:3px solid var(--yellow);">
+        <div class="num yellow">${forventetBekreftet} kr</div>
+        <div class="lbl">Utestående (bekreftet)</div>
+      </div>
       <div class="stat-card"><div class="num ${newInq>0?'yellow':''}">${newInq}</div><div class="lbl">Nye henvendelser</div></div>
       <div class="stat-card"><div class="num yellow">${påLager}</div><div class="lbl">Esker på lager</div></div>
       <div class="stat-card"><div class="num green">${solgtBoxes}</div><div class="lbl">Esker solgt</div></div>
-      <div class="stat-card"><div class="num">${totalBoxes}</div><div class="lbl">Esker totalt</div></div>
       <div class="stat-card"><div class="num yellow">${løsePåLager}</div><div class="lbl">Løse poser (ledig)</div></div>
     `;
   }
