@@ -543,6 +543,67 @@
       .filter-pill { font-size: 0.65rem; padding: 0.2rem 0.55rem; }
     }
 
+    /* ── LIGHT MODE ── */
+    [data-theme="light"] {
+      --bg: #f5f5f7;
+      --surface: #ffffff;
+      --surface2: #f2f2f7;
+      --border: rgba(0,0,0,0.12);
+      --border2: rgba(0,0,0,0.07);
+      --purple: #007aff;
+      --purple-dim: rgba(0,122,255,0.1);
+      --text: #1d1d1f;
+      --muted: rgba(60,60,67,0.6);
+      --green: #28a745;
+      --green-dim: rgba(40,167,69,0.1);
+      --yellow: #e07a00;
+      --yellow-dim: rgba(224,122,0,0.1);
+      --red: #ff3b30;
+      --red-dim: rgba(255,59,48,0.1);
+    }
+    [data-theme="light"] #loginScreen {
+      background: radial-gradient(ellipse at 50% 0%, rgba(0,122,255,0.07) 0%, var(--bg) 70%);
+    }
+    [data-theme="light"] .order-card { box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    [data-theme="light"] .order-card:hover { border-color: rgba(0,0,0,0.2); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    [data-theme="light"] .login-card { box-shadow: 0 4px 24px rgba(0,0,0,0.1); }
+    [data-theme="light"] .sidebar { box-shadow: 1px 0 0 0 var(--border); }
+    [data-theme="light"] .field-group input { color: var(--text); }
+    [data-theme="light"] .modal { box-shadow: 0 8px 40px rgba(0,0,0,0.18); }
+    [data-theme="light"] .welcome-toast { box-shadow: 0 4px 16px rgba(0,0,0,0.14); }
+
+    .theme-toggle-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.3rem 0.75rem;
+      font-size: 0.75rem;
+      font-family: inherit;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      width: 100%;
+      text-align: left;
+      margin-bottom: 0.5rem;
+    }
+    .theme-toggle-btn:hover { background: var(--surface2); color: var(--text); }
+
+    /* ── BAG ARCHIVE SECTION ── */
+    .bag-archive-header {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      margin: 2rem 0 0.8rem;
+    }
+    .bag-archive-header .divider { flex: 1; height: 1px; background: var(--border); }
+    .bag-archive-header span {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
     /* ── BOX CARDS ── */
     .box-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem 1.4rem; display: flex; flex-direction: column; gap: 0.7rem; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
     .box-card.status-solgt { border-left: 3px solid var(--green); opacity: 0.7; }
@@ -602,6 +663,7 @@
     .ds-product-row select, .ds-product-row input { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 0.48rem 0.65rem; color: var(--text); font-family: inherit; font-size: 0.82rem; outline: none; }
     .ds-product-row select:focus, .ds-product-row input:focus { border-color: var(--purple); }
   </style>
+<script>if(localStorage.getItem('ramsloek_theme')==='light')document.documentElement.setAttribute('data-theme','light');</script>
 </head>
 <body>
 
@@ -936,6 +998,7 @@
     </nav>
 
     <div class="sidebar-footer">
+      <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()">☀ Lys modus</button>
       <div class="user-row">
         <div class="avatar">FW</div>
         <div class="user-info">
@@ -1017,6 +1080,14 @@
           <input type="text" id="bagSearchInput" placeholder="🔍 Søk etter sporingsnummer, dato, kommentar…" oninput="filterLooseBags()" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:0.55rem 0.9rem;color:var(--text);font-size:0.875rem;font-family:inherit;outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--purple)'" onblur="this.style.borderColor='var(--border)'" />
         </div>
         <div class="card-list" id="looseBagList"></div>
+      </div>
+      <div id="bagArchiveSection" style="display:none;">
+        <div class="bag-archive-header">
+          <div class="divider"></div>
+          <span>Lager-arkiv – kasserte og solgte poser</span>
+          <div class="divider"></div>
+        </div>
+        <div class="card-list" id="bagArchiveList"></div>
       </div>
       <div id="customerList" style="display:none;"></div>
       <div class="card-list" id="arkivList" style="display:none;"></div>
@@ -1118,6 +1189,27 @@
     document.querySelector('.sidebar').classList.remove('open');
     document.getElementById('sidebarOverlay').classList.remove('open');
   }
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isLight = html.getAttribute('data-theme') === 'light';
+    if (isLight) {
+      html.removeAttribute('data-theme');
+      localStorage.removeItem('ramsloek_theme');
+      document.getElementById('themeToggleBtn').textContent = '☀ Lys modus';
+    } else {
+      html.setAttribute('data-theme', 'light');
+      localStorage.setItem('ramsloek_theme', 'light');
+      document.getElementById('themeToggleBtn').textContent = '◑ Mørk modus';
+    }
+  }
+  // Sync button label with saved theme
+  (function() {
+    if (localStorage.getItem('ramsloek_theme') === 'light') {
+      const btn = document.getElementById('themeToggleBtn');
+      if (btn) btn.textContent = '◑ Mørk modus';
+    }
+  })();
 
   function logout() {
     const token = sessionStorage.getItem('admin_token');
@@ -1768,8 +1860,9 @@
     document.getElementById('orderList').style.display      = view === 'bestillinger' ? 'flex' : 'none';
     document.getElementById('inquiryList').style.display    = view === 'henvendelser'  ? 'flex' : 'none';
     document.getElementById('boxList').style.display        = view === 'lager'         ? 'flex' : 'none';
-    document.getElementById('looseBagSection').style.display= view === 'lager'         ? 'block': 'none';
-    document.getElementById('customerList').style.display   = view === 'kunder'        ? 'block': 'none';
+    document.getElementById('looseBagSection').style.display   = view === 'lager'  ? 'block': 'none';
+    document.getElementById('bagArchiveSection').style.display = view === 'lager'  ? 'block': 'none';
+    document.getElementById('customerList').style.display      = view === 'kunder' ? 'block': 'none';
     document.getElementById('salesView').style.display      = view === 'salg'          ? 'block': 'none';
     document.getElementById('arkivList').style.display      = view === 'arkiv'         ? 'flex' : 'none';
     document.getElementById('orderFilterBar').style.display = view === 'bestillinger' ? 'flex' : 'none';
@@ -1791,8 +1884,8 @@
     renderStats(orders, inquiries, boxes, looseBags);
     if (currentView === 'bestillinger') renderOrders(orders, looseBags, boxes);
     else if (currentView === 'henvendelser') renderInquiries(inquiries);
-    else if (currentView === 'lager') { renderBoxes(boxes, orders); renderLooseBags(looseBags); }
-    else if (currentView === 'kunder') renderCustomers(consents);
+    else if (currentView === 'lager') { renderBoxes(boxes, orders); renderLooseBags(looseBags); renderBagArchive(looseBags, orders); }
+    else if (currentView === 'kunder') renderCustomers(consents, orders);
     else if (currentView === 'salg') fetchAndRenderSales();
     else if (currentView === 'arkiv') renderArchive(orders);
   }
@@ -1922,41 +2015,125 @@
     }).join('');
   }
 
-  function renderCustomers(consents) {
-    const el = document.getElementById('customerList');
-    if (!consents || !consents.length) {
-      el.innerHTML = `<div class="empty-state"><div class="icon">👥</div><p>Ingen kunder registrert ennå.</p></div>`;
+  function renderBagArchive(bags, orders) {
+    const el = document.getElementById('bagArchiveList');
+    const archived = (bags || [])
+      .filter(b => b.status === 'kassert' || b.status === 'tildelt')
+      .sort((a, b) => new Date(b.timestamp||0) - new Date(a.timestamp||0));
+    if (!archived.length) {
+      el.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.85rem;">Ingen kasserte eller solgte poser ennå.</div>`;
       return;
     }
-    el.innerHTML = `
-      <p style="font-size:0.8rem;color:var(--muted);margin-bottom:1rem;">
-        ${consents.length} kunde${consents.length !== 1 ? 'r' : ''} har godtatt kjøpsvilkårene.
-      </p>
-      <table style="width:100%;border-collapse:collapse;font-size:0.83rem;">
-        <thead>
-          <tr style="text-align:left;border-bottom:1px solid var(--border);color:var(--muted);">
-            <th style="padding:0.6rem 0.8rem;">Navn</th>
-            <th style="padding:0.6rem 0.8rem;">E-post</th>
-            <th style="padding:0.6rem 0.8rem;">Telefon</th>
-            <th style="padding:0.6rem 0.8rem;">Godtatt</th>
-            <th style="padding:0.6rem 0.8rem;">Vilkårsversjon</th>
-            <th style="padding:0.6rem 0.8rem;"></th>
-          </tr>
-        </thead>
-        <tbody>
-          ${consents.map(c => {
-            const date = new Date(c.timestamp).toLocaleString('nb-NO', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
-            return `<tr style="border-bottom:1px solid var(--border2);">
-              <td style="padding:0.6rem 0.8rem;color:var(--text);font-weight:500;">${esc(c.name)}</td>
-              <td style="padding:0.6rem 0.8rem;">${c.email ? `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : '–'}</td>
-              <td style="padding:0.6rem 0.8rem;">${esc(c.phone) || '–'}</td>
-              <td style="padding:0.6rem 0.8rem;font-family:monospace;font-size:0.78rem;">${date}</td>
-              <td style="padding:0.6rem 0.8rem;"><span style="background:var(--green-dim);color:var(--green);border-radius:4px;padding:0.15rem 0.5rem;font-size:0.72rem;">${esc(c.termsVersion)}</span></td>
-              <td style="padding:0.6rem 0.8rem;"><button class="action-btn btn-delete" onclick="deleteConsent('${c.id}')">🗑</button></td>
-            </tr>`;
+    el.innerHTML = archived.map(b => {
+      const isKassert = b.status === 'kassert';
+      const linkedOrder = b.orderId ? (orders||[]).find(o => o.id === b.orderId) : null;
+      const statusPill = isKassert
+        ? `<span class="status-pill pill-avbestilt">Kassert</span>`
+        : `<span class="status-pill pill-bekreftet">Solgt / Tildelt</span>`;
+      const cardClass = isKassert ? 'status-kassert' : 'status-solgt';
+      return `<div class="box-card ${cardClass}">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span class="box-tracking" style="font-size:0.9rem;">📦 ${esc(b.sporingsnummer)}</span>
+          ${statusPill}
+        </div>
+        <div class="box-meta">
+          <span>📅 ${b.dato || '–'}</span>
+          <span>⚖️ ${b.vekt}g</span>
+          ${b.pickedBy ? `<span>🌿 Plukket av: <strong style="color:var(--text);">${esc(b.pickedBy)}</strong></span>` : ''}
+        </div>
+        ${linkedOrder ? `<div style="background:var(--surface);border-radius:8px;padding:0.65rem 0.9rem;font-size:0.82rem;border:1px solid var(--border2);">
+          <div style="font-weight:600;color:var(--text);margin-bottom:0.2rem;">
+            ${esc(linkedOrder.name)}
+            ${linkedOrder.orderNumber ? `<span style="font-family:monospace;font-size:0.7rem;color:var(--purple);background:var(--purple-dim);border-radius:4px;padding:0.1rem 0.4rem;margin-left:0.4rem;">${esc(linkedOrder.orderNumber)}</span>` : ''}
+          </div>
+          <div style="color:var(--muted);">${(linkedOrder.items||[]).map(i=>`${esc(i.name)} × ${i.qty}`).join(' · ')}${linkedOrder.total ? ` · <strong style="color:var(--text);">${linkedOrder.total} kr</strong>` : ''}</div>
+          <div style="color:var(--muted);margin-top:0.2rem;font-size:0.78rem;">📞 ${esc(linkedOrder.phone)}${linkedOrder.delivery ? ` · ${esc(linkedOrder.delivery)}` : ''}</div>
+        </div>` : ''}
+        ${b.note ? `<div style="font-size:0.82rem;color:var(--muted);">💬 ${esc(b.note)}</div>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  function renderCustomers(consents, orders) {
+    const el = document.getElementById('customerList');
+
+    // Normalize phone for grouping
+    const normPhone = p => (p || '').replace(/\s+/g, '').replace(/^\+47/, '');
+
+    // Group all orders by normalized phone
+    const byPhone = {};
+    (orders || []).forEach(o => {
+      const key = normPhone(o.phone);
+      if (!key) return;
+      if (!byPhone[key]) byPhone[key] = { phone: o.phone, name: o.name, email: o.email, orders: [] };
+      byPhone[key].orders.push(o);
+      if (!byPhone[key].email && o.email) byPhone[key].email = o.email;
+    });
+
+    // Map consents by phone
+    const consentByPhone = {};
+    (consents || []).forEach(c => { consentByPhone[normPhone(c.phone)] = c; });
+
+    const customers = Object.values(byPhone);
+    if (!customers.length) {
+      el.innerHTML = `<div class="empty-state"><div class="icon">👥</div><p>Ingen kunder med bestillinger ennå.</p></div>`;
+      return;
+    }
+
+    // Sort by most recent order
+    customers.sort((a, b) => {
+      const aMax = Math.max(...a.orders.map(o => new Date(o.timestamp||0)));
+      const bMax = Math.max(...b.orders.map(o => new Date(o.timestamp||0)));
+      return bMax - aMax;
+    });
+
+    const statusColor = { venter:'var(--yellow)', bekreftet:'var(--green)', avbestilt:'var(--red)', arkivert:'var(--muted)' };
+    const statusLabel = { venter:'Venter', bekreftet:'Bekreftet', avbestilt:'Avbestilt', arkivert:'Arkivert' };
+
+    el.innerHTML = `<div style="margin-bottom:0.7rem;font-size:0.8rem;color:var(--muted);">${customers.length} kunde${customers.length!==1?'r':''}</div>
+    <div style="display:flex;flex-direction:column;gap:0.8rem;">
+    ${customers.map(c => {
+      const activeOrders = c.orders.filter(o => o.status !== 'arkivert' && o.status !== 'avbestilt');
+      const total = c.orders.reduce((s, o) => s + (parseInt(o.total)||0), 0);
+      const latest = [...c.orders].sort((a,b) => new Date(b.timestamp||0)-new Date(a.timestamp||0))[0];
+      const latestDate = latest?.timestamp ? new Date(latest.timestamp).toLocaleString('nb-NO',{day:'2-digit',month:'short',year:'numeric'}) : '–';
+      const consent = consentByPhone[normPhone(c.phone)];
+
+      return `<div class="order-card" style="gap:0.7rem;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;">
+          <div>
+            <div style="font-size:0.95rem;font-weight:600;color:var(--text);">${esc(c.name)}</div>
+            <div style="font-size:0.78rem;color:var(--muted);margin-top:0.15rem;">
+              <a href="tel:${esc(c.phone)}">${esc(c.phone)}</a>
+              ${c.email ? ` · <a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : ''}
+            </div>
+          </div>
+          ${consent ? `<span style="font-size:0.68rem;background:var(--green-dim);color:var(--green);border:1px solid rgba(52,199,89,0.25);border-radius:999px;padding:0.15rem 0.6rem;flex-shrink:0;">GDPR ✓</span>` : ''}
+        </div>
+        <div style="display:flex;gap:1.5rem;font-size:0.82rem;padding:0.55rem 0.9rem;background:var(--surface2);border-radius:8px;flex-wrap:wrap;">
+          <span><span style="color:var(--muted);">Bestillinger</span> <strong>${c.orders.length}</strong></span>
+          <span><span style="color:var(--muted);">Totalt brukt</span> <strong style="color:var(--green);">${total} kr</strong></span>
+          <span><span style="color:var(--muted);">Siste ordre</span> <strong>${latestDate}</strong></span>
+        </div>
+        <div>
+          <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:0.4rem;">Kjøpshistorikk</div>
+          ${[...c.orders].sort((a,b)=>new Date(b.timestamp||0)-new Date(a.timestamp||0)).map(o => {
+            const d = o.timestamp ? new Date(o.timestamp).toLocaleString('nb-NO',{day:'2-digit',month:'short',year:'numeric'}) : '–';
+            const items = (o.items||[]).map(i=>`${esc(i.name)} × ${i.qty}`).join(', ');
+            const sc = statusColor[o.status]||'var(--muted)';
+            const sl = statusLabel[o.status]||o.status;
+            return `<div style="display:flex;align-items:center;gap:0.7rem;padding:0.4rem 0.7rem;background:var(--surface);border:1px solid var(--border2);border-radius:6px;margin-bottom:0.25rem;font-size:0.8rem;flex-wrap:wrap;">
+              ${o.orderNumber ? `<span style="font-family:monospace;font-size:0.7rem;color:var(--purple);font-weight:700;">${esc(o.orderNumber)}</span>` : ''}
+              <span style="color:var(--muted);font-size:0.75rem;white-space:nowrap;">${d}</span>
+              <span style="flex:1;color:var(--text);">${items}</span>
+              ${o.total ? `<span style="font-weight:600;color:var(--green);white-space:nowrap;">${o.total} kr</span>` : ''}
+              <span style="font-size:0.68rem;color:${sc};font-weight:600;text-transform:uppercase;white-space:nowrap;">${sl}</span>
+            </div>`;
           }).join('')}
-        </tbody>
-      </table>`;
+        </div>
+      </div>`;
+    }).join('')}
+    </div>`;
   }
 
   async function deleteConsent(id) {
