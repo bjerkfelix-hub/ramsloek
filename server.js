@@ -334,7 +334,7 @@ app.put('/api/orders/:id', requireAdmin, async (req, res) => {
     if (!rows.length) return res.status(404).json({ error: 'Ikke funnet' });
     const existing = rows[0].data;
 
-    const VALID_ORDER_STATUSES = new Set(['venter', 'bekreftet', 'avbestilt']);
+    const VALID_ORDER_STATUSES = new Set(['venter', 'bekreftet', 'avbestilt', 'arkivert']);
     const fieldLimits = {
       name: 100, phone: 20, email: 100, delivery: 100,
       status: 50, pickupPlace: 100, pickupTime: 100,

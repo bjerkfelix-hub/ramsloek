@@ -929,6 +929,10 @@
       <div class="nav-item" id="nav-salg" onclick="setView('salg', this)" style="display:none;">
         Salgsregister
       </div>
+      <div class="nav-item" id="nav-arkiv" onclick="setView('arkiv', this)" style="display:none;">
+        Arkiv
+        <span class="nav-badge" id="arkivBadge" style="display:none;background:var(--muted);">0</span>
+      </div>
     </nav>
 
     <div class="sidebar-footer">
@@ -1018,6 +1022,7 @@
         <div class="card-list" id="looseBagList"></div>
       </div>
       <div id="customerList" style="display:none;"></div>
+      <div class="card-list" id="arkivList" style="display:none;"></div>
 
       <!-- Salgsregister -->
       <div id="salesView" style="display:none;">
@@ -1089,6 +1094,7 @@
       document.getElementById('nav-lager').style.display = '';
       document.getElementById('nav-kunder').style.display = '';
       document.getElementById('nav-salg').style.display = '';
+      document.getElementById('nav-arkiv').style.display = '';
     }
     if (currentUser.role === 'leveranser') {
       // Sverre ser bare bekreftet/venter og leveranse-fokus
@@ -1777,12 +1783,13 @@
     document.getElementById('looseBagSection').style.display= view === 'lager'         ? 'block': 'none';
     document.getElementById('customerList').style.display   = view === 'kunder'        ? 'block': 'none';
     document.getElementById('salesView').style.display      = view === 'salg'          ? 'block': 'none';
+    document.getElementById('arkivList').style.display      = view === 'arkiv'         ? 'flex' : 'none';
     document.getElementById('orderFilterBar').style.display = view === 'bestillinger' ? 'flex' : 'none';
     document.getElementById('btnAddOrder').style.display    = view === 'bestillinger' ? '' : 'none';
     document.getElementById('btnDirectSale').style.display  = view === 'bestillinger' ? '' : 'none';
     document.getElementById('btnNewBox').style.display      = view === 'lager'         ? '' : 'none';
     document.getElementById('btnNewLooseBag').style.display = view === 'lager'         ? '' : 'none';
-    const titles = { bestillinger: 'Bestillinger', henvendelser: 'Henvendelser', lager: 'Lager & Smittesporing', kunder: 'Kunderegister', salg: 'Salgsregister' };
+    const titles = { bestillinger: 'Bestillinger', henvendelser: 'Henvendelser', lager: 'Lager & Smittesporing', kunder: 'Kunderegister', salg: 'Salgsregister', arkiv: 'Arkiv' };
     document.getElementById('topbarTitle').textContent = titles[view] || view;
     renderAll();
   }
@@ -1799,6 +1806,7 @@
     else if (currentView === 'lager') { renderBoxes(boxes, orders); renderLooseBags(looseBags); }
     else if (currentView === 'kunder') renderCustomers(consents);
     else if (currentView === 'salg') fetchAndRenderSales();
+    else if (currentView === 'arkiv') renderArchive(orders);
   }
 
   // ── SALGSREGISTER ──
@@ -1970,8 +1978,13 @@
   }
 
   function renderStats(orders, inquiries, boxes, looseBags) {
-    const c = { alle: orders.length, venter: 0, bekreftet: 0, avbestilt: 0 };
-    orders.forEach(o => c[o.status] = (c[o.status]||0)+1);
+    const c = { alle: 0, venter: 0, bekreftet: 0, avbestilt: 0, arkivert: 0 };
+    orders.forEach(o => {
+      c[o.status] = (c[o.status]||0)+1;
+      if (o.status !== 'arkivert') c.alle++;
+    });
+    const arkivBadge = document.getElementById('arkivBadge');
+    if (arkivBadge) { arkivBadge.style.display = c.arkivert > 0 ? 'inline-block' : 'none'; arkivBadge.textContent = c.arkivert; }
     const newInq = (inquiries||[]).filter(i => i.status === 'ny').length;
     const totalBoxes = (boxes||[]).length;
     const påLager = (boxes||[]).filter(b => b.status === 'på lager').length;
@@ -1996,7 +2009,7 @@
   }
 
   function renderOrders(orders, looseBags, boxes) {
-    const filtered = orders.filter(o => currentFilter==='alle' || o.status===currentFilter).sort((a,b)=>new Date(b.timestamp||0)-new Date(a.timestamp||0));
+    const filtered = orders.filter(o => o.status !== 'arkivert' && (currentFilter==='alle' || o.status===currentFilter)).sort((a,b)=>new Date(b.timestamp||0)-new Date(a.timestamp||0));
     const list = document.getElementById('orderList');
     if (!filtered.length) { list.innerHTML = `<div class="empty-state"><div class="icon">📦</div><p>Ingen bestillinger ${currentFilter!=='alle'?'med denne statusen':''} ennå.</p></div>`; return; }
 
@@ -2050,6 +2063,44 @@
             ? `<span class="status-pill pill-bekreftet">💰 Betalt</span>`
             : o.status==='bekreftet' ? `<button class="action-btn btn-confirm" onclick="markPaid('${o.id}')">💰 Merk betalt</button>` : ''}
           ${o.status!=='avbestilt' ? `<button class="action-btn btn-cancel-order" onclick="setStatus('${o.id}','avbestilt')">Avbestill</button>` : ''}
+          ${(o.status==='bekreftet'||o.status==='avbestilt') ? `<button class="action-btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);" onclick="setStatus('${o.id}','arkivert')">Arkiver</button>` : ''}
+          <button class="action-btn btn-delete" onclick="deleteOrder('${o.id}')">🗑</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderArchive(orders) {
+    const list = document.getElementById('arkivList');
+    const archived = [...orders].filter(o => o.status === 'arkivert').sort((a,b) => new Date(b.timestamp||0) - new Date(a.timestamp||0));
+    if (!archived.length) {
+      list.innerHTML = `<div class="empty-state"><div class="icon" style="font-size:2rem;margin-bottom:0.8rem;">🗄</div><p>Ingen arkiverte bestillinger ennå.<br><span style="font-size:0.8rem;">Bruk «Arkiver»-knappen på fullførte bestillinger.</span></p></div>`;
+      return;
+    }
+    list.innerHTML = archived.map(o => {
+      const date = new Date(o.timestamp||parseInt(o.id));
+      const dateStr = date.toLocaleString('nb-NO', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+      const items = (o.items||[]).map(i=>`${esc(i.name)} × ${i.qty}`).join(' · ');
+      const orderNum = o.orderNumber || '';
+      return `<div class="order-card" style="opacity:0.75;border-left:3px solid var(--border);">
+        <div class="card-header">
+          <div>
+            <div class="card-name">
+              ${esc(o.name)}
+              ${orderNum ? `<span style="font-family:ui-monospace,'SF Mono','Menlo',monospace;font-size:0.75rem;font-weight:700;color:var(--muted);background:var(--surface2);border-radius:4px;padding:0.1rem 0.45rem;margin-left:0.5rem;vertical-align:middle;">${esc(orderNum)}</span>` : ''}
+            </div>
+            <div class="card-time">${dateStr}</div>
+          </div>
+          <span class="status-pill" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border);">Arkivert</span>
+        </div>
+        <div class="card-meta">
+          ${items ? `<span><strong>${items}</strong></span>` : ''}
+          ${o.total ? `<span><strong>${o.total} kr</strong></span>` : ''}
+          <span>${esc(o.delivery||'')}</span>
+          <span>📞 <a href="tel:${esc(o.phone)}">${esc(o.phone)}</a></span>
+        </div>
+        <div class="card-actions">
+          <button class="action-btn btn-confirm" onclick="setStatus('${o.id}','bekreftet')">↩ Gjenopprett</button>
           <button class="action-btn btn-delete" onclick="deleteOrder('${o.id}')">🗑</button>
         </div>
       </div>`;
