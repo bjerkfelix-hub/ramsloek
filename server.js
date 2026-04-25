@@ -144,9 +144,6 @@ function isEmail(val) {
 
 // ── Prisliste (eneste gyldige produkter og priser) ──
 const PRICE_LIST = {
-  'stilk':          { name: 'Blader + løk/stilk – Frossen',        price: 50,  unit: '100g' },
-  'stilk250':       { name: 'Blader + løk/stilk 250g – Frossen',   price: 100, unit: '250g' },
-  'pose':           { name: 'Familiepose – Frossen',                price: 200, unit: '500g' },
   'stilk_fersk':    { name: 'Blader + løk/stilk – Fersk',          price: 60,  unit: '100g' },
   'stilk250_fersk': { name: 'Blader + løk/stilk 250g – Fersk',     price: 120, unit: '250g' },
   'pose_fersk':     { name: 'Familiepose – Fersk',                  price: 240, unit: '500g' },

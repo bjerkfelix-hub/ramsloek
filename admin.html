@@ -976,11 +976,8 @@
             <label>Produkt</label>
             <select id="a_product" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.8rem;color:var(--text);font-family:inherit;font-size:0.85rem;outline:none;">
               <option value="stilk_fersk">Blader + løk/stilk – Fersk (100g, 60 kr)</option>
-              <option value="stilk250_fersk">Blader + løk/stilk – Fersk (250g, 120 kr)</option>
+              <option value="stilk250_fersk">Blader + løk/stilk 250g – Fersk (250g, 120 kr)</option>
               <option value="pose_fersk">Familiepose – Fersk (500g, 240 kr)</option>
-              <option value="stilk">Blader + løk/stilk – Frossen (100g, 50 kr)</option>
-              <option value="stilk250">Blader + løk/stilk – Frossen (250g, 100 kr)</option>
-              <option value="pose">Familiepose – Frossen (500g, 200 kr)</option>
             </select>
           </div>
           <div class="field-group"><label>Antall</label><input type="number" id="a_qty" placeholder="1" min="1" max="50" value="1" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.8rem;color:var(--text);font-family:inherit;font-size:0.85rem;outline:none;" /></div>
@@ -1033,11 +1030,8 @@
               <label>Produkt *</label>
               <select id="sale_product" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:0.55rem 0.8rem;color:var(--text);font-family:inherit;font-size:0.85rem;outline:none;">
                 <option value="Blader + løk/stilk – Fersk">Blader + løk/stilk – Fersk (100g)</option>
-                <option value="Blader + løk/stilk 250g – Fersk">Blader + løk/stilk – Fersk (250g)</option>
+                <option value="Blader + løk/stilk 250g – Fersk">Blader + løk/stilk 250g – Fersk (250g)</option>
                 <option value="Familiepose – Fersk">Familiepose – Fersk (500g)</option>
-                <option value="Blader + løk/stilk – Frossen">Blader + løk/stilk – Frossen (100g)</option>
-                <option value="Blader + løk/stilk 250g – Frossen">Blader + løk/stilk – Frossen (250g)</option>
-                <option value="Familiepose – Frossen">Familiepose – Frossen (500g)</option>
               </select>
             </div>
             <div class="field-group"><label>Antall *</label><input type="number" id="sale_qty" min="1" max="50" value="1" /></div>
@@ -1448,12 +1442,9 @@
 
   // ── PRODUKT-KATALOG (speil av server-PRICE_LIST) ──
   const PRODUCT_CATALOG = {
-    'stilk_fersk':    { label: 'Blader + løk/stilk – Fersk (100g, 60 kr)',          name: 'Blader + løk/stilk – Fersk' },
-    'stilk250_fersk': { label: 'Blader + løk/stilk – Fersk (250g, 120 kr)',         name: 'Blader + løk/stilk 250g – Fersk' },
-    'pose_fersk':     { label: 'Familiepose – Fersk (500g, 240 kr)',                name: 'Familiepose – Fersk' },
-    'stilk':          { label: 'Blader + løk/stilk – Frossen (100g, 50 kr)',        name: 'Blader + løk/stilk – Frossen' },
-    'stilk250':       { label: 'Blader + løk/stilk 250g – Frossen (250g, 100 kr)',  name: 'Blader + løk/stilk 250g – Frossen' },
-    'pose':           { label: 'Familiepose – Frossen (500g, 200 kr)',              name: 'Familiepose – Frossen' },
+    'stilk_fersk':    { label: 'Blader + løk/stilk – Fersk (100g, 60 kr)',   name: 'Blader + løk/stilk – Fersk' },
+    'stilk250_fersk': { label: 'Blader + løk/stilk 250g – Fersk (250g, 120 kr)', name: 'Blader + løk/stilk 250g – Fersk' },
+    'pose_fersk':     { label: 'Familiepose – Fersk (500g, 240 kr)',          name: 'Familiepose – Fersk' },
   };
   function findProductIdByName(name) {
     const entry = Object.entries(PRODUCT_CATALOG).find(([id, p]) => p.name === name);
@@ -1722,11 +1713,8 @@
     row.innerHTML = `
       <select class="ds-product-select" style="flex:1;">
         <option value="stilk_fersk">Blader + løk/stilk – Fersk (100g, 60 kr)</option>
-        <option value="stilk250_fersk">Blader + løk/stilk – Fersk (250g, 120 kr)</option>
+        <option value="stilk250_fersk">Blader + løk/stilk 250g – Fersk (250g, 120 kr)</option>
         <option value="pose_fersk">Familiepose – Fersk (500g, 240 kr)</option>
-        <option value="stilk">Blader + løk/stilk – Frossen (100g, 50 kr)</option>
-        <option value="stilk250">Blader + løk/stilk 250g – Frossen (250g, 100 kr)</option>
-        <option value="pose">Familiepose – Frossen (500g, 200 kr)</option>
       </select>
       <input type="number" class="ds-product-qty" min="1" max="50" value="1" style="width:64px;text-align:center;" title="Antall" />
       <button onclick="this.closest('.ds-product-row').remove()"
