@@ -158,7 +158,8 @@ const USERS = {
   'FelixWilliam':    { password: process.env.PW_FELIX,  role: 'admin',      initials: 'FW', display: 'FelixWilliam' },
   'SverreFredriksen':{ password: process.env.PW_SVERRE, role: 'admin',      initials: 'SF', display: 'Sverre' },
   'EirikNordtug':    { password: process.env.PW_EIRIK,  role: 'admin',      initials: 'EN', display: 'Eirik' },
-  'Edvard':          { password: process.env.PW_EDVARD, role: 'admin',      initials: 'ED', display: 'Edvard' }
+  'Edvard':          { password: process.env.PW_EDVARD,      role: 'admin', initials: 'ED', display: 'Edvard' },
+  'Aleksander':      { password: process.env.PW_ALEKSANDER, role: 'admin', initials: 'AL', display: 'Aleksander' }
 };
 
 const SESSION_TTL = 8 * 60 * 60 * 1000; // 8 timer
@@ -448,21 +449,38 @@ app.get('/api/admin/sales', requireAdmin, async (req, res) => {
 
 app.post('/api/admin/sales', requireAdmin, async (req, res) => {
   try {
-    const product  = str(req.body.product, 100);
     const customer = str(req.body.customer, 100);
     const pickedBy = str(req.body.pickedBy ?? req.body.picked_by, 100);
     const note     = str(req.body.note, 500);
-    const qty      = typeof req.body.qty === 'number' ? Math.min(Math.max(1, Math.floor(req.body.qty)), MAX_QTY) : parseInt(req.body.qty);
-    if (!product || !customer || !qty || qty < 1) {
-      return res.status(400).json({ error: 'Produkt, antall og kunde er påkrevd' });
+
+    // Aksepterer enten items-array (nytt) eller enkelt product+qty (bakoverkompatibel)
+    let rawItems = [];
+    if (Array.isArray(req.body.items) && req.body.items.length) {
+      rawItems = req.body.items.slice(0, 20);
+    } else if (req.body.product) {
+      rawItems = [{ product: req.body.product, qty: req.body.qty }];
     }
-    const id = crypto.randomUUID();
-    await pool.query(
-      'INSERT INTO sales (id, product, qty, customer, picked_by, note) VALUES ($1, $2, $3, $4, $5, $6)',
-      [id, product, qty, customer, pickedBy || null, note || null]
-    );
-    auditLog(req.user.username, 'opprett', 'salg', id, { product, qty, customer });
-    res.json({ ok: true, id });
+
+    const items = rawItems.map(it => {
+      const product = str(it.product || it.name, 100);
+      const qty = typeof it.qty === 'number' ? Math.min(Math.max(1, Math.floor(it.qty)), MAX_QTY) : parseInt(it.qty);
+      return product && qty >= 1 ? { product, qty } : null;
+    }).filter(Boolean);
+
+    if (!customer) return res.status(400).json({ error: 'Kundenavn er påkrevd' });
+    if (!items.length) return res.status(400).json({ error: 'Minst ett produkt med antall ≥1 er påkrevd' });
+
+    const ids = [];
+    for (const item of items) {
+      const id = crypto.randomUUID();
+      await pool.query(
+        'INSERT INTO sales (id, product, qty, customer, picked_by, note) VALUES ($1, $2, $3, $4, $5, $6)',
+        [id, item.product, item.qty, customer, pickedBy || null, note || null]
+      );
+      ids.push(id);
+    }
+    auditLog(req.user.username, 'opprett', 'salg', ids[0], { items, customer, count: ids.length });
+    res.json({ ok: true, ids, count: ids.length });
   } catch (err) {
     console.error('POST /api/admin/sales feil:', err);
     res.status(500).json({ error: 'Serverfeil' });
@@ -647,6 +665,7 @@ app.put('/api/bags/:id', requireAdmin, async (req, res) => {
       if (VALID_BAG_STATUSES.has(s)) updated.status = s;
     }
     if (req.body.orderId !== undefined) updated.orderId = str(String(req.body.orderId), 50);
+    if (req.body.pickedBy !== undefined) updated.pickedBy = str(String(req.body.pickedBy ?? ''), 100);
     await pool.query('UPDATE bags SET data = $1 WHERE id = $2', [JSON.stringify(updated), req.params.id]);
     res.json({ ok: true });
   } catch { res.status(500).json({ error: 'Serverfeil' }); }

@@ -4,32 +4,30 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ramsløk Admin</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #151920;
-      --surface: #1d2330;
-      --surface2: #252c38;
-      --border: #333b47;
-      --border2: #2a323f;
-      --purple: #8b5cf6;
-      --purple-dim: #3b1f6e;
-      --text: #e6edf3;
-      --muted: #8b949e;
-      --green: #3fb950;
-      --green-dim: #0d3320;
-      --yellow: #d29922;
-      --yellow-dim: #3d2c00;
-      --red: #f85149;
-      --red-dim: #3d1515;
-      --radius: 8px;
+      --bg: #000000;
+      --surface: #1c1c1e;
+      --surface2: #2c2c2e;
+      --border: rgba(84,84,88,0.5);
+      --border2: rgba(84,84,88,0.32);
+      --purple: #0a84ff;
+      --purple-dim: rgba(10,132,255,0.15);
+      --text: #f5f5f7;
+      --muted: rgba(235,235,245,0.55);
+      --green: #32d74b;
+      --green-dim: rgba(50,215,75,0.12);
+      --yellow: #ffd60a;
+      --yellow-dim: rgba(255,214,10,0.12);
+      --red: #ff453a;
+      --red-dim: rgba(255,69,58,0.12);
+      --radius: 12px;
     }
 
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
@@ -45,16 +43,17 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: radial-gradient(ellipse at 50% 0%, #1a0a3a 0%, var(--bg) 60%);
+      background: radial-gradient(ellipse at 50% 0%, rgba(10,132,255,0.1) 0%, var(--bg) 70%);
     }
 
     .login-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 16px;
       padding: 2.5rem;
       width: 100%;
       max-width: 380px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 0 0.5px rgba(255,255,255,0.04);
     }
 
     .login-logo {
@@ -297,6 +296,7 @@
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 1rem 1.2rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.25);
     }
     .stat-card .num { font-size: 1.6rem; font-weight: 700; color: var(--text); }
     .stat-card .num.yellow { color: var(--yellow); }
@@ -337,9 +337,10 @@
       display: flex;
       flex-direction: column;
       gap: 0.8rem;
-      transition: border-color 0.15s;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
     }
-    .order-card:hover { border-color: #484f58; }
+    .order-card:hover { border-color: rgba(255,255,255,0.12); box-shadow: 0 2px 10px rgba(0,0,0,0.45); }
     .order-card.status-venter { border-left: 3px solid var(--yellow); }
     .order-card.status-bekreftet { border-left: 3px solid var(--green); }
     .order-card.status-avbestilt { border-left: 3px solid var(--red); opacity: 0.65; }
@@ -351,7 +352,7 @@
       gap: 1rem;
     }
     .card-name { font-size: 0.95rem; font-weight: 600; color: var(--text); }
-    .card-time { font-size: 0.72rem; color: var(--muted); font-family: 'Courier New', monospace; margin-top: 0.2rem; }
+    .card-time { font-size: 0.72rem; color: var(--muted); font-family: ui-monospace, 'SF Mono', 'Menlo', monospace; margin-top: 0.2rem; }
 
     .status-pill {
       font-size: 0.7rem;
@@ -363,10 +364,10 @@
       white-space: nowrap;
       flex-shrink: 0;
     }
-    .pill-venter { background: var(--yellow-dim); color: var(--yellow); border: 1px solid #5a4300; }
-    .pill-bekreftet { background: var(--green-dim); color: var(--green); border: 1px solid #0f4d1a; }
-    .pill-avbestilt { background: var(--red-dim); color: var(--red); border: 1px solid #5a1a1a; }
-    .pill-ny { background: var(--yellow-dim); color: var(--yellow); border: 1px solid #5a4300; }
+    .pill-venter { background: var(--yellow-dim); color: var(--yellow); border: 1px solid rgba(255,214,10,0.25); }
+    .pill-bekreftet { background: var(--green-dim); color: var(--green); border: 1px solid rgba(50,215,75,0.25); }
+    .pill-avbestilt { background: var(--red-dim); color: var(--red); border: 1px solid rgba(255,69,58,0.25); }
+    .pill-ny { background: var(--yellow-dim); color: var(--yellow); border: 1px solid rgba(255,214,10,0.25); }
     .pill-lest { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
 
     .card-meta {
@@ -401,9 +402,9 @@
       border: 1px solid;
     }
     .action-btn:hover { opacity: 0.75; }
-    .btn-confirm { background: var(--green-dim); color: var(--green); border-color: #0f4d1a; }
-    .btn-cancel-order { background: var(--red-dim); color: var(--red); border-color: #5a1a1a; }
-    .btn-email { background: var(--purple-dim); color: var(--purple); border-color: #3b1f6e; text-decoration: none; display: inline-flex; align-items: center; }
+    .btn-confirm { background: var(--green-dim); color: var(--green); border-color: rgba(50,215,75,0.25); }
+    .btn-cancel-order { background: var(--red-dim); color: var(--red); border-color: rgba(255,69,58,0.25); }
+    .btn-email { background: var(--purple-dim); color: var(--purple); border-color: rgba(10,132,255,0.25); text-decoration: none; display: inline-flex; align-items: center; }
     .btn-delete { background: transparent; color: var(--muted); border-color: var(--border); }
     .btn-delete:hover { color: var(--red); border-color: var(--red); opacity: 1; }
 
@@ -543,11 +544,11 @@
     }
 
     /* ── BOX CARDS ── */
-    .box-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 1.2rem 1.4rem; display: flex; flex-direction: column; gap: 0.7rem; }
+    .box-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem 1.4rem; display: flex; flex-direction: column; gap: 0.7rem; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
     .box-card.status-solgt { border-left: 3px solid var(--green); opacity: 0.7; }
     .box-card.status-kassert { border-left: 3px solid var(--red); opacity: 0.6; }
     .box-card.status-på-lager { border-left: 3px solid var(--yellow); }
-    .box-tracking { font-family: monospace; font-size: 1.1rem; font-weight: 700; color: var(--purple); }
+    .box-tracking { font-family: ui-monospace, 'SF Mono', 'Menlo', monospace; font-size: 1.1rem; font-weight: 700; color: var(--purple); }
     .box-meta { display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem; font-family: sans-serif; font-size: 0.82rem; color: var(--muted); }
     .box-orders { font-family: sans-serif; font-size: 0.82rem; color: var(--muted); background: var(--surface); border-radius: 6px; padding: 0.5rem 0.8rem; }
     .box-orders span { color: var(--text); font-weight: 600; }
@@ -566,12 +567,13 @@
     .modal {
       background: var(--surface2);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 16px;
       padding: 2rem;
       width: min(480px, 92vw);
       display: flex;
       flex-direction: column;
       gap: 1.2rem;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.7);
     }
     .modal h3 { font-size: 1rem; color: var(--text); }
     .modal label { font-size: 0.8rem; color: var(--muted); display: block; margin-bottom: 0.3rem; }
@@ -714,7 +716,7 @@
 <!-- REDIGER BESTILLING MODAL -->
 <div class="modal-overlay" id="editOrderModal">
   <div class="modal" style="width:min(580px,94vw);max-height:92vh;overflow-y:auto;">
-    <h3>✏️ Rediger bestilling – <span id="edit_label" style="font-family:monospace;color:var(--purple);"></span></h3>
+    <h3>Rediger bestilling – <span id="edit_label" style="font-family:ui-monospace,'SF Mono','Menlo',monospace;color:var(--purple);"></span></h3>
 
     <!-- Pose-velger -->
     <div>
@@ -787,7 +789,7 @@
 <!-- DIREKTE SALG MODAL -->
 <div class="modal-overlay" id="directSaleModal">
   <div class="modal" style="width:min(540px,93vw);max-height:90vh;overflow-y:auto;">
-    <h3>💸 Direkte salg</h3>
+    <h3>Direkte salg</h3>
 
     <!-- Pose-søk -->
     <div>
@@ -912,20 +914,20 @@
     <div class="sidebar-section">Navigasjon</div>
     <nav class="sidebar-nav">
       <div class="nav-item active" id="nav-bestillinger" onclick="setView('bestillinger', this)">
-        <span class="nav-icon">📦</span> Bestillinger
+        Bestillinger
       </div>
       <div class="nav-item" id="nav-henvendelser" onclick="setView('henvendelser', this)">
-        <span class="nav-icon">💬</span> Henvendelser
+        Henvendelser
         <span class="nav-badge" id="inquiryBadge" style="display:none;">0</span>
       </div>
       <div class="nav-item" id="nav-lager" onclick="setView('lager', this)" style="display:none;">
-        <span class="nav-icon">📦</span> Lager
+        Lager
       </div>
       <div class="nav-item" id="nav-kunder" onclick="setView('kunder', this)" style="display:none;">
-        <span class="nav-icon">👥</span> Kunder
+        Kunder
       </div>
       <div class="nav-item" id="nav-salg" onclick="setView('salg', this)" style="display:none;">
-        <span class="nav-icon">💰</span> Salgsregister
+        Salgsregister
       </div>
     </nav>
 
@@ -948,7 +950,7 @@
       <span class="topbar-title" id="topbarTitle">Bestillinger</span>
       <div class="topbar-actions">
         <button class="btn-sm" id="btnAddOrder" onclick="toggleAddForm()">+ Legg til manuelt</button>
-        <button class="btn-sm" id="btnDirectSale" onclick="openDirectSaleModal()" style="background:var(--green-dim);border-color:var(--green);color:var(--green);">💸 Direkte salg</button>
+        <button class="btn-sm" id="btnDirectSale" onclick="openDirectSaleModal()" style="background:var(--green-dim);border-color:rgba(50,215,75,0.25);color:var(--green);">Direkte salg</button>
         <button class="btn-sm purple" id="btnNewBox" onclick="openNewBoxModal()" style="display:none;">+ Ny eske</button>
         <button class="btn-sm" id="btnNewLooseBag" onclick="openNewLooseBagModal()" style="display:none;">+ Ny løs pose</button>
         <button class="btn-sm purple" onclick="renderAll()">↻ Oppdater</button>
@@ -1020,7 +1022,7 @@
       <!-- Salgsregister -->
       <div id="salesView" style="display:none;">
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem;margin-bottom:1.5rem;">
-          <h3 style="margin-bottom:0.9rem;font-size:0.95rem;">💰 Registrer nytt salg</h3>
+          <h3 style="margin-bottom:0.9rem;font-size:0.95rem;">Registrer nytt salg</h3>
           <div style="display:grid;grid-template-columns:1.4fr 0.6fr 1fr 1fr;gap:0.7rem;margin-bottom:0.7rem;">
             <div class="field-group">
               <label>Produkt *</label>
@@ -1340,19 +1342,12 @@
     }).join('');
   }
 
-  // ── PER-POSE PLUKKER ──
-  async function saveItemPickers(orderId, count) {
-    const map = {};
-    for (let i = 0; i < count; i++) {
-      const el = document.getElementById(`picker-${orderId}-${i}`);
-      if (!el) continue;
-      const val = el.value.trim();
-      if (val) map[i] = val;
-    }
+  // ── PLUKKER PER POSE ──
+  async function saveBagPicker(bagId, name) {
     try {
-      await api.put(`/api/orders/${orderId}`, { pickedBy: map });
+      await api.put(`/api/bags/${bagId}`, { pickedBy: name.trim() });
     } catch (err) {
-      console.error('saveItemPickers feil:', err);
+      console.error('saveBagPicker feil:', err);
       alert('Kunne ikke lagre plukker.');
     }
   }
@@ -1913,6 +1908,13 @@
           ${b.orderId ? `<span>🔗 Bestilling: <strong style="color:var(--purple);font-family:monospace;font-size:0.78rem;">${esc(b.orderId)}</strong></span>` : ''}
         </div>
         ${b.note ? `<div style="font-size:0.82rem;color:var(--muted);">💬 ${esc(b.note)}</div>` : ''}
+        ${!isKassert ? `<div style="display:flex;align-items:center;gap:0.6rem;padding:0.5rem 0.75rem;background:var(--green-dim);border:1px solid rgba(50,215,75,0.2);border-radius:8px;">
+          <span style="font-size:0.75rem;color:var(--green);font-weight:600;white-space:nowrap;letter-spacing:0.02em;">Plukket av</span>
+          <input type="text" value="${esc(b.pickedBy || '')}" placeholder="Skriv navn…"
+                 onchange="saveBagPicker('${b.id}', this.value)"
+                 style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:0.3rem 0.6rem;color:var(--text);font-size:0.82rem;font-family:inherit;outline:none;"
+                 onfocus="this.style.borderColor='var(--purple)'" onblur="this.style.borderColor='var(--border)'" />
+        </div>` : ''}
         <div class="card-actions">
           ${!isTildelt && !isKassert ? `<button class="action-btn btn-confirm" onclick="openAssignBagModal('${b.id}')">Tildel til bestilling</button>` : ''}
           ${isTildelt ? `<button class="action-btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);" onclick="openAssignBagModal('${b.id}')">🔄 Bytt bestilling</button>` : ''}
@@ -2029,22 +2031,6 @@
           ${o.email ? `<span>✉️ <a href="mailto:${esc(o.email)}">${esc(o.email)}</a></span>` : ''}
           ${linkedBox ? `<span>📦 Eske: <strong style="font-family:monospace;color:var(--purple);">${esc(linkedBox.trackingId)}</strong></span>` : ''}
           ${linkedBag ? `<span>🛍️ Pose: <strong style="font-family:monospace;color:var(--purple);">${esc(linkedBag.sporingsnummer)}</strong> (${linkedBag.vekt}g)</span>` : ''}
-        </div>
-        <div class="card-pickers" style="background:var(--green-dim);border:1px solid #0f4d1a;border-radius:6px;padding:0.55rem 0.8rem;margin-top:0.4rem;">
-          <div style="font-size:0.72rem;color:var(--green);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.45rem;">🧑‍🌾 Plukket av (per pose)</div>
-          ${typeof o.pickedBy === 'string' && o.pickedBy ? `<div style="font-size:0.7rem;color:var(--muted);font-style:italic;margin-bottom:0.4rem;">⚠️ Eldre felles plukker: <strong>${esc(o.pickedBy)}</strong> – fyll inn på nytt per pose</div>` : ''}
-          ${(o.items || []).length === 0 ? '<div style="font-size:0.78rem;color:var(--muted);font-style:italic;">Ingen produkter i ordren.</div>' : (o.items || []).map((item, idx) => {
-            const pickerMap = (o.pickedBy && typeof o.pickedBy === 'object' && !Array.isArray(o.pickedBy)) ? o.pickedBy : {};
-            const picker = pickerMap[idx] || pickerMap[String(idx)] || '';
-            return `<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.3rem;">
-              <span style="flex:1;font-size:0.78rem;color:var(--text);">${esc(item.name)} <span style="color:var(--muted);">×${item.qty}</span></span>
-              <input type="text" id="picker-${o.id}-${idx}" value="${esc(picker)}" placeholder="Navn på plukker…"
-                     data-order="${o.id}" data-count="${(o.items||[]).length}"
-                     onchange="saveItemPickers(this.dataset.order, parseInt(this.dataset.count))"
-                     style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:0.3rem 0.55rem;color:var(--text);font-size:0.8rem;font-family:inherit;outline:none;"
-                     onfocus="this.style.borderColor='var(--purple)'" onblur="this.style.borderColor='var(--border)'" />
-            </div>`;
-          }).join('')}
         </div>
         <div id="note-display-${o.id}">
           ${o.note ? `<div class="card-note">💬 ${esc(o.note)}</div>` : '<span style="font-size:0.78rem;color:var(--muted);font-style:italic;">Ingen kommentar</span>'}
