@@ -1282,7 +1282,7 @@
       return;
     }
     const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
-    const rows = cart.map(i => `<div class="order-summary-item"><span>${i.name} × ${i.qty} ${i.unit}</span><span>${i.price * i.qty} kr</span></div>`).join('');
+    const rows = cart.map(i => `<div class="order-summary-item"><span>${i.name} ${i.qty}×${i.unit}</span><span>${i.price * i.qty} kr</span></div>`).join('');
     const summaryHeading = currentLang === 'en' ? 'Your order' : 'Din bestilling';
     document.getElementById('orderSummary').innerHTML = `<h4>${summaryHeading}</h4>${rows}<div class="order-summary-total"><span>Total</span><span>${total} kr</span></div>`;
     document.getElementById('orderSummaryBox').style.display = 'block';
