@@ -2194,8 +2194,9 @@
       const pillClass = { venter:'pill-venter', bekreftet:'pill-bekreftet', avbestilt:'pill-avbestilt' }[o.status]||'pill-venter';
       const statusLabel = { venter:'Venter', bekreftet:'Bekreftet', avbestilt:'Avbestilt' }[o.status]||o.status;
       const items = (o.items||[]).map(i=>`${esc(i.name)} ${i.qty}×${esc(i.unit||'')}`).join(' · ');
-      const linkedBag = o.bagId ? (looseBags||[]).find(b => b.id === o.bagId) : null;
       const linkedBox = o.boxId ? (boxes||[]).find(b => b.id === o.boxId) : null;
+      const assignedBags  = (looseBags||[]).filter(b => b.orderId === o.id);
+      const availableBags = (looseBags||[]).filter(b => b.status === 'ledig');
 
       const orderNum = o.orderNumber || '';
       const trackNum  = o.trackingNumber || '';
@@ -2218,7 +2219,22 @@
           <span>📞 <a href="tel:${esc(o.phone)}">${esc(o.phone)}</a></span>
           ${o.email ? `<span>✉️ <a href="mailto:${esc(o.email)}">${esc(o.email)}</a></span>` : ''}
           ${linkedBox ? `<span>📦 Eske: <strong style="font-family:monospace;color:var(--purple);">${esc(linkedBox.trackingId)}</strong></span>` : ''}
-          ${linkedBag ? `<span>🛍️ Pose: <strong style="font-family:monospace;color:var(--purple);">${esc(linkedBag.sporingsnummer)}</strong> (${linkedBag.vekt}g)</span>` : ''}
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:0.6rem 0.8rem;">
+          <div style="font-size:0.68rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.45rem;">Poser (${assignedBags.length})</div>
+          ${assignedBags.length ? `<div style="display:flex;flex-wrap:wrap;gap:0.3rem;margin-bottom:0.45rem;">
+            ${assignedBags.map(b => `<span style="display:inline-flex;align-items:center;gap:0.35rem;background:var(--green-dim);border:1px solid rgba(50,215,75,0.22);border-radius:999px;padding:0.18rem 0.5rem 0.18rem 0.7rem;font-size:0.74rem;color:var(--green);">
+              <span style="font-family:monospace;">${esc(b.sporingsnummer)}</span><span style="opacity:0.7;">${b.vekt}g</span>
+              <button onclick="removeBagFromOrder('${b.id}')" title="Fjern pose" style="background:none;border:none;cursor:pointer;color:var(--green);font-size:1rem;line-height:1;padding:0 0.1rem;opacity:0.65;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.65">×</button>
+            </span>`).join('')}
+          </div>` : `<div style="font-size:0.76rem;color:var(--muted);font-style:italic;margin-bottom:0.45rem;">Ingen pose koblet</div>`}
+          <div style="display:flex;gap:0.4rem;align-items:center;">
+            <select id="bag-sel-${o.id}" style="flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:0.32rem 0.6rem;color:var(--text);font-size:0.77rem;font-family:inherit;outline:none;">
+              <option value="">– Velg ledig pose –</option>
+              ${availableBags.map(b => `<option value="${b.id}">${esc(b.sporingsnummer)} · ${b.vekt}g${b.dato ? ' · '+b.dato : ''}</option>`).join('')}
+            </select>
+            <button class="action-btn btn-confirm" style="padding:0.3rem 0.75rem;font-size:0.75rem;white-space:nowrap;" onclick="addBagToOrder('${o.id}', document.getElementById('bag-sel-${o.id}').value)">+ Legg til</button>
+          </div>
         </div>
         <div id="note-display-${o.id}">
           ${o.note ? `<div class="card-note">💬 ${esc(o.note)}</div>` : '<span style="font-size:0.78rem;color:var(--muted);font-style:italic;">Ingen kommentar</span>'}
@@ -2408,6 +2424,18 @@
   }
 
   if (sessionStorage.getItem('admin_token')) renderAll();
+
+  // ── POSE TIL/FRA BESTILLING (inline) ──
+  async function addBagToOrder(orderId, bagId) {
+    if (!bagId) { alert('Velg en pose fra listen.'); return; }
+    await api.put(`/api/bags/${bagId}`, { status: 'tildelt', orderId });
+    renderAll();
+  }
+
+  async function removeBagFromOrder(bagId) {
+    await api.put(`/api/bags/${bagId}`, { status: 'ledig', orderId: '' });
+    renderAll();
+  }
 </script>
 </body>
 </html>
