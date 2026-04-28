@@ -111,6 +111,9 @@ async function initDB() {
     );
     CREATE TABLE IF NOT EXISTS counters (name TEXT PRIMARY KEY, value BIGINT NOT NULL DEFAULT 0);
     INSERT INTO counters (name, value) VALUES ('orders', 0) ON CONFLICT (name) DO NOTHING;
+    INSERT INTO counters (name, value)
+      VALUES ('boxes', COALESCE((SELECT MAX((regexp_replace(data->>'trackingId', '[^0-9]', '', 'g'))::integer) FROM boxes WHERE data->>'trackingId' LIKE 'ESK-%'), 0))
+      ON CONFLICT (name) DO NOTHING;
     CREATE TABLE IF NOT EXISTS sales (
       id TEXT PRIMARY KEY,
       product TEXT NOT NULL,
@@ -270,7 +273,7 @@ async function sendEmail(subject, text, to) {
 }
 
 // ── Ordre-API ──
-app.get('/api/orders', requireAuth, async (req, res) => {
+app.get('/api/orders', requireAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query("SELECT data FROM orders ORDER BY (data->>'timestamp') DESC");
     res.json(rows.map(r => r.data));
@@ -522,6 +525,7 @@ app.put('/api/inquiries/:id', requireAdmin, async (req, res) => {
     const s = str(req.body.status, 20);
     const updated = { ...rows[0].data, ...(VALID_INQUIRY_STATUSES.has(s) ? { status: s } : {}) };
     await pool.query('UPDATE inquiries SET data = $1 WHERE id = $2', [JSON.stringify(updated), req.params.id]);
+    auditLog(req.user.username, 'oppdater', 'henvendelse', req.params.id, { status: s });
     res.json({ ok: true });
   } catch { res.status(500).json({ error: 'Serverfeil' }); }
 });
@@ -569,14 +573,10 @@ app.post('/api/boxes', requireAdmin, async (req, res) => {
 
     if (!pickDate || !area) return res.status(400).json({ error: 'Mangler påkrevde felt' });
 
-    // Generer neste tracking-nummer basert på høyeste eksisterende
-    const { rows: all } = await pool.query("SELECT data->>'trackingId' AS tid FROM boxes");
-    const nums = all.map(r => parseInt((r.tid || '').replace('ESK-', '')) || 0);
-    const nextNum = (Math.max(0, ...nums) + 1).toString().padStart(3, '0');
-
+    const boxNum = await nextCounter('boxes');
     const box = {
       id: crypto.randomUUID(),
-      trackingId: `ESK-${nextNum}`,
+      trackingId: `ESK-${String(boxNum).padStart(3, '0')}`,
       timestamp: new Date().toISOString(),
       status: 'på lager',
       pickDate, area, pickTime, packTime, note, kjølelager,
@@ -688,7 +688,6 @@ app.post('/api/admin/orders', requireAdmin, async (req, res) => {
     if (!name || !phone) return res.status(400).json({ error: 'Navn og telefon er påkrevd' });
 
     const rawItems = Array.isArray(req.body.items) ? req.body.items.slice(0, 20) : [];
-    console.log('POST /api/admin/orders – mottatt items:', JSON.stringify(rawItems));
     const items = rawItems.map(i => {
       const qty = typeof i.qty === 'number' ? Math.min(Math.max(1, Math.floor(i.qty)), MAX_QTY) : 1;
       // 1) Lookup by PRICE_LIST key (id-felt)

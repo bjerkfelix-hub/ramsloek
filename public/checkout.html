@@ -422,47 +422,6 @@
             </div>
           </div>
 
-          <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);padding:0.8rem 0 0.4rem;">❄️ Frossen</div>
-
-          <div class="product-row" id="row-stilk">
-            <div class="product-info">
-              <div class="product-name">Blader + løk/stilk – Frossen</div>
-              <div class="product-desc">Fryst ved innhøsting – holdbar opptil 12 måneder</div>
-            </div>
-            <div class="product-price">50 kr / 100g</div>
-            <div class="qty-control">
-              <button class="qty-btn" onclick="changeQty('stilk', -1)">−</button>
-              <div class="qty-num" id="qty-stilk">0</div>
-              <button class="qty-btn" onclick="changeQty('stilk', 1)">+</button>
-            </div>
-          </div>
-
-          <div class="product-row" id="row-stilk250">
-            <div class="product-info">
-              <div class="product-name">Blader + løk/stilk 250g – Frossen</div>
-              <div class="product-desc">Samme kvalitet – større mengde</div>
-            </div>
-            <div class="product-price">100 kr / 250g</div>
-            <div class="qty-control">
-              <button class="qty-btn" onclick="changeQty('stilk250', -1)">−</button>
-              <div class="qty-num" id="qty-stilk250">0</div>
-              <button class="qty-btn" onclick="changeQty('stilk250', 1)">+</button>
-            </div>
-          </div>
-
-          <div class="product-row" id="row-pose">
-            <div class="product-info">
-              <div class="product-name">Familiepose – Frossen</div>
-              <div class="product-desc">500g – for deg som vil ha ramsløk hele året</div>
-            </div>
-            <div class="product-price">200 kr / 500g</div>
-            <div class="qty-control">
-              <button class="qty-btn" onclick="changeQty('pose', -1)">−</button>
-              <div class="qty-num" id="qty-pose">0</div>
-              <button class="qty-btn" onclick="changeQty('pose', 1)">+</button>
-            </div>
-          </div>
-
         </div>
       </div>
 
@@ -568,15 +527,12 @@
 
 <script>
   const PRODUCTS = {
-    stilk:          { name: 'Blader + løk/stilk – Frossen',       price: 50,  unit: '100g' },
-    stilk250:       { name: 'Blader + løk/stilk 250g – Frossen',  price: 100, unit: '250g' },
-    pose:           { name: 'Familiepose – Frossen',               price: 200, unit: '500g' },
     stilk_fersk:    { name: 'Blader + løk/stilk – Fersk',         price: 60,  unit: '100g' },
     stilk250_fersk: { name: 'Blader + løk/stilk 250g – Fersk',    price: 120, unit: '250g' },
     pose_fersk:     { name: 'Familiepose – Fersk',                 price: 240, unit: '500g' },
   };
   const MAX_QTY = 20;
-  let qty = { stilk: 0, stilk250: 0, pose: 0, stilk_fersk: 0, stilk250_fersk: 0, pose_fersk: 0 };
+  let qty = { stilk_fersk: 0, stilk250_fersk: 0, pose_fersk: 0 };
 
   function changeQty(id, delta) {
     qty[id] = Math.max(0, Math.min(MAX_QTY, qty[id] + delta));
