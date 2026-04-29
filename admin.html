@@ -664,6 +664,15 @@
     .ds-product-row select:focus, .ds-product-row input:focus { border-color: var(--purple); }
   </style>
 <script>if(localStorage.getItem('ramsloek_theme')==='light')document.documentElement.setAttribute('data-theme','light');</script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+  .lc { display:inline-block;width:14px;height:14px;vertical-align:-0.15em;flex-shrink:0;stroke:currentColor;fill:none; }
+  .lc-sm { width:12px;height:12px; }
+  .lc-md { width:16px;height:16px; }
+  .lc-lg { width:20px;height:20px; }
+  .empty-state .lc { width:32px;height:32px;opacity:0.4; }
+  .nav-item .lc, .sidebar-logo-icon .lc { vertical-align:middle; }
+</style>
 </head>
 <body>
 
@@ -701,7 +710,7 @@
     </div>
     <div style="display:flex;align-items:center;gap:0.6rem;margin-top:0.3rem;">
       <input type="checkbox" id="box_kjølelager" style="width:auto;accent-color:var(--purple);" />
-      <label for="box_kjølelager" style="font-size:0.88rem;color:var(--muted);cursor:pointer;">❄️ Kjølelager</label>
+      <label for="box_kjølelager" style="font-size:0.88rem;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:0.35rem;"><i data-lucide="snowflake" class="lc"></i> Kjølelager</label>
     </div>
     <div class="modal-actions">
       <button class="btn-modal-cancel" onclick="closeNewBoxModal()">Avbryt</button>
@@ -943,7 +952,7 @@
 <div id="loginScreen">
   <div class="login-card">
     <div class="login-logo">
-      <div class="login-logo-icon">🌿</div>
+      <div class="login-logo-icon"><i data-lucide="leaf" class="lc" style="width:18px;height:18px;color:white;"></i></div>
       <span class="login-logo-text">Ramsløk Admin</span>
     </div>
     <div class="login-title">Logg inn</div>
@@ -969,7 +978,7 @@
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <div class="sidebar-logo-icon">🌿</div>
+      <div class="sidebar-logo-icon"><i data-lucide="leaf" class="lc" style="width:16px;height:16px;color:white;"></i></div>
       <span class="sidebar-logo-text">Ramsløk</span>
     </div>
 
@@ -998,7 +1007,7 @@
     </nav>
 
     <div class="sidebar-footer">
-      <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()">☀ Lys modus</button>
+      <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()"><i data-lucide="sun" class="lc-sm"></i> Lys modus</button>
       <div class="user-row">
         <div class="avatar">FW</div>
         <div class="user-info">
@@ -1013,7 +1022,7 @@
   <!-- Main content -->
   <div class="main">
     <div class="topbar">
-      <button class="mobile-menu-btn" onclick="toggleSidebar()" title="Meny">☰</button>
+      <button class="mobile-menu-btn" onclick="toggleSidebar()" title="Meny"><i data-lucide="menu" class="lc-md"></i></button>
       <span class="topbar-title" id="topbarTitle">Bestillinger</span>
       <div class="topbar-actions">
         <button class="btn-sm" id="btnAddOrder" onclick="toggleAddForm()">+ Legg til manuelt</button>
@@ -1077,7 +1086,7 @@
           <div style="flex:1;height:1px;background:var(--border);"></div>
         </div>
         <div style="margin-bottom:0.8rem;">
-          <input type="text" id="bagSearchInput" placeholder="🔍 Søk etter sporingsnummer, dato, kommentar…" oninput="filterLooseBags()" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:0.55rem 0.9rem;color:var(--text);font-size:0.875rem;font-family:inherit;outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--purple)'" onblur="this.style.borderColor='var(--border)'" />
+          <input type="text" id="bagSearchInput" placeholder="Søk etter sporingsnummer, dato, kommentar…" oninput="filterLooseBags()" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:0.55rem 0.9rem;color:var(--text);font-size:0.875rem;font-family:inherit;outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--purple)'" onblur="this.style.borderColor='var(--border)'" />
         </div>
         <div class="card-list" id="looseBagList"></div>
       </div>
@@ -1151,6 +1160,7 @@
   function showAdmin(freshLogin = false) {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('adminScreen').classList.add('visible');
+    lucide.createIcons();
     // Tilpass UI til brukerrolle
     document.querySelector('.avatar').textContent = currentUser.initials;
     document.querySelector('.user-name').textContent = currentUser.display;
@@ -1173,7 +1183,7 @@
     }
     if (freshLogin) {
       const toast = document.getElementById('welcomeToast');
-      document.getElementById('welcomeToastTitle').textContent = `Hei, ${currentUser.display}! 👋`;
+      document.getElementById('welcomeToastTitle').textContent = `Hei, ${currentUser.display}!`;
       document.getElementById('welcomeToastMsg').textContent = `Innlogget som ${currentUser.role === 'admin' ? 'admin' : 'leveranser'}`;
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 4000);
@@ -1193,21 +1203,23 @@
   function toggleTheme() {
     const html = document.documentElement;
     const isLight = html.getAttribute('data-theme') === 'light';
+    const btn = document.getElementById('themeToggleBtn');
     if (isLight) {
       html.removeAttribute('data-theme');
       localStorage.removeItem('ramsloek_theme');
-      document.getElementById('themeToggleBtn').textContent = '☀ Lys modus';
+      btn.innerHTML = '<i data-lucide="sun" class="lc-sm"></i> Lys modus';
     } else {
       html.setAttribute('data-theme', 'light');
       localStorage.setItem('ramsloek_theme', 'light');
-      document.getElementById('themeToggleBtn').textContent = '◑ Mørk modus';
+      btn.innerHTML = '<i data-lucide="moon" class="lc-sm"></i> Mørk modus';
     }
+    lucide.createIcons();
   }
   // Sync button label with saved theme
   (function() {
     if (localStorage.getItem('ramsloek_theme') === 'light') {
       const btn = document.getElementById('themeToggleBtn');
-      if (btn) btn.textContent = '◑ Mørk modus';
+      if (btn) { btn.innerHTML = '<i data-lucide="moon" class="lc-sm"></i> Mørk modus'; }
     }
   })();
 
@@ -1222,6 +1234,11 @@
   if (sessionStorage.getItem('admin_token') && savedUser) {
     currentUser = { username: savedUser, role: sessionStorage.getItem('admin_role'), display: sessionStorage.getItem('admin_display'), initials: sessionStorage.getItem('admin_initials') };
     showAdmin();
+  }
+
+  // ── ICON HELPER ──
+  function ic(name, cls='lc') {
+    return `<i data-lucide="${name}" class="${cls}"></i>`;
   }
 
   // ── STATE ──
@@ -1357,15 +1374,15 @@
   function boxFreshness(pickDate) {
     if (!pickDate) return { days: null, label: '–', color: 'var(--muted)', urgent: false };
     const days = Math.floor((Date.now() - new Date(pickDate)) / 86400000);
-    if (days <= 1) return { days, label: `🟢 Nyplukt (${days}d)`, color: 'var(--green)', urgent: false };
-    if (days <= 3) return { days, label: `🟡 ${days} dager gammel`, color: 'var(--yellow)', urgent: false };
-    return { days, label: `🔴 ${days} dager – selg nå!`, color: 'var(--red)', urgent: true };
+    if (days <= 1) return { days, label: `Nyplukt (${days}d)`, color: 'var(--green)', urgent: false };
+    if (days <= 3) return { days, label: `${days} dager gammel`, color: 'var(--yellow)', urgent: false };
+    return { days, label: `${days} dager – selg nå!`, color: 'var(--red)', urgent: true };
   }
 
   function renderBoxes(boxes, orders) {
     const list = document.getElementById('boxList');
     if (!boxes || !boxes.length) {
-      list.innerHTML = `<div class="empty-state"><div class="icon">📦</div><p>Ingen esker registrert ennå.</p></div>`;
+      list.innerHTML = `<div class="empty-state"><div class="icon">${ic('package','lc lc-lg')}</div><p>Ingen esker registrert ennå.</p></div>`;
       return;
     }
     // Sorter: ikke-kjølelager eldst først (høyest prioritet), deretter kjølelager eldst først
@@ -1387,7 +1404,7 @@
       const fresh = boxFreshness(b.pickDate);
       const isSellFirst = sellFirst && b.id === sellFirst.id;
       const ordersHtml = linkedOrders.length
-        ? `<div class="box-orders">🔍 Smittesporing: ${linkedOrders.map(o => `<span>${esc(o.name)} (${o.id})</span>`).join(', ')}</div>`
+        ? `<div class="box-orders">${ic('search','lc-sm')} Smittesporing: ${linkedOrders.map(o => `<span>${esc(o.name)} (${o.id})</span>`).join(', ')}</div>`
         : `<div class="box-orders" style="color:var(--muted)">Ikke koblet til noen bestilling ennå</div>`;
       return `<div class="box-card ${statusClass}" style="${isSellFirst ? 'border:2px solid var(--red);' : ''}">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.4rem;">
@@ -1400,11 +1417,11 @@
         <div class="box-meta">
           <span>📅 ${b.pickDate || '–'}</span>
           <span style="color:${fresh.color};font-weight:600;">${fresh.label}</span>
-          ${b.kjølelager ? `<span style="color:#60a5fa;">❄️ Kjølelager</span>` : `<span style="color:var(--muted);">🌡️ Romtemp.</span>`}
-          <span>📍 ${esc(b.area)}</span>
-          <span>⚖️ ${b.totalWeight || 0}g totalt</span>
-          ${b.pickTime ? `<span>🌿 Plukket kl. ${b.pickTime}</span>` : ''}
-          ${b.packTime ? `<span>📦 Pakket kl. ${b.packTime}</span>` : ''}
+          ${b.kjølelager ? `<span style="color:#60a5fa;">${ic('snowflake','lc-sm')} Kjølelager</span>` : `<span style="color:var(--muted);">${ic('thermometer','lc-sm')} Romtemp.</span>`}
+          <span>${ic('map-pin','lc-sm')} ${esc(b.area)}</span>
+          <span>${ic('scale','lc-sm')} ${b.totalWeight || 0}g totalt</span>
+          ${b.pickTime ? `<span>${ic('leaf','lc-sm')} Plukket kl. ${b.pickTime}</span>` : ''}
+          ${b.packTime ? `<span>${ic('package','lc-sm')} Pakket kl. ${b.packTime}</span>` : ''}
         </div>
         <div style="background:var(--surface);border-radius:6px;padding:0.6rem 0.8rem;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
@@ -1418,17 +1435,17 @@
                   <div style="display:flex;align-items:center;gap:0.8rem;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:0.3rem 0.7rem;font-size:0.8rem;">
                     <span style="font-family:monospace;font-weight:600;color:var(--muted);min-width:2rem;">P${p.nr}</span>
                     <span style="font-weight:600;color:var(--text);">${p.vekt}g</span>
-                    ${p.sporingsnummer ? `<span style="font-family:monospace;color:var(--purple);font-size:0.75rem;">📦 ${esc(p.sporingsnummer)}</span>` : `<span style="color:var(--muted);font-size:0.75rem;font-style:italic;">Ingen sporingsnr.</span>`}
+                    ${p.sporingsnummer ? `<span style="font-family:monospace;color:var(--purple);font-size:0.75rem;">${ic('package','lc-sm')} ${esc(p.sporingsnummer)}</span>` : `<span style="color:var(--muted);font-size:0.75rem;font-style:italic;">Ingen sporingsnr.</span>`}
                   </div>`).join('')}
               </div>`
           }
         </div>
-        ${b.note ? `<div style="font-size:0.82rem;color:var(--muted);">💬 ${esc(b.note)}</div>` : ''}
+        ${b.note ? `<div style="font-size:0.82rem;color:var(--muted);">${ic('message-square','lc-sm')} ${esc(b.note)}</div>` : ''}
         ${ordersHtml}
         <div class="card-actions">
-          ${b.status === 'på lager' ? `<button class="action-btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);" onclick="api.put('/api/boxes/${b.id}',{kjølelager:${!b.kjølelager}}).then(renderAll)">${b.kjølelager ? '🌡️ Flytt ut av kjøl' : '❄️ Sett på kjøl'}</button>` : ''}
+          ${b.status === 'på lager' ? `<button class="action-btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);" onclick="api.put('/api/boxes/${b.id}',{kjølelager:${!b.kjølelager}}).then(renderAll)">${b.kjølelager ? `${ic('thermometer','lc-sm')} Flytt ut av kjøl` : `${ic('snowflake','lc-sm')} Sett på kjøl`}</button>` : ''}
           ${b.status !== 'kassert' ? `<button class="action-btn btn-cancel-order" onclick="api.put('/api/boxes/${b.id}',{status:'kassert'}).then(renderAll)">Kassér</button>` : ''}
-          <button class="action-btn btn-delete" onclick="deleteBox('${b.id}')">🗑</button>
+          <button class="action-btn btn-delete" onclick="deleteBox('${b.id}')">${ic('trash-2','lc-sm')}</button>
         </div>
       </div>`;
     }).join('');
@@ -1617,8 +1634,8 @@
     } else {
       resultsEl.innerHTML = matches.slice(0, 8).map(b =>
         `<div class="ds-bag-option" onclick="edit_selectBag('${b.id}')">
-          <span style="font-weight:600;color:var(--purple);font-family:monospace;">📦 ${esc(b.sporingsnummer)}</span>
-          <span style="color:var(--muted);font-size:0.78rem;margin-left:0.6rem;">${b.vekt}g · ${b.dato || '–'}${b.status === 'tildelt' ? ' · ⚠️ Allerede tildelt' : ''}</span>
+          <span style="font-weight:600;color:var(--purple);font-family:monospace;">${ic('package','lc-sm')} ${esc(b.sporingsnummer)}</span>
+          <span style="color:var(--muted);font-size:0.78rem;margin-left:0.6rem;">${b.vekt}g · ${b.dato || '–'}${b.status === 'tildelt' ? ` · ${ic('alert-triangle','lc-sm')} Allerede tildelt` : ''}</span>
         </div>`
       ).join('');
     }
@@ -1638,7 +1655,7 @@
     el.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--purple);border-radius:6px;padding:0.55rem 0.85rem;">
         <div>
-          <span style="font-family:monospace;font-weight:700;color:var(--purple);">📦 ${esc(bag.sporingsnummer)}</span>
+          <span style="font-family:monospace;font-weight:700;color:var(--purple);">${ic('package','lc-sm')} ${esc(bag.sporingsnummer)}</span>
           <span style="color:var(--muted);font-size:0.8rem;margin-left:0.6rem;">${bag.vekt}g · ${bag.dato || '–'}</span>
         </div>
         <button onclick="edit_clearBag()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.2rem;line-height:1;padding:0 0.3rem;" title="Fjern pose-kobling">×</button>
@@ -1761,7 +1778,7 @@
     } else {
       resultsEl.innerHTML = matches.slice(0, 8).map(b =>
         `<div class="ds-bag-option" onclick="ds_selectBag('${b.id}')">
-          <span style="font-weight:600;color:var(--purple);font-family:monospace;">📦 ${esc(b.sporingsnummer)}</span>
+          <span style="font-weight:600;color:var(--purple);font-family:monospace;">${ic('package','lc-sm')} ${esc(b.sporingsnummer)}</span>
           <span style="color:var(--muted);font-size:0.78rem;margin-left:0.6rem;">${b.vekt}g · ${b.dato || '–'}</span>
         </div>`
       ).join('');
@@ -1778,7 +1795,7 @@
     el.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--purple);border-radius:6px;padding:0.55rem 0.85rem;">
         <div>
-          <span style="font-family:monospace;font-weight:700;color:var(--purple);">📦 ${esc(bag.sporingsnummer)}</span>
+          <span style="font-family:monospace;font-weight:700;color:var(--purple);">${ic('package','lc-sm')} ${esc(bag.sporingsnummer)}</span>
           <span style="color:var(--muted);font-size:0.8rem;margin-left:0.6rem;">${bag.vekt}g · ${bag.dato || '–'}</span>
           ${bag.note ? `<span style="color:var(--muted);font-size:0.78rem;margin-left:0.4rem;">· ${esc(bag.note)}</span>` : ''}
         </div>
@@ -1888,6 +1905,7 @@
     else if (currentView === 'kunder') renderCustomers(consents, orders);
     else if (currentView === 'salg') fetchAndRenderSales();
     else if (currentView === 'arkiv') renderArchive(orders);
+    lucide.createIcons();
   }
 
   // ── SALGSREGISTER ──
@@ -1899,7 +1917,7 @@
   function renderSales(sales) {
     const list = document.getElementById('salesList');
     if (!sales.length) {
-      list.innerHTML = `<div class="empty-state"><div class="icon">💰</div><p>Ingen salg registrert ennå.</p></div>`;
+      list.innerHTML = `<div class="empty-state"><div class="icon">${ic('receipt','lc lc-lg')}</div><p>Ingen salg registrert ennå.</p></div>`;
       return;
     }
     list.innerHTML = `
@@ -1974,7 +1992,7 @@
     const list = document.getElementById('looseBagList');
     if (!bags || !bags.length) {
       const q = document.getElementById('bagSearchInput')?.value?.trim();
-      list.innerHTML = `<div class="empty-state"><div class="icon">🛍️</div><p>${q ? 'Ingen poser matcher søket.' : 'Ingen løse poser registrert ennå.'}</p></div>`;
+      list.innerHTML = `<div class="empty-state"><div class="icon">${ic('shopping-bag','lc lc-lg')}</div><p>${q ? 'Ingen poser matcher søket.' : 'Ingen løse poser registrert ennå.'}</p></div>`;
       return;
     }
     list.innerHTML = [...bags].sort((a,b) => new Date(b.timestamp||0) - new Date(a.timestamp||0)).map(b => {
@@ -1988,15 +2006,15 @@
       const cardClass = isKassert ? 'status-kassert' : isTildelt ? 'status-solgt' : 'status-på-lager';
       return `<div class="box-card ${cardClass}">
         <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span class="box-tracking" style="font-size:0.95rem;">📦 ${esc(b.sporingsnummer)}</span>
+          <span class="box-tracking" style="font-size:0.95rem;">${ic('package','lc')} ${esc(b.sporingsnummer)}</span>
           ${statusPill}
         </div>
         <div class="box-meta">
           <span>📅 ${b.dato || '–'}</span>
-          <span>⚖️ ${b.vekt}g</span>
+          <span>${ic('scale','lc-sm')} ${b.vekt}g</span>
           ${b.orderId ? `<span>🔗 Bestilling: <strong style="color:var(--purple);font-family:monospace;font-size:0.78rem;">${esc(b.orderId)}</strong></span>` : ''}
         </div>
-        ${b.note ? `<div style="font-size:0.82rem;color:var(--muted);">💬 ${esc(b.note)}</div>` : ''}
+        ${b.note ? `<div style="font-size:0.82rem;color:var(--muted);">${ic('message-square','lc-sm')} ${esc(b.note)}</div>` : ''}
         ${!isKassert ? `<div style="display:flex;align-items:center;gap:0.6rem;padding:0.5rem 0.75rem;background:var(--green-dim);border:1px solid rgba(50,215,75,0.2);border-radius:8px;">
           <span style="font-size:0.75rem;color:var(--green);font-weight:600;white-space:nowrap;letter-spacing:0.02em;">Plukket av</span>
           <input type="text" value="${esc(b.pickedBy || '')}" placeholder="Skriv navn…"
@@ -2009,7 +2027,7 @@
           ${isTildelt ? `<button class="action-btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);" onclick="openAssignBagModal('${b.id}')">🔄 Bytt bestilling</button>` : ''}
           ${isTildelt ? `<button class="action-btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);" onclick="freeLooseBag('${b.id}')">↺ Frigjør pose</button>` : ''}
           ${!isKassert ? `<button class="action-btn btn-cancel-order" onclick="api.put('/api/bags/${b.id}',{status:'kassert'}).then(renderAll)">Kassér</button>` : ''}
-          <button class="action-btn btn-delete" onclick="deleteLooseBag('${b.id}')">🗑</button>
+          <button class="action-btn btn-delete" onclick="deleteLooseBag('${b.id}')">${ic('trash-2','lc-sm')}</button>
         </div>
       </div>`;
     }).join('');
@@ -2033,13 +2051,13 @@
       const cardClass = isKassert ? 'status-kassert' : 'status-solgt';
       return `<div class="box-card ${cardClass}">
         <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span class="box-tracking" style="font-size:0.9rem;">📦 ${esc(b.sporingsnummer)}</span>
+          <span class="box-tracking" style="font-size:0.9rem;">${ic('package','lc')} ${esc(b.sporingsnummer)}</span>
           ${statusPill}
         </div>
         <div class="box-meta">
           <span>📅 ${b.dato || '–'}</span>
-          <span>⚖️ ${b.vekt}g</span>
-          ${b.pickedBy ? `<span>🌿 Plukket av: <strong style="color:var(--text);">${esc(b.pickedBy)}</strong></span>` : ''}
+          <span>${ic('scale','lc-sm')} ${b.vekt}g</span>
+          ${b.pickedBy ? `<span>${ic('leaf','lc-sm')} Plukket av: <strong style="color:var(--text);">${esc(b.pickedBy)}</strong></span>` : ''}
         </div>
         ${linkedOrder ? `<div style="background:var(--surface);border-radius:8px;padding:0.65rem 0.9rem;font-size:0.82rem;border:1px solid var(--border2);">
           <div style="font-weight:600;color:var(--text);margin-bottom:0.2rem;">
@@ -2047,9 +2065,9 @@
             ${linkedOrder.orderNumber ? `<span style="font-family:monospace;font-size:0.7rem;color:var(--purple);background:var(--purple-dim);border-radius:4px;padding:0.1rem 0.4rem;margin-left:0.4rem;">${esc(linkedOrder.orderNumber)}</span>` : ''}
           </div>
           <div style="color:var(--muted);">${(linkedOrder.items||[]).map(i=>`${esc(i.name)} ${i.qty}×${esc(i.unit||'')}`).join(' · ')}${linkedOrder.total ? ` · <strong style="color:var(--text);">${linkedOrder.total} kr</strong>` : ''}</div>
-          <div style="color:var(--muted);margin-top:0.2rem;font-size:0.78rem;">📞 ${esc(linkedOrder.phone)}${linkedOrder.delivery ? ` · ${esc(linkedOrder.delivery)}` : ''}</div>
+          <div style="color:var(--muted);margin-top:0.2rem;font-size:0.78rem;">${ic('phone','lc-sm')} ${esc(linkedOrder.phone)}${linkedOrder.delivery ? ` · ${esc(linkedOrder.delivery)}` : ''}</div>
         </div>` : ''}
-        ${b.note ? `<div style="font-size:0.82rem;color:var(--muted);">💬 ${esc(b.note)}</div>` : ''}
+        ${b.note ? `<div style="font-size:0.82rem;color:var(--muted);">${ic('message-square','lc-sm')} ${esc(b.note)}</div>` : ''}
       </div>`;
     }).join('');
   }
@@ -2186,7 +2204,7 @@
   function renderOrders(orders, looseBags, boxes) {
     const filtered = orders.filter(o => o.status !== 'arkivert' && (currentFilter==='alle' || o.status===currentFilter)).sort((a,b)=>new Date(b.timestamp||0)-new Date(a.timestamp||0));
     const list = document.getElementById('orderList');
-    if (!filtered.length) { list.innerHTML = `<div class="empty-state"><div class="icon">📦</div><p>Ingen bestillinger ${currentFilter!=='alle'?'med denne statusen':''} ennå.</p></div>`; return; }
+    if (!filtered.length) { list.innerHTML = `<div class="empty-state"><div class="icon">${ic('package','lc lc-lg')}</div><p>Ingen bestillinger ${currentFilter!=='alle'?'med denne statusen':''} ennå.</p></div>`; return; }
 
     list.innerHTML = filtered.map(o => {
       const date = new Date(o.timestamp || parseInt(o.id));
@@ -2212,13 +2230,13 @@
           <span class="status-pill ${pillClass}">${statusLabel}</span>
         </div>
         <div class="card-meta">
-          ${items ? `<span>📦 <strong>${items}</strong></span>` : ''}
-          ${o.total ? `<span>💰 <strong>${o.total} kr</strong></span>` : ''}
-          <span>🚗 ${esc(o.delivery)}</span>
-          ${o.deliveryAddress ? `<span>📍 <strong>${esc(o.deliveryAddress)}</strong></span>` : ''}
-          <span>📞 <a href="tel:${esc(o.phone)}">${esc(o.phone)}</a></span>
-          ${o.email ? `<span>✉️ <a href="mailto:${esc(o.email)}">${esc(o.email)}</a></span>` : ''}
-          ${linkedBox ? `<span>📦 Eske: <strong style="font-family:monospace;color:var(--purple);">${esc(linkedBox.trackingId)}</strong></span>` : ''}
+          ${items ? `<span>${ic('package','lc-sm')} <strong>${items}</strong></span>` : ''}
+          ${o.total ? `<span>${ic('banknote','lc-sm')} <strong>${o.total} kr</strong></span>` : ''}
+          <span>${ic('truck','lc-sm')} ${esc(o.delivery)}</span>
+          ${o.deliveryAddress ? `<span>${ic('map-pin','lc-sm')} <strong>${esc(o.deliveryAddress)}</strong></span>` : ''}
+          <span>${ic('phone','lc-sm')} <a href="tel:${esc(o.phone)}">${esc(o.phone)}</a></span>
+          ${o.email ? `<span>${ic('mail','lc-sm')} <a href="mailto:${esc(o.email)}">${esc(o.email)}</a></span>` : ''}
+          ${linkedBox ? `<span>${ic('package','lc-sm')} Eske: <strong style="font-family:monospace;color:var(--purple);">${esc(linkedBox.trackingId)}</strong></span>` : ''}
         </div>
         <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:0.6rem 0.8rem;">
           <div style="font-size:0.68rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.45rem;">Poser (${assignedBags.length})</div>
@@ -2237,8 +2255,8 @@
           </div>
         </div>
         <div id="note-display-${o.id}">
-          ${o.note ? `<div class="card-note">💬 ${esc(o.note)}</div>` : '<span style="font-size:0.78rem;color:var(--muted);font-style:italic;">Ingen kommentar</span>'}
-          <button class="action-btn" style="padding:0.2rem 0.5rem;font-size:0.73rem;margin-top:0.3rem;background:transparent;border:1px solid var(--border);color:var(--muted);" data-note="${esc(o.note||'')}" onclick="startEditNote('${o.id}',this.dataset.note)">✏️ Rediger</button>
+          ${o.note ? `<div class="card-note">${ic('message-square','lc-sm')} ${esc(o.note)}</div>` : '<span style="font-size:0.78rem;color:var(--muted);font-style:italic;">Ingen kommentar</span>'}
+          <button class="action-btn" style="padding:0.2rem 0.5rem;font-size:0.73rem;margin-top:0.3rem;background:transparent;border:1px solid var(--border);color:var(--muted);" data-note="${esc(o.note||'')}" onclick="startEditNote('${o.id}',this.dataset.note)">${ic('pencil','lc-sm')} Rediger</button>
         </div>
         <div id="note-edit-${o.id}" style="display:none;margin-top:0.3rem;">
           <textarea id="note-input-${o.id}" style="width:100%;background:var(--surface);border:1px solid var(--purple);border-radius:6px;padding:0.5rem 0.7rem;color:var(--text);font-family:inherit;font-size:0.82rem;resize:vertical;min-height:60px;outline:none;" placeholder="Legg til kommentar…"></textarea>
@@ -2249,13 +2267,13 @@
         </div>
         <div class="card-actions">
           ${o.status!=='bekreftet' ? `<button class="action-btn btn-confirm" data-id="${o.id}" data-name="${esc(o.name)}" onclick="openConfirmModal(this.dataset.id, this.dataset.name)">Bekreft ✓</button>` : ''}
-          <button class="action-btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);" onclick="openEditOrderModal('${o.id}')">✏️ Rediger</button>
+          <button class="action-btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);" onclick="openEditOrderModal('${o.id}')">${ic('pencil','lc-sm')} Rediger</button>
           ${o.paid==='true'
-            ? `<span class="status-pill pill-bekreftet">💰 Betalt</span>`
-            : o.status==='bekreftet' ? `<button class="action-btn btn-confirm" onclick="markPaid('${o.id}')">💰 Merk betalt</button>` : ''}
+            ? `<span class="status-pill pill-bekreftet">${ic('check','lc-sm')} Betalt</span>`
+            : o.status==='bekreftet' ? `<button class="action-btn btn-confirm" onclick="markPaid('${o.id}')">${ic('banknote','lc-sm')} Merk betalt</button>` : ''}
           ${o.status!=='avbestilt' ? `<button class="action-btn btn-cancel-order" onclick="setStatus('${o.id}','avbestilt')">Avbestill</button>` : ''}
           ${(o.status==='bekreftet'||o.status==='avbestilt') ? `<button class="action-btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);" onclick="setStatus('${o.id}','arkivert')">Arkiver</button>` : ''}
-          <button class="action-btn btn-delete" onclick="deleteOrder('${o.id}')">🗑</button>
+          <button class="action-btn btn-delete" onclick="deleteOrder('${o.id}')">${ic('trash-2','lc-sm')}</button>
         </div>
       </div>`;
     }).join('');
@@ -2265,7 +2283,7 @@
     const list = document.getElementById('arkivList');
     const archived = [...orders].filter(o => o.status === 'arkivert').sort((a,b) => new Date(b.timestamp||0) - new Date(a.timestamp||0));
     if (!archived.length) {
-      list.innerHTML = `<div class="empty-state"><div class="icon" style="font-size:2rem;margin-bottom:0.8rem;">🗄</div><p>Ingen arkiverte bestillinger ennå.<br><span style="font-size:0.8rem;">Bruk «Arkiver»-knappen på fullførte bestillinger.</span></p></div>`;
+      list.innerHTML = `<div class="empty-state"><div class="icon">${ic('archive','lc lc-lg')}</div><p>Ingen arkiverte bestillinger ennå.<br><span style="font-size:0.8rem;">Bruk «Arkiver»-knappen på fullførte bestillinger.</span></p></div>`;
       return;
     }
     list.innerHTML = archived.map(o => {
@@ -2288,11 +2306,11 @@
           ${items ? `<span><strong>${items}</strong></span>` : ''}
           ${o.total ? `<span><strong>${o.total} kr</strong></span>` : ''}
           <span>${esc(o.delivery||'')}</span>
-          <span>📞 <a href="tel:${esc(o.phone)}">${esc(o.phone)}</a></span>
+          <span>${ic('phone','lc-sm')} <a href="tel:${esc(o.phone)}">${esc(o.phone)}</a></span>
         </div>
         <div class="card-actions">
           <button class="action-btn btn-confirm" onclick="setStatus('${o.id}','bekreftet')">↩ Gjenopprett</button>
-          <button class="action-btn btn-delete" onclick="deleteOrder('${o.id}')">🗑</button>
+          <button class="action-btn btn-delete" onclick="deleteOrder('${o.id}')">${ic('trash-2','lc-sm')}</button>
         </div>
       </div>`;
     }).join('');
@@ -2300,7 +2318,7 @@
 
   function renderInquiries(inquiries) {
     const list = document.getElementById('inquiryList');
-    if (!inquiries||!inquiries.length) { list.innerHTML = `<div class="empty-state"><div class="icon">💬</div><p>Ingen henvendelser ennå.</p></div>`; return; }
+    if (!inquiries||!inquiries.length) { list.innerHTML = `<div class="empty-state"><div class="icon">${ic('message-circle','lc lc-lg')}</div><p>Ingen henvendelser ennå.</p></div>`; return; }
 
     list.innerHTML = [...inquiries].sort((a,b)=>new Date(b.timestamp||0)-new Date(a.timestamp||0)).map(i => {
       const date = new Date(i.timestamp||parseInt(i.id));
@@ -2316,14 +2334,14 @@
           </div>
         </div>
         <div class="card-meta">
-          ${i.email ? `<span>✉️ <a href="mailto:${esc(i.email)}">${esc(i.email)}</a></span>` : ''}
-          ${i.phone ? `<span>📞 ${esc(i.phone)}</span>` : ''}
+          ${i.email ? `<span>${ic('mail','lc-sm')} <a href="mailto:${esc(i.email)}">${esc(i.email)}</a></span>` : ''}
+          ${i.phone ? `<span>${ic('phone','lc-sm')} ${esc(i.phone)}</span>` : ''}
         </div>
-        <div class="card-note">💬 ${esc(i.message)}</div>
+        <div class="card-note">${ic('message-square','lc-sm')} ${esc(i.message)}</div>
         <div class="card-actions">
           ${isNew ? `<button class="action-btn btn-confirm" onclick="setInquiryStatus('${i.id}','lest')">Merk som lest</button>` : ''}
-          ${i.email ? `<a class="action-btn btn-email" href="${replyHref}">📧 Svar</a>` : ''}
-          <button class="action-btn btn-delete" onclick="deleteInquiry('${i.id}')">🗑</button>
+          ${i.email ? `<a class="action-btn btn-email" href="${replyHref}">${ic('send','lc-sm')} Svar</a>` : ''}
+          <button class="action-btn btn-delete" onclick="deleteInquiry('${i.id}')">${ic('trash-2','lc-sm')}</button>
         </div>
       </div>`;
     }).join('');
@@ -2334,7 +2352,7 @@
     const items = (o.items||[]).map(i=>`${i.name} ${i.qty}×${i.unit||''}`).join('\n');
     let subject, body;
     if (o.status==='bekreftet') {
-      subject = encodeURIComponent('Ramsløk-bestillingen din er bekreftet! 🌿');
+      subject = encodeURIComponent('Ramsløk-bestillingen din er bekreftet!');
       body = encodeURIComponent(`Hei ${o.name},\n\nBestillingen din er bekreftet!\n\n${items}\nTotal: ${o.total} kr\nLevering: ${o.delivery}\n\nVi kontakter deg for å avtale tidspunkt.\n\nMed vennlig hilsen,\nNesodden Ramsløk`);
     } else if (o.status==='avbestilt') {
       subject = encodeURIComponent('Angående din ramsløk-bestilling');
