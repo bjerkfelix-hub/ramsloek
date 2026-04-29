@@ -198,6 +198,18 @@ const loginLimiter  = rateLimit({ windowMs: 15 * 60 * 1000, max: 5,  skipSuccess
 const publicLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
 const logoutLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
 
+// Forsvar i dybden – global /api-limiter (200/min/IP) som dekker admin-endepunkter
+// uten å overstyre de strengere per-rute limiterne.
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Hopp over endepunkter som allerede har strengere egne limiter (de kjører uansett først)
+  skip: (req) => req.path === '/api/login' || req.path === '/api/logout',
+});
+app.use('/api/', apiLimiter);
+
 app.post('/api/login', loginLimiter, async (req, res) => {
   try {
     const { username, password } = req.body || {};
