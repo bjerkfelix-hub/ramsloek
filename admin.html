@@ -1451,6 +1451,13 @@
 
   // ── ACTIONS ──
   async function setStatus(id, status) { await api.put(`/api/orders/${id}`, { status }); renderAll(); }
+
+  // Ett-klikks bekreft – ingen modal, ingen automatisk pose-binding
+  async function quickConfirm(id, name) {
+    if (!confirm(`Bekreft bestillingen til ${name}?`)) return;
+    await api.put(`/api/orders/${id}`, { status: 'bekreftet' });
+    renderAll();
+  }
   async function markPaid(id) { await api.put(`/api/orders/${id}`, { paid: 'true', paidAt: new Date().toISOString() }); renderAll(); }
   async function deleteOrder(id) { if (!confirm('Slett ordren permanent?')) return; await api.delete(`/api/orders/${id}`); renderAll(); }
   async function setInquiryStatus(id, status) { await api.put(`/api/inquiries/${id}`, { status }); renderAll(); }
@@ -2255,7 +2262,7 @@
         </div>
         <div class="card-actions">
           ${o.status==='venter' ? `<button class="action-btn" style="background:var(--orange-dim);border:1px solid rgba(255,149,0,0.3);color:var(--orange);" onclick="setStatus('${o.id}','i_prosess')">I prosess</button>` : ''}
-          ${o.status!=='bekreftet' ? `<button class="action-btn btn-confirm" data-id="${o.id}" data-name="${esc(o.name)}" onclick="openConfirmModal(this.dataset.id, this.dataset.name)">Bekreft ✓</button>` : ''}
+          ${o.status!=='bekreftet' ? `<button class="action-btn btn-confirm" data-id="${o.id}" data-name="${esc(o.name)}" onclick="quickConfirm(this.dataset.id, this.dataset.name)">Bekreft ✓</button>` : ''}
           <button class="action-btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);" onclick="openEditOrderModal('${o.id}')">✏️ Rediger</button>
           ${o.paid==='true'
             ? `<span class="status-pill pill-bekreftet">💰 Betalt</span>`
