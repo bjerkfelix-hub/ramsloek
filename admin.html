@@ -23,6 +23,8 @@
       --yellow-dim: rgba(255,214,10,0.12);
       --red: #ff453a;
       --red-dim: rgba(255,69,58,0.12);
+      --orange: #ff9500;
+      --orange-dim: rgba(255,149,0,0.12);
       --radius: 12px;
     }
 
@@ -302,6 +304,7 @@
     .stat-card .num.yellow { color: var(--yellow); }
     .stat-card .num.green { color: var(--green); }
     .stat-card .num.red { color: var(--red); }
+    .stat-card .num.orange { color: var(--orange); }
     .stat-card .lbl { font-size: 0.72rem; color: var(--muted); margin-top: 0.2rem; }
 
     /* Filter bar */
@@ -367,6 +370,7 @@
     .pill-venter { background: var(--yellow-dim); color: var(--yellow); border: 1px solid rgba(255,214,10,0.25); }
     .pill-bekreftet { background: var(--green-dim); color: var(--green); border: 1px solid rgba(50,215,75,0.25); }
     .pill-avbestilt { background: var(--red-dim); color: var(--red); border: 1px solid rgba(255,69,58,0.25); }
+    .pill-prosess { background: var(--orange-dim); color: var(--orange); border: 1px solid rgba(255,149,0,0.25); }
     .pill-ny { background: var(--yellow-dim); color: var(--yellow); border: 1px solid rgba(255,214,10,0.25); }
     .pill-lest { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
 
@@ -1062,6 +1066,7 @@
       <div class="filter-bar" id="orderFilterBar">
         <button class="filter-pill active" onclick="setFilter('alle', this)">Alle</button>
         <button class="filter-pill" onclick="setFilter('venter', this)">Venter</button>
+        <button class="filter-pill" onclick="setFilter('i_prosess', this)">I prosess</button>
         <button class="filter-pill" onclick="setFilter('bekreftet', this)">Bekreftet</button>
         <button class="filter-pill" onclick="setFilter('avbestilt', this)">Avbestilt</button>
       </div>
@@ -2087,8 +2092,8 @@
       return bMax - aMax;
     });
 
-    const statusColor = { venter:'var(--yellow)', bekreftet:'var(--green)', avbestilt:'var(--red)', arkivert:'var(--muted)' };
-    const statusLabel = { venter:'Venter', bekreftet:'Bekreftet', avbestilt:'Avbestilt', arkivert:'Arkivert' };
+    const statusColor = { venter:'var(--yellow)', i_prosess:'var(--orange)', bekreftet:'var(--green)', avbestilt:'var(--red)', arkivert:'var(--muted)' };
+    const statusLabel = { venter:'Venter', i_prosess:'I prosess', bekreftet:'Bekreftet', avbestilt:'Avbestilt', arkivert:'Arkivert' };
 
     el.innerHTML = `<div style="margin-bottom:0.7rem;font-size:0.8rem;color:var(--muted);">${customers.length} kunde${customers.length!==1?'r':''}</div>
     <div style="display:flex;flex-direction:column;gap:0.8rem;">
@@ -2143,7 +2148,7 @@
   }
 
   function renderStats(orders, inquiries, boxes, looseBags) {
-    const c = { alle: 0, venter: 0, bekreftet: 0, avbestilt: 0, arkivert: 0 };
+    const c = { alle: 0, venter: 0, i_prosess: 0, bekreftet: 0, avbestilt: 0, arkivert: 0 };
     let inntjentArkivert = 0, forventetBekreftet = 0;
     orders.forEach(o => {
       c[o.status] = (c[o.status]||0)+1;
@@ -2166,6 +2171,7 @@
     document.getElementById('statsRow').innerHTML = `
       <div class="stat-card"><div class="num">${c.alle}</div><div class="lbl">Bestillinger totalt</div></div>
       <div class="stat-card"><div class="num yellow">${c.venter}</div><div class="lbl">Venter</div></div>
+      <div class="stat-card"><div class="num orange">${c.i_prosess}</div><div class="lbl">I prosess</div></div>
       <div class="stat-card"><div class="num green">${c.bekreftet}</div><div class="lbl">Bekreftet</div></div>
       <div class="stat-card"><div class="num red">${c.avbestilt}</div><div class="lbl">Avbestilt</div></div>
       <div class="stat-card" style="border-left:3px solid var(--green);">
@@ -2191,8 +2197,8 @@
     list.innerHTML = filtered.map(o => {
       const date = new Date(o.timestamp || parseInt(o.id));
       const dateStr = date.toLocaleString('nb-NO', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
-      const pillClass = { venter:'pill-venter', bekreftet:'pill-bekreftet', avbestilt:'pill-avbestilt' }[o.status]||'pill-venter';
-      const statusLabel = { venter:'Venter', bekreftet:'Bekreftet', avbestilt:'Avbestilt' }[o.status]||o.status;
+      const pillClass = { venter:'pill-venter', i_prosess:'pill-prosess', bekreftet:'pill-bekreftet', avbestilt:'pill-avbestilt' }[o.status]||'pill-venter';
+      const statusLabel = { venter:'Venter', i_prosess:'I prosess', bekreftet:'Bekreftet', avbestilt:'Avbestilt' }[o.status]||o.status;
       const items = (o.items||[]).map(i=>`${esc(i.name)} ${i.qty}×${esc(i.unit||'')}`).join(' · ');
       const linkedBox = o.boxId ? (boxes||[]).find(b => b.id === o.boxId) : null;
       const assignedBags  = (looseBags||[]).filter(b => b.orderId === o.id);
@@ -2248,6 +2254,7 @@
           </div>
         </div>
         <div class="card-actions">
+          ${o.status==='venter' ? `<button class="action-btn" style="background:var(--orange-dim);border:1px solid rgba(255,149,0,0.3);color:var(--orange);" onclick="setStatus('${o.id}','i_prosess')">I prosess</button>` : ''}
           ${o.status!=='bekreftet' ? `<button class="action-btn btn-confirm" data-id="${o.id}" data-name="${esc(o.name)}" onclick="openConfirmModal(this.dataset.id, this.dataset.name)">Bekreft ✓</button>` : ''}
           <button class="action-btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);" onclick="openEditOrderModal('${o.id}')">✏️ Rediger</button>
           ${o.paid==='true'
