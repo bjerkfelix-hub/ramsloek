@@ -182,6 +182,24 @@ setInterval(async () => {
   } catch (e) { console.error('⚠️ Sesjon-opprydding feilet:', e.message); }
 }, 30 * 60 * 1000);
 
+// Auto-slett løse poser med status 'ledig' som er eldre enn 14 dager.
+// Tildelte/leverte poser røres aldri – de har forretningsverdi (sporing).
+const BAG_TTL_LEDIG = 14 * 24 * 60 * 60 * 1000;
+async function cleanupOldLedigeBags() {
+  try {
+    const cutoffISO = new Date(Date.now() - BAG_TTL_LEDIG).toISOString();
+    const r = await pool.query(
+      "DELETE FROM bags WHERE data->>'status' = 'ledig' AND COALESCE(data->>'timestamp', '') < $1 AND COALESCE(data->>'timestamp', '') <> '' RETURNING id",
+      [cutoffISO]
+    );
+    if (r.rowCount > 0) {
+      console.log(`🧹 Auto-slettet ${r.rowCount} ledig${r.rowCount === 1 ? '' : 'e'} pose${r.rowCount === 1 ? '' : 'r'} (>14 dager)`);
+    }
+  } catch (e) { console.error('⚠️ Pose-opprydding feilet:', e.message); }
+}
+setInterval(cleanupOldLedigeBags, 6 * 60 * 60 * 1000); // hver 6. time
+setTimeout(cleanupOldLedigeBags, 60 * 1000); // første gang etter 1 minutt (etter DB-init)
+
 // Audit-logg
 async function auditLog(username, action, resource, resourceId, details) {
   try {
