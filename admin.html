@@ -2171,6 +2171,15 @@
     const solgtBoxes = (boxes||[]).filter(b => b.status === 'solgt').length;
     const løsePåLager = (looseBags||[]).filter(b => b.status === 'ledig').length;
 
+    // Vekt å plukke: poser tildelt bestillinger som er bekreftet eller i prosess (ikke arkivert)
+    const aktiveOrdreIds = new Set(orders.filter(o => o.status === 'bekreftet' || o.status === 'i_prosess').map(o => o.id));
+    const vektÅPlukkeG = (looseBags||[])
+      .filter(b => b.orderId && aktiveOrdreIds.has(b.orderId))
+      .reduce((sum, b) => sum + (parseInt(b.vekt) || 0), 0);
+    const vektÅPlukke = vektÅPlukkeG >= 1000
+      ? (vektÅPlukkeG / 1000).toFixed(2).replace(/\.?0+$/, '') + ' kg'
+      : vektÅPlukkeG + ' g';
+
     const badge = document.getElementById('inquiryBadge');
     badge.style.display = newInq > 0 ? 'inline-block' : 'none';
     badge.textContent = newInq;
@@ -2188,6 +2197,10 @@
       <div class="stat-card" style="border-left:3px solid var(--yellow);">
         <div class="num yellow">${forventetBekreftet} kr</div>
         <div class="lbl">Utestående (bekreftet)</div>
+      </div>
+      <div class="stat-card" style="border-left:3px solid var(--orange);">
+        <div class="num orange">${vektÅPlukke}</div>
+        <div class="lbl">Vekt å plukke</div>
       </div>
       <div class="stat-card"><div class="num ${newInq>0?'yellow':''}">${newInq}</div><div class="lbl">Nye henvendelser</div></div>
       <div class="stat-card"><div class="num yellow">${påLager}</div><div class="lbl">Esker på lager</div></div>
