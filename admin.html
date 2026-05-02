@@ -982,6 +982,10 @@
       <div class="nav-item active" id="nav-bestillinger" onclick="setView('bestillinger', this)">
         Bestillinger
       </div>
+      <div class="nav-item" id="nav-leveranser" onclick="setView('leveranser', this)">
+        Leveranser
+        <span class="nav-badge" id="deliveryBadge" style="display:none;background:var(--orange);">0</span>
+      </div>
       <div class="nav-item" id="nav-henvendelser" onclick="setView('henvendelser', this)">
         Henvendelser
         <span class="nav-badge" id="inquiryBadge" style="display:none;">0</span>
@@ -1073,6 +1077,7 @@
 
       <!-- Lists -->
       <div class="card-list" id="orderList"></div>
+      <div id="deliveryList" style="display:none;"></div>
       <div class="card-list" id="inquiryList" style="display:none;"></div>
       <div class="card-list" id="boxList" style="display:none;"></div>
       <div id="looseBagSection" style="display:none;">
@@ -1870,6 +1875,7 @@
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     el.classList.add('active');
     document.getElementById('orderList').style.display      = view === 'bestillinger' ? 'flex' : 'none';
+    document.getElementById('deliveryList').style.display   = view === 'leveranser'   ? 'block': 'none';
     document.getElementById('inquiryList').style.display    = view === 'henvendelser'  ? 'flex' : 'none';
     document.getElementById('boxList').style.display        = view === 'lager'         ? 'flex' : 'none';
     document.getElementById('looseBagSection').style.display   = view === 'lager'  ? 'block': 'none';
@@ -1882,7 +1888,7 @@
     document.getElementById('btnDirectSale').style.display  = view === 'bestillinger' ? '' : 'none';
     document.getElementById('btnNewBox').style.display      = view === 'lager'         ? '' : 'none';
     document.getElementById('btnNewLooseBag').style.display = view === 'lager'         ? '' : 'none';
-    const titles = { bestillinger: 'Bestillinger', henvendelser: 'Henvendelser', lager: 'Lager & Smittesporing', kunder: 'Kunderegister', salg: 'Salgsregister', arkiv: 'Arkiv' };
+    const titles = { bestillinger: 'Bestillinger', leveranser: 'Leveranser', henvendelser: 'Henvendelser', lager: 'Lager & Smittesporing', kunder: 'Kunderegister', salg: 'Salgsregister', arkiv: 'Arkiv' };
     document.getElementById('topbarTitle').textContent = titles[view] || view;
     renderAll();
   }
@@ -1895,6 +1901,7 @@
     ]);
     renderStats(orders, inquiries, boxes, looseBags);
     if (currentView === 'bestillinger') renderOrders(orders, looseBags, boxes);
+    else if (currentView === 'leveranser') renderDeliveries(orders);
     else if (currentView === 'henvendelser') renderInquiries(inquiries);
     else if (currentView === 'lager') { renderBoxes(boxes, orders); renderLooseBags(looseBags); renderBagArchive(looseBags, orders); }
     else if (currentView === 'kunder') renderCustomers(consents, orders);
@@ -2286,6 +2293,129 @@
         </div>
       </div>`;
     }).join('');
+  }
+
+  // ── LEVERANSER (delivery scheduling) ──
+  function renderDeliveries(orders) {
+    const list = document.getElementById('deliveryList');
+    // Vis bekreftet + i_prosess (de som trenger leveranseinfo). Ikke avbestilt/arkivert.
+    const deliveries = (orders || [])
+      .filter(o => o.status === 'bekreftet' || o.status === 'i_prosess')
+      .sort((a, b) => {
+        // Sorter: de uten avtalt tid først, deretter etter pickupTime, deretter etter timestamp
+        const aHas = !!a.pickupTime, bHas = !!b.pickupTime;
+        if (aHas !== bHas) return aHas ? 1 : -1;
+        return new Date(b.timestamp || 0) - new Date(a.timestamp || 0);
+      });
+
+    // Oppdater badge på navigasjonen (antall uten avtalt tidspunkt)
+    const utenTid = deliveries.filter(o => !o.pickupTime).length;
+    const badge = document.getElementById('deliveryBadge');
+    if (badge) {
+      badge.style.display = utenTid > 0 ? 'inline-block' : 'none';
+      badge.textContent = utenTid;
+    }
+
+    if (!deliveries.length) {
+      list.innerHTML = `<div class="empty-state"><div class="icon">🚚</div><p>Ingen leveranser å planlegge.<br><span style="font-size:0.8rem;">Bekreftede bestillinger og bestillinger i prosess vises her.</span></p></div>`;
+      return;
+    }
+
+    const placeOptions = ['Nesodden (Bellevue)', 'Oslo sentrum', 'Levering til kundens adresse'];
+    list.innerHTML = `
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.83rem;">
+          <thead>
+            <tr style="background:var(--surface2);text-align:left;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;">
+              <th style="padding:0.75rem 0.9rem;">Bestilling</th>
+              <th style="padding:0.75rem 0.9rem;">Status</th>
+              <th style="padding:0.75rem 0.9rem;">Hvor</th>
+              <th style="padding:0.75rem 0.9rem;">Når</th>
+              <th style="padding:0.75rem 0.9rem;">Adresse / notat</th>
+              <th style="padding:0.75rem 0.9rem;text-align:right;">Lagre</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${deliveries.map(o => {
+              const items = (o.items || []).map(i => `${esc(i.name)} ${i.qty}×${esc(i.unit || '')}`).join(', ');
+              const pillClass = o.status === 'bekreftet' ? 'pill-bekreftet' : 'pill-prosess';
+              const pillLabel = o.status === 'bekreftet' ? 'Bekreftet' : 'I prosess';
+              // Konverter pickupTime tilbake til datetime-local hvis lagret som ISO
+              let timeVal = '';
+              if (o.pickupTimeISO) {
+                timeVal = o.pickupTimeISO.slice(0, 16); // YYYY-MM-DDTHH:MM
+              }
+              const place = o.pickupPlace || '';
+              const addr  = o.deliveryAddress || '';
+              const phone = o.phone || '';
+              const orderNum = o.orderNumber || '';
+              return `
+                <tr style="border-top:1px solid var(--border2);" data-order-id="${o.id}">
+                  <td style="padding:0.7rem 0.9rem;vertical-align:top;">
+                    <div style="display:flex;flex-direction:column;gap:0.15rem;">
+                      <div style="font-weight:600;color:var(--text);">${esc(o.name)}
+                        ${orderNum ? `<span style="font-family:monospace;font-size:0.7rem;font-weight:700;color:var(--purple);background:var(--purple-dim);border-radius:4px;padding:0.05rem 0.4rem;margin-left:0.35rem;">${esc(orderNum)}</span>` : ''}
+                      </div>
+                      <div style="color:var(--muted);font-size:0.76rem;">${items || '–'}</div>
+                      ${phone ? `<div style="color:var(--muted);font-size:0.74rem;"><a href="tel:${esc(phone)}">${esc(phone)}</a></div>` : ''}
+                    </div>
+                  </td>
+                  <td style="padding:0.7rem 0.9rem;vertical-align:top;">
+                    <span class="status-pill ${pillClass}">${pillLabel}</span>
+                    ${o.delivery ? `<div style="color:var(--muted);font-size:0.72rem;margin-top:0.3rem;">${esc(o.delivery)}</div>` : ''}
+                  </td>
+                  <td style="padding:0.7rem 0.9rem;vertical-align:top;">
+                    <select id="dl_place_${o.id}" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.55rem;color:var(--text);font-family:inherit;font-size:0.82rem;outline:none;">
+                      <option value="">– Velg sted –</option>
+                      ${placeOptions.map(p => `<option value="${esc(p)}" ${p === place ? 'selected' : ''}>${esc(p)}</option>`).join('')}
+                      ${place && !placeOptions.includes(place) ? `<option value="${esc(place)}" selected>${esc(place)}</option>` : ''}
+                    </select>
+                  </td>
+                  <td style="padding:0.7rem 0.9rem;vertical-align:top;">
+                    <input type="datetime-local" id="dl_time_${o.id}" value="${esc(timeVal)}" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.55rem;color:var(--text);font-family:inherit;font-size:0.82rem;outline:none;color-scheme:dark;" />
+                  </td>
+                  <td style="padding:0.7rem 0.9rem;vertical-align:top;">
+                    <input type="text" id="dl_addr_${o.id}" value="${esc(addr)}" placeholder="Gateadresse, etasje, ringeklokke…" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.55rem;color:var(--text);font-family:inherit;font-size:0.82rem;outline:none;" />
+                  </td>
+                  <td style="padding:0.7rem 0.9rem;vertical-align:top;text-align:right;">
+                    <button class="action-btn btn-confirm" style="padding:0.35rem 0.85rem;font-size:0.78rem;" onclick="saveDelivery('${o.id}')">Lagre</button>
+                  </td>
+                </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top:0.8rem;font-size:0.76rem;color:var(--muted);">
+        ${deliveries.length} leveranse${deliveries.length === 1 ? '' : 'r'} · ${utenTid} uten avtalt tidspunkt
+      </div>
+    `;
+  }
+
+  async function saveDelivery(orderId) {
+    const place = document.getElementById('dl_place_' + orderId).value;
+    const timeRaw = document.getElementById('dl_time_' + orderId).value; // YYYY-MM-DDTHH:MM eller ''
+    const addr  = document.getElementById('dl_addr_' + orderId).value.trim();
+
+    // Format pickupTime for visning, og lagre rå ISO i pickupTimeISO for redigering
+    let pickupTime = '';
+    let pickupTimeISO = '';
+    if (timeRaw) {
+      try {
+        const d = new Date(timeRaw);
+        if (!isNaN(d.getTime())) {
+          pickupTime = d.toLocaleString('nb-NO', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+          pickupTimeISO = timeRaw;
+        }
+      } catch {}
+    }
+
+    await api.put(`/api/orders/${orderId}`, {
+      pickupPlace: place,
+      pickupTime,
+      pickupTimeISO,
+      deliveryAddress: addr,
+    });
+    renderAll();
   }
 
   function renderArchive(orders) {

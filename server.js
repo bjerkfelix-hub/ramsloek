@@ -354,8 +354,8 @@ app.put('/api/orders/:id', requireAdmin, async (req, res) => {
 
     const VALID_ORDER_STATUSES = new Set(['venter', 'i_prosess', 'bekreftet', 'avbestilt', 'arkivert']);
     const fieldLimits = {
-      name: 100, phone: 20, email: 100, delivery: 100,
-      status: 50, pickupPlace: 100, pickupTime: 100,
+      name: 100, phone: 20, email: 100, delivery: 100, deliveryAddress: 200,
+      status: 50, pickupPlace: 100, pickupTime: 100, pickupTimeISO: 30,
       adminNote: 500, note: 500,
       boxId: 100, bagId: 100, paid: 10, paidAt: 50
     };
