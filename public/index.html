@@ -62,6 +62,8 @@
   </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    .lucide { width: 1em; height: 1em; vertical-align: -0.125em; display: inline-block; stroke-width: 2; }
+    .feature-icon .lucide { width: 2rem; height: 2rem; }
 
     :root {
       --green: #2d6a4f;
@@ -792,9 +794,9 @@
   <div style="display:flex;align-items:center;gap:0.6rem;">
     <button class="lang-toggle" id="langToggle" onclick="toggleLang()">NO</button>
     <button class="cart-btn" onclick="openCart()">
-      🛒 <span class="cart-text" data-no="Handlekurv" data-en="Cart">Handlekurv</span> <span class="cart-count" id="cartCount">0</span>
+      <i data-lucide="shopping-cart"></i> <span class="cart-text" data-no="Handlekurv" data-en="Cart">Handlekurv</span> <span class="cart-count" id="cartCount">0</span>
     </button>
-    <button class="hamburger" id="hamburgerBtn" onclick="toggleMobileMenu()" aria-label="Meny">☰</button>
+    <button class="hamburger" id="hamburgerBtn" onclick="toggleMobileMenu()" aria-label="Meny"><i data-lucide="menu"></i></button>
   </div>
 </nav>
 
@@ -803,7 +805,7 @@
 <div class="cart-drawer" id="cartDrawer">
   <div class="cart-header">
     <h3 data-no="Handlekurv" data-en="Cart">Handlekurv</h3>
-    <button class="cart-close" onclick="closeCart()">✕</button>
+    <button class="cart-close" onclick="closeCart()"><i data-lucide="x"></i></button>
   </div>
   <div class="cart-items" id="cartItems">
     <div class="cart-empty" data-no-html="Handlekurven er tom.<br>Legg til produkter for å bestille." data-en-html="Your cart is empty.<br>Add products to order.">Handlekurven er tom.<br>Legg til produkter for å bestille.</div>
@@ -823,10 +825,10 @@
   <h1 data-no-html="Fersk ramsløk,<br>plukket for deg" data-en-html="Fresh wild garlic,<br>picked for you">Fersk ramsløk,<br>plukket for deg</h1>
   <p data-no="Rett fra skogen på Nesodden til bordet ditt – høstet ved bestilling, kortreist og med minimalt klimafotavtrykk." data-en="Straight from the forest on Nesodden to your table – harvested to order, locally sourced with minimal carbon footprint.">Rett fra skogen på Nesodden til bordet ditt – høstet ved bestilling, kortreist og med minimalt klimafotavtrykk.</p>
   <div class="badge-row">
-    <span class="badge" data-no="🌿 Plukkes ved bestilling" data-en="🌿 Picked to order">🌿 Plukkes ved bestilling</span>
-    <span class="badge">📍 Nesodden</span>
-    <span class="badge" data-no="♻️ Lavt klimafotavtrykk" data-en="♻️ Low carbon footprint">♻️ Lavt klimafotavtrykk</span>
-    <span class="badge" data-no="🚫 Ingen mellomledd" data-en="🚫 No middlemen">🚫 Ingen mellomledd</span>
+    <span class="badge" data-no-html="<i data-lucide='leaf'></i> Plukkes ved bestilling" data-en-html="<i data-lucide='leaf'></i> Picked to order"><i data-lucide="leaf"></i> Plukkes ved bestilling</span>
+    <span class="badge"><i data-lucide="map-pin"></i> Nesodden</span>
+    <span class="badge" data-no-html="<i data-lucide='recycle'></i> Lavt klimafotavtrykk" data-en-html="<i data-lucide='recycle'></i> Low carbon footprint"><i data-lucide="recycle"></i> Lavt klimafotavtrykk</span>
+    <span class="badge" data-no-html="<i data-lucide='shield-check'></i> Ingen mellomledd" data-en-html="<i data-lucide='shield-check'></i> No middlemen"><i data-lucide="shield-check"></i> Ingen mellomledd</span>
   </div>
   <div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;">
     <a class="btn" href="#bestill" data-no="Bestill nå" data-en="Order now">Bestill nå</a>
@@ -843,7 +845,7 @@
 
     <div class="product-grid">
       <div class="product-card">
-        <span class="product-tag" data-no="⭐ Anbefalt" data-en="⭐ Recommended">⭐ Anbefalt</span>
+        <span class="product-tag" data-no-html="<i data-lucide='star'></i> Anbefalt" data-en-html="<i data-lucide='star'></i> Recommended"><i data-lucide="star"></i> Anbefalt</span>
         <h3 data-no="Blader + løk/stilk – Fersk" data-en="Leaves + bulb/stem – Fresh">Blader + løk/stilk – Fersk</h3>
         <p class="product-desc" data-no="Nyplukt – holder seg 5–7 dager kjølt. Best for å spise fersk, i salater og på pizza." data-en="Freshly picked – keeps 5–7 days refrigerated. Best for eating fresh, in salads and on pizza.">Nyplukt – holder seg 5–7 dager kjølt. Best for å spise fersk, i salater og på pizza.</p>
         <div class="product-price">60 kr <span>/ 100g</span></div>
@@ -936,7 +938,7 @@
         <a href="#produkter" style="color:var(--green)" data-no="Legg til produkter i handlekurven" data-en="Add products to your cart">Legg til produkter i handlekurven</a><span data-no=" før du bestiller." data-en=" before ordering."> før du bestiller.</span>
       </p>
       <p id="emptyCartMsg" style="font-family:sans-serif;font-size:0.875rem;color:#dc2626;margin-bottom:1rem;display:none;">
-        <span data-no="⚠️ Handlekurven er tom." data-en="⚠️ Your cart is empty.">⚠️ Handlekurven er tom.</span> <a href="#produkter" style="color:var(--green)" data-no="Legg til produkter" data-en="Add products">Legg til produkter</a><span data-no=" først." data-en=" first."> først.</span>
+        <span data-no-html="<i data-lucide='alert-triangle'></i> Handlekurven er tom." data-en-html="<i data-lucide='alert-triangle'></i> Your cart is empty."><i data-lucide="alert-triangle"></i> Handlekurven er tom.</span> <a href="#produkter" style="color:var(--green)" data-no="Legg til produkter" data-en="Add products">Legg til produkter</a><span data-no=" først." data-en=" first."> først.</span>
       </p>
       <form id="orderForm">
         <div class="form-group">
@@ -955,12 +957,12 @@
           <label for="delivery" data-no="Henting eller levering?" data-en="Pickup or delivery?">Henting eller levering?</label>
           <select id="delivery" required onchange="showDeliveryInfo(this.value)">
             <option value="" data-no="Velg…" data-en="Choose…">Velg…</option>
-            <option value="Henting på Nesodden (lørdag)" data-no="⭐ Henting på Nesodden (lørdag – anbefalt)" data-en="⭐ Pickup at Nesodden (Saturday – recommended)">⭐ Henting på Nesodden (lørdag – anbefalt)</option>
+            <option value="Henting på Nesodden (lørdag)" data-no="★ Henting på Nesodden (lørdag – anbefalt)" data-en="★ Pickup at Nesodden (Saturday – recommended)">★ Henting på Nesodden (lørdag – anbefalt)</option>
             <option value="Henting i Oslo" data-no="Henting i Oslo (sted avtales)" data-en="Pickup in Oslo (location TBD)">Henting i Oslo (sted avtales)</option>
             <option value="Levering i sentrale Oslo (+75 kr)" data-no="Levering i sentrale Oslo (+75 kr)" data-en="Delivery in central Oslo (+75 kr)">Levering i sentrale Oslo (+75 kr)</option>
           </select>
-          <div id="deliveryInfo" data-no-html="📍 Vi leverer innenfor <strong>Ring 2</strong> i Oslo. Vi tar kontakt etter bestilling for å avtale leveringstidspunkt." data-en-html="📍 We deliver within <strong>Ring 2</strong> in Oslo. We will contact you after ordering to arrange delivery time." style="display:none;margin-top:0.6rem;padding:0.7rem 1rem;background:var(--green-pale);border:1px solid var(--green-light);border-radius:8px;font-family:sans-serif;font-size:0.83rem;color:var(--green-dark);">
-            📍 Vi leverer innenfor <strong>Ring 2</strong> i Oslo. Vi tar kontakt etter bestilling for å avtale leveringstidspunkt.
+          <div id="deliveryInfo" data-no-html="<i data-lucide='map-pin'></i> Vi leverer innenfor <strong>Ring 2</strong> i Oslo. Vi tar kontakt etter bestilling for å avtale leveringstidspunkt." data-en-html="<i data-lucide='map-pin'></i> We deliver within <strong>Ring 2</strong> in Oslo. We will contact you after ordering to arrange delivery time." style="display:none;margin-top:0.6rem;padding:0.7rem 1rem;background:var(--green-pale);border:1px solid var(--green-light);border-radius:8px;font-family:sans-serif;font-size:0.83rem;color:var(--green-dark);">
+            <i data-lucide="map-pin"></i> Vi leverer innenfor <strong>Ring 2</strong> i Oslo. Vi tar kontakt etter bestilling for å avtale leveringstidspunkt.
           </div>
           <div id="addressBox" style="display:none;margin-top:0.8rem;">
             <label for="deliveryAddress" data-no="Din leveringsadresse" data-en="Your delivery address" style="font-family:sans-serif;font-size:0.85rem;font-weight:500;">Din leveringsadresse</label>
@@ -976,8 +978,8 @@
           <label for="termsAccept"><span data-no="Jeg har lest og aksepterer" data-en="I have read and accept">Jeg har lest og aksepterer</span> <a href="#" onclick='document.getElementById("termsModal").style.display="flex";return false;' style="color:var(--green);text-decoration:underline;"><span data-no="kjøpsvilkårene" data-en="the terms">kjøpsvilkårene</span></a></label>
         </div>
         <button type="submit" class="btn" style="width:100%;" id="orderSubmitBtn" data-no="Send bestilling" data-en="Place order">Send bestilling</button>
-        <div class="success-msg" id="successMsg" data-no-html="✅ Takk for bestillingen! Du får snart en e-post fra oss med bekreftelse og hente-/leveringstidspunkt. Betaling skjer ved henting." data-en-html="✅ Thank you for your order! You will receive a confirmation email with pickup/delivery time. Payment is made at pickup.">
-          ✅ Takk for bestillingen! Du får snart en e-post fra oss med bekreftelse og hente-/leveringstidspunkt. Betaling skjer ved henting.
+        <div class="success-msg" id="successMsg" data-no-html="<i data-lucide='circle-check'></i> Takk for bestillingen! Du får snart en e-post fra oss med bekreftelse og hente-/leveringstidspunkt. Betaling skjer ved henting." data-en-html="<i data-lucide='circle-check'></i> Thank you for your order! You will receive a confirmation email with pickup/delivery time. Payment is made at pickup.">
+          <i data-lucide="circle-check"></i> Takk for bestillingen! Du får snart en e-post fra oss med bekreftelse og hente-/leveringstidspunkt. Betaling skjer ved henting.
         </div>
       </form>
     </div>
@@ -1001,22 +1003,22 @@
     </div>
     <div class="features-grid">
       <div class="feature-card">
-        <div class="feature-icon">🌱</div>
+        <div class="feature-icon"><i data-lucide="sprout"></i></div>
         <h3 data-no="Plukkes ved bestilling" data-en="Picked to order">Plukkes ved bestilling</h3>
         <p data-no="Vi plukker først etter at du har bestilt. Ingen lagring, ingen visning – kun det ferskeste." data-en="We only pick after you have ordered. No storage, no wilting – only the freshest.">Vi plukker først etter at du har bestilt. Ingen lagring, ingen visning – kun det ferskeste.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon">📍</div>
+        <div class="feature-icon"><i data-lucide="map-pin"></i></div>
         <h3 data-no="Kortreist" data-en="Locally sourced">Kortreist</h3>
         <p data-no="Fra vår egen eiendom på Nesodden – noen av de korteste transportlinjene du kan få på mat." data-en="From our own property on Nesodden – some of the shortest supply lines you can get for food.">Fra vår egen eiendom på Nesodden – noen av de korteste transportlinjene du kan få på mat.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon">🌍</div>
+        <div class="feature-icon"><i data-lucide="globe"></i></div>
         <h3 data-no="Klimavennlig" data-en="Climate-friendly">Klimavennlig</h3>
         <p data-no="Ingen sprøytemidler, ingen produksjonsanlegg, ingen lange forsyningskjeder. Naturen gjør jobben." data-en="No pesticides, no production facility, no long supply chains. Nature does the work.">Ingen sprøytemidler, ingen produksjonsanlegg, ingen lange forsyningskjeder. Naturen gjør jobben.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon">🧑‍🌾</div>
+        <div class="feature-icon"><i data-lucide="hand-heart"></i></div>
         <h3 data-no="Direkte fra eier" data-en="Direct from owner">Direkte fra eier</h3>
         <p data-no="Ingen grossist, ingen butikk. Du handler direkte med den som plukket planten." data-en="No wholesaler, no shop. You buy directly from the person who picked the plant.">Ingen grossist, ingen butikk. Du handler direkte med den som plukket planten.</p>
       </div>
@@ -1050,8 +1052,8 @@
           <textarea id="iq_message" placeholder="Fortell oss hva du lurer på eller trenger…" data-ph-no="Fortell oss hva du lurer på eller trenger…" data-ph-en="Tell us what you need or are wondering about…" style="min-height:120px;" required></textarea>
         </div>
         <button type="submit" class="btn" style="width:100%;" data-no="Send henvendelse" data-en="Send inquiry">Send henvendelse</button>
-        <div class="success-msg" id="inquirySuccess" style="margin-top:1rem;" data-no="✅ Takk! Vi svarer deg innen 24 timer." data-en="✅ Thanks! We'll reply within 24 hours.">
-          ✅ Takk! Vi svarer deg innen 24 timer.
+        <div class="success-msg" id="inquirySuccess" style="margin-top:1rem;" data-no-html="<i data-lucide='circle-check'></i> Takk! Vi svarer deg innen 24 timer." data-en-html="<i data-lucide='circle-check'></i> Thanks! We'll reply within 24 hours.">
+          <i data-lucide="circle-check"></i> Takk! Vi svarer deg innen 24 timer.
         </div>
       </form>
     </div>
@@ -1075,8 +1077,8 @@
           <input type="text" id="ct_subject" placeholder="F.eks. spørsmål om levering, priser, sesong…" data-ph-no="F.eks. spørsmål om levering, priser, sesong…" data-ph-en="E.g. questions about delivery, prices, season…" required />
         </div>
         <button type="submit" class="btn" style="width:100%;" data-no="Send" data-en="Send">Send</button>
-        <div class="success-msg" id="contactSuccess" style="margin-top:1rem;" data-no="✅ Takk! Vi tar kontakt med deg snart." data-en="✅ Thanks! We'll be in touch soon.">
-          ✅ Takk! Vi tar kontakt med deg snart.
+        <div class="success-msg" id="contactSuccess" style="margin-top:1rem;" data-no-html="<i data-lucide='circle-check'></i> Takk! Vi tar kontakt med deg snart." data-en-html="<i data-lucide='circle-check'></i> Thanks! We'll be in touch soon.">
+          <i data-lucide="circle-check"></i> Takk! Vi tar kontakt med deg snart.
         </div>
       </form>
     </div>
@@ -1086,7 +1088,7 @@
 <!-- VILKÅR MODAL -->
 <div id="termsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:2000;align-items:center;justify-content:center;">
   <div style="background:var(--white);border-radius:14px;padding:2.5rem;width:min(640px,92vw);max-height:85vh;overflow-y:auto;position:relative;font-family:sans-serif;">
-    <button onclick="document.getElementById('termsModal').style.display='none'" style="position:absolute;top:1rem;right:1.2rem;background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--muted);">✕</button>
+    <button onclick="document.getElementById('termsModal').style.display='none'" style="position:absolute;top:1rem;right:1.2rem;background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--muted);"><i data-lucide="x"></i></button>
     <h2 data-no="Kjøpsvilkår – Nesodden Ramsløk" data-en="Terms & Conditions – Nesodden Ramsløk" style="font-size:1.2rem;margin-bottom:1.5rem;color:var(--text);">Kjøpsvilkår – Nesodden Ramsløk</h2>
 
     <h3 data-no="1. Selger" data-en="1. Seller" style="font-size:0.95rem;margin-bottom:0.4rem;color:var(--text);">1. Selger</h3>
@@ -1123,7 +1125,7 @@
 
 <!-- COOKIE-BANNER -->
 <div id="cookieBanner">
-  <p data-no="🍪 Vi bruker kun teknisk nødvendige data lokalt i nettleseren din (handlekurv, språkvalg, fargemodus). Ingen sporings-cookies eller analyse." data-en="🍪 We only store technically necessary data locally in your browser (cart, language preference, colour theme). No tracking cookies or analytics.">🍪 Vi bruker kun teknisk nødvendige data lokalt i nettleseren din (handlekurv, språkvalg, fargemodus). Ingen sporings-cookies eller analyse.</p>
+  <p data-no-html="<i data-lucide='cookie'></i> Vi bruker kun teknisk nødvendige data lokalt i nettleseren din (handlekurv, språkvalg, fargemodus). Ingen sporings-cookies eller analyse." data-en-html="<i data-lucide='cookie'></i> We only store technically necessary data locally in your browser (cart, language preference, colour theme). No tracking cookies or analytics."><i data-lucide="cookie"></i> Vi bruker kun teknisk nødvendige data lokalt i nettleseren din (handlekurv, språkvalg, fargemodus). Ingen sporings-cookies eller analyse.</p>
   <button onclick="acceptCookies()" data-no="Jeg forstår" data-en="Got it">Jeg forstår</button>
 </div>
 
@@ -1132,6 +1134,7 @@
   <p>© 2026 Nesodden Ramsløk &nbsp;·&nbsp; Dont Panic AS &nbsp;·&nbsp; <a href="#" id="termsLink" data-no="Kjøpsvilkår" data-en="Terms" style="color:var(--muted);text-decoration:underline;">Kjøpsvilkår</a></p>
 </footer>
 
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <script>
   // ── COOKIE-BANNER ──
   (function() {
@@ -1159,6 +1162,7 @@
     });
     document.getElementById('langToggle').textContent = lang === 'en' ? 'EN' : 'NO';
     document.documentElement.lang = lang === 'en' ? 'en' : 'no';
+    if (typeof lucide !== 'undefined') lucide.createIcons();
   }
 
   function toggleLang() {
@@ -1171,10 +1175,12 @@
     const menu = document.querySelector('.nav-links');
     const btn = document.getElementById('hamburgerBtn');
     const isOpen = menu.classList.toggle('open');
-    btn.textContent = isOpen ? '✕' : '☰';
+    btn.innerHTML = isOpen ? '<i data-lucide="x"></i>' : '<i data-lucide="menu"></i>';
+    lucide.createIcons({nodes: [btn]});
   }
 
   document.addEventListener('DOMContentLoaded', function() {
+    lucide.createIcons();
     if (currentLang === 'en') applyLang('en');
     document.getElementById('termsLink').addEventListener('click', function(e) {
       e.preventDefault();
@@ -1184,7 +1190,9 @@
     document.querySelectorAll('.nav-links a').forEach(function(a) {
       a.addEventListener('click', function() {
         document.querySelector('.nav-links').classList.remove('open');
-        document.getElementById('hamburgerBtn').textContent = '☰';
+        const hb = document.getElementById('hamburgerBtn');
+        hb.innerHTML = '<i data-lucide="menu"></i>';
+        lucide.createIcons({nodes: [hb]});
       });
     });
   });
@@ -1210,9 +1218,10 @@
     } else {
       cart.push({ id, name, price, unit, qty: 1 });
     }
-    btn.textContent = currentLang === 'en' ? '✓ Added' : '✓ Lagt til';
+    btn.innerHTML = currentLang === 'en' ? '<i data-lucide="check"></i> Added' : '<i data-lucide="check"></i> Lagt til';
+    lucide.createIcons({nodes: [btn]});
     btn.classList.add('added');
-    setTimeout(() => { btn.textContent = currentLang === 'en' ? '+ Add to cart' : '+ Legg i kurv'; btn.classList.remove('added'); }, 1500);
+    setTimeout(() => { btn.innerHTML = currentLang === 'en' ? '+ Add to cart' : '+ Legg i kurv'; btn.classList.remove('added'); }, 1500);
     saveCart();
     try { updateCartUI(); } catch(e) { console.error('updateCartUI feilet:', e); }
     openCart();
@@ -1321,7 +1330,8 @@
       });
       if (!res.ok) throw new Error();
       setTimeout(() => {
-        btn.textContent = 'Sendt ✓';
+        btn.innerHTML = 'Sendt <i data-lucide="check"></i>';
+        lucide.createIcons({nodes: [btn]});
         document.getElementById('successMsg').style.display = 'block';
         this.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = true);
         cart = [];
@@ -1353,7 +1363,8 @@
       });
       if (!res.ok) throw new Error();
       setTimeout(() => {
-        btn.textContent = 'Sendt ✓';
+        btn.innerHTML = 'Sendt <i data-lucide="check"></i>';
+        lucide.createIcons({nodes: [btn]});
         document.getElementById('contactSuccess').style.display = 'block';
         this.querySelectorAll('input, button').forEach(el => el.disabled = true);
       }, 1500);
@@ -1386,7 +1397,8 @@
       });
       if (!res.ok) throw new Error();
       setTimeout(() => {
-        btn.textContent = 'Sendt ✓';
+        btn.innerHTML = 'Sendt <i data-lucide="check"></i>';
+        lucide.createIcons({nodes: [btn]});
         document.getElementById('inquirySuccess').style.display = 'block';
         this.querySelectorAll('input, textarea, button').forEach(el => el.disabled = true);
       }, 1500);
