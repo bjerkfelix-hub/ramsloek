@@ -1186,7 +1186,7 @@
     }
     if (freshLogin) {
       const toast = document.getElementById('welcomeToast');
-      document.getElementById('welcomeToastTitle').innerHTML = `Hei, ${esc(currentUser.display)}! <i data-lucide="hand"></i>`;
+      document.getElementById('welcomeToastTitle').textContent = `Hei, ${currentUser.display}!`;
       document.getElementById('welcomeToastMsg').textContent = `Innlogget som ${currentUser.role === 'admin' ? 'admin' : 'leveranser'}`;
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 4000);
@@ -1642,7 +1642,7 @@
       resultsEl.innerHTML = matches.slice(0, 8).map(b =>
         `<div class="ds-bag-option" onclick="edit_selectBag('${b.id}')">
           <span style="font-weight:600;color:var(--purple);font-family:monospace;"><i data-lucide="package"></i> ${esc(b.sporingsnummer)}</span>
-          <span style="color:var(--muted);font-size:0.78rem;margin-left:0.6rem;">${b.vekt}g · ${b.dato || '–'}${b.status === 'tildelt' ? ' · <i data-lucide="alert-triangle"></i> Allerede tildelt' : ''}</span>
+          <span style="color:var(--muted);font-size:0.78rem;margin-left:0.6rem;">${b.vekt}g · ${b.dato || '–'}${b.status === 'tildelt' ? ' · <i data-lucide="triangle-alert"></i> Allerede tildelt' : ''}</span>
         </div>`
       ).join('');
     }
@@ -2458,7 +2458,7 @@
           <span><i data-lucide="phone"></i> <a href="tel:${esc(o.phone)}">${esc(o.phone)}</a></span>
         </div>
         <div class="card-actions">
-          <button class="action-btn btn-confirm" onclick="setStatus('${o.id}','bekreftet')"><i data-lucide="undo-2"></i> Gjenopprett</button>
+          <button class="action-btn btn-confirm" onclick="setStatus('${o.id}','bekreftet')"><i data-lucide="undo"></i> Gjenopprett</button>
           <button class="action-btn btn-delete" onclick="deleteOrder('${o.id}')"><i data-lucide="trash-2"></i></button>
         </div>
       </div>`;
