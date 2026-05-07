@@ -505,6 +505,18 @@ app.post('/api/admin/sales', requireAdmin, async (req, res) => {
   }
 });
 
+app.delete('/api/admin/sales/:id', requireAdmin, async (req, res) => {
+  try {
+    const { rowCount } = await pool.query('DELETE FROM sales WHERE id = $1', [req.params.id]);
+    if (!rowCount) return res.status(404).json({ error: 'Salg ikke funnet' });
+    auditLog(req.user.username, 'slett', 'salg', req.params.id);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('DELETE /api/admin/sales feil:', err);
+    res.status(500).json({ error: 'Serverfeil' });
+  }
+});
+
 // ── Henvendelses-API ──
 app.get('/api/inquiries', requireAdmin, async (req, res) => {
   try {

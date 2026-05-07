@@ -1941,6 +1941,7 @@
             <th style="padding:0.6rem 0.8rem;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border);">Kunde</th>
             <th style="padding:0.6rem 0.8rem;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border);">Plukket av</th>
             <th style="padding:0.6rem 0.8rem;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border);">Notat</th>
+            <th style="padding:0.6rem 0.8rem;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border);width:3rem;"></th>
           </tr>
         </thead>
         <tbody>
@@ -1953,10 +1954,22 @@
               <td style="padding:0.55rem 0.8rem;">${esc(s.customer || '')}</td>
               <td style="padding:0.55rem 0.8rem;color:${s.picked_by ? 'var(--text)' : 'var(--muted)'};">${s.picked_by ? esc(s.picked_by) : '–'}</td>
               <td style="padding:0.55rem 0.8rem;color:var(--muted);font-size:0.8rem;">${s.note ? esc(s.note) : ''}</td>
+              <td style="padding:0.55rem 0.8rem;text-align:center;"><button class="action-btn btn-delete" style="padding:0.2rem 0.5rem;font-size:0.75rem;" onclick="deleteSale('${s.id}')"><i data-lucide="trash-2"></i></button></td>
             </tr>`;
           }).join('')}
         </tbody>
       </table>`;
+  }
+
+  async function deleteSale(id) {
+    if (!confirm('Slett dette salget permanent?')) return;
+    try {
+      await api.delete(`/api/admin/sales/${id}`);
+      fetchAndRenderSales();
+    } catch (err) {
+      console.error('deleteSale feil:', err);
+      alert('Kunne ikke slette salget.');
+    }
   }
 
   async function submitSale() {
