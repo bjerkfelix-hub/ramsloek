@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Nesodden Ramsløk – salgsside",
   "main": "server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "start": "node server.js"
   },
@@ -11,6 +14,6 @@
     "pg": "^8.11.3",
     "express-rate-limit": "^7.1.5",
     "helmet": "^7.1.0",
-    "bcrypt": "^5.1.1"
+    "bcryptjs": "^2.4.3"
   }
 }
