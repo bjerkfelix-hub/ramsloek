@@ -963,6 +963,7 @@
     </div>
     <button class="login-btn" onclick="login()">Logg inn</button>
     <div class="login-error" id="loginError">Feil brukernavn eller passord.</div>
+    <div class="login-error" id="loginErrorDetail" style="font-size:0.72rem;margin-top:0.3rem;"></div>
   </div>
 </div>
 
@@ -1133,18 +1134,23 @@
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <script>
   let currentUser = null;
-  document.addEventListener('DOMContentLoaded', () => lucide.createIcons());
+  document.addEventListener('DOMContentLoaded', () => { try { lucide.createIcons(); } catch(e) { console.warn('Lucide ikke lastet:', e.message); } });
 
   // ── AUTH ──
   async function login() {
     const username = document.getElementById('usernameInput').value.trim();
     const pw       = document.getElementById('passwordInput').value;
+    const errEl    = document.getElementById('loginError');
+    const detailEl = document.getElementById('loginErrorDetail');
+    errEl.style.display = 'none';
+    detailEl.style.display = 'none';
     try {
-      const data = await fetch('/api/login', {
+      const r    = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password: pw })
-      }).then(r => r.json());
+      });
+      const data = await r.json();
       if (data.ok) {
         sessionStorage.setItem('admin_token',   data.token);
         sessionStorage.setItem('admin_user',    username);
@@ -1154,10 +1160,20 @@
         currentUser = { username, role: data.role, display: data.display, initials: data.initials };
         showAdmin(true);
       } else {
-        document.getElementById('loginError').style.display = 'block';
+        errEl.style.display = 'block';
+        if (r.status === 429) {
+          detailEl.textContent = 'For mange forsøk – vent 15 minutter og prøv igjen.';
+          detailEl.style.display = 'block';
+        } else if (r.status >= 500) {
+          detailEl.textContent = `Serverfeil (${r.status}) – sjekk Railway-logger.`;
+          detailEl.style.display = 'block';
+        }
       }
-    } catch {
-      document.getElementById('loginError').style.display = 'block';
+    } catch (e) {
+      errEl.textContent = 'Kunne ikke nå serveren – er Railway oppe?';
+      errEl.style.display = 'block';
+      detailEl.textContent = e.message;
+      detailEl.style.display = 'block';
     }
   }
 
@@ -1211,13 +1227,13 @@
       localStorage.removeItem('ramsloek_theme');
       const btn = document.getElementById('themeToggleBtn');
       btn.innerHTML = '<i data-lucide="sun"></i> Lys modus';
-      lucide.createIcons({nodes: [btn]});
+      try { lucide.createIcons({nodes: [btn]}); } catch(e) {}
     } else {
       html.setAttribute('data-theme', 'light');
       localStorage.setItem('ramsloek_theme', 'light');
       const btn = document.getElementById('themeToggleBtn');
       btn.innerHTML = '<i data-lucide="moon"></i> Mørk modus';
-      lucide.createIcons({nodes: [btn]});
+      try { lucide.createIcons({nodes: [btn]}); } catch(e) {}
     }
   }
   // Sync button label with saved theme

@@ -17,7 +17,7 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc:     ["'self'"],
-      scriptSrc:      ["'self'", "'unsafe-inline'"],   // inline-script påkrevd av HTML-filene
+      scriptSrc:      ["'self'", "'unsafe-inline'", 'https://unpkg.com'],   // unpkg.com = Lucide-ikoner
       scriptSrcAttr:  ["'unsafe-inline'"],             // onclick/onchange-attributter
       styleSrc:       ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
       fontSrc:        ["'self'", 'https://fonts.gstatic.com'],
