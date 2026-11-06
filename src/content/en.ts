@@ -26,7 +26,7 @@ export const en: Dictionary = {
     story: {
       title: 'Our story – Nesodden Ramsløk',
       description:
-        'From the forest floor on Nesodden to the market stall in Oslo the same day. How we pick and check our wild garlic, and how to tell it from lily of the valley.',
+        'From a private estate on Nesodden to the market stall in Oslo. How we pick and check our wild garlic, and how to tell it from lily of the valley.',
     },
     recipes: {
       title: 'Wild garlic recipes – Nesodden Ramsløk',
@@ -103,40 +103,41 @@ export const en: Dictionary = {
   },
   story: {
     heading: 'Our story',
-    lead: 'From the forest floor on Nesodden to the market stall in Oslo, the same day.',
+    lead: 'From a private estate on Nesodden to the market stall in Oslo.',
     sections: [
       {
         heading: 'Wild garlic from a private estate',
         paragraphs: [
-          'Our wild garlic grows wild on a private estate on Nesodden, in deciduous woodland where it comes up every year in early spring. We do not cultivate it. We pick what nature provides, and never more than the plants can sustain from one year to the next.',
+          'Our wild garlic comes from a private estate on Nesodden.',
         ],
       },
       {
         heading: 'Picked by hand',
         paragraphs: [
-          'Everything is picked by hand, leaf by leaf. It is slower than using a machine, but we see what we are holding, and the leaves are not crushed.',
+          'The wild garlic is picked by hand.',
         ],
       },
       {
         heading: 'Sorted and checked',
         paragraphs: [
-          'Before anything is packed, we go through the whole batch and sort it. We look especially for lily of the valley, which grows in some of the same places and can resemble young wild garlic. Lily of the valley is poisonous, so this check is the most important thing we do. Anything even slightly uncertain is thrown away.',
+          'Every batch is sorted and checked for lily of the valley. Lily of the valley is poisonous and can resemble wild garlic, so this check is the most important step before the wild garlic is sold.',
         ],
       },
       {
-        heading: 'Same day to Oslo',
+        heading: 'Fresh to Oslo',
         paragraphs: [
-          'Wild garlic is best fresh. That is why we pick, sort and pack as close to market day as we can, and bring it to Bondens marked in Oslo. See Markets for where and when to find us.',
+          'Wild garlic is best fresh. We sell it fresh at Bondens marked in Oslo. See Markets for where and when to find us.',
         ],
       },
     ],
     safetyHeading: 'How to tell wild garlic from lily of the valley',
     safetyIntro:
-      'Do you pick your own, or just want to know what you are buying? These three signs help, but use them together. If in doubt, leave it or throw it away.',
+      'Do you pick your own, or just want to know what you are buying? These signs help, but use them together. If in doubt, do not eat it.',
     safetyTips: [
       'Smell: Crush a leaf between your fingers. Wild garlic clearly smells of garlic. Lily of the valley does not.',
       'Leaf stalk: Wild garlic leaves grow singly, each on its own stalk up from the ground.',
       'Leaf pair: Lily of the valley usually has two leaves close together, wrapped around the same stem.',
+      'Flowers: Wild garlic has white, star-shaped flowers in an umbel. Lily of the valley has small white, bell-shaped flowers hanging along one stalk.',
     ],
     safetyAdvice:
       'Buy wild garlic from sellers who check and sort their batches, and who can tell you how. The smell test alone is not enough: if you have handled garlic or wild garlic, the smell can linger on your fingers and fool you.',

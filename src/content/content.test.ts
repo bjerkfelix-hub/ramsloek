@@ -83,4 +83,25 @@ describe('recipes', () => {
     expect(r.steps.no.join(' ')).toMatch(/2[–-]3 ?%/)
     expect(r.steps.en.join(' ')).toMatch(/2[–-]3 ?%/)
   })
+  it('ferment recipe mentions mould / mugg', () => {
+    const r = recipes.find((x) => x.slug === 'lakefermentert-ramslok')!
+    expect(r.steps.no.join(' ')).toMatch(/mugg/i)
+    expect(r.steps.en.join(' ')).toMatch(/mould/i)
+  })
+  it('oil recipe mentions refrigeration, 3-4 days and botulism', () => {
+    const r = recipes.find((x) => x.slug === 'ramslokolje')!
+    expect(r.steps.no.join(' ')).toMatch(/kjøleskap/)
+    expect(r.steps.no.join(' ')).toMatch(/botulisme/)
+    expect(r.steps.no.join(' ')).toMatch(/3–4 dager/)
+    expect(r.steps.en.join(' ')).toMatch(/refrigerated/)
+    expect(r.steps.en.join(' ')).toMatch(/botulism/)
+    expect(r.steps.en.join(' ')).toMatch(/3–4 days/)
+  })
+  it('pesto and butter say to keep refrigerated', () => {
+    for (const slug of ['ramslokpesto', 'ramsloksmor']) {
+      const r = recipes.find((x) => x.slug === slug)!
+      expect(r.steps.no.join(' ')).toMatch(/kjøleskap/)
+      expect(r.steps.en.join(' ')).toMatch(/refrigerated/)
+    }
+  })
 })

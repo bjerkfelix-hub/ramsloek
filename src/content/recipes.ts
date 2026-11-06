@@ -38,7 +38,7 @@ export const recipes: Recipe[] = [
         'Hakk ramsløk, kjerner og ost grovt i en foodprosessor eller med stavmikser.',
         'Tilsett olje i en tynn stråle mens du kjører til du har ønsket konsistens.',
         'Smak til med sitronsaft, salt og pepper.',
-        'Server til nykokt pasta. Rør inn en skje av pastavannet så pestoen blir silkemyk. Oppbevares kjølig i et rent, tett glass med et lag olje over, og bør brukes innen 5 dager.',
+        'Server til nykokt pasta. Rør inn en skje av pastavannet så pestoen blir silkemyk. Oppbevares i kjøleskap i et rent, tett glass med et lag olje over, og brukes innen 5 dager. Pestoen kan fryses for lengre oppbevaring.',
       ],
       en: [
         'Rinse the wild garlic well and pat it dry in a clean kitchen towel. Remove any tough stalks.',
@@ -46,7 +46,7 @@ export const recipes: Recipe[] = [
         'Roughly chop the leaves, seeds and cheese in a food processor or with a stick blender.',
         'Add the oil in a thin stream while blending, until you reach the consistency you like.',
         'Season with lemon juice, salt and pepper.',
-        'Serve with freshly cooked pasta, stirring in a spoonful of the pasta water to make it silky. Keep chilled in a clean, airtight jar with a layer of oil on top and use within 5 days.',
+        'Serve with freshly cooked pasta, stirring in a spoonful of the pasta water to make it silky. Keep refrigerated in a clean, airtight jar with a layer of oil on top and use within 5 days. The pesto can be frozen for longer storage.',
       ],
     },
   },
@@ -67,17 +67,17 @@ export const recipes: Recipe[] = [
     steps: {
       no: [
         'Skyll ramsløken, tørk den godt og hakk den veldig fint.',
-        'Pisk smøret mykt med en gaffel eller visp, og rør inn ramsløk, sitronsaft, salt og pepper.',
+        'Visp smøret luftig med en gaffel eller visp, og rør inn ramsløk, sitronsaft, salt og pepper.',
         'Legg smøret på bakepapir, form det til en rull og vri endene igjen.',
         'Kjøl i minst 1 time til smøret har stivnet.',
-        'Skjær i skiver og legg på varm mat. Smøret holder seg 1 uke i kjøleskapet, eller 3 måneder i fryseren.',
+        'Skjær i skiver og legg på varm mat. Oppbevares i kjøleskap og brukes innen 1 uke. Smøret kan fryses i opptil 3 måneder.',
       ],
       en: [
         'Rinse the wild garlic, dry it well and chop it very finely.',
-        'Beat the butter soft with a fork or whisk, then stir in the wild garlic, lemon juice, salt and pepper.',
+        'Whip the butter until soft and fluffy with a fork or whisk, then stir in the wild garlic, lemon juice, salt and pepper.',
         'Spoon the butter onto baking paper, shape it into a log and twist the ends closed.',
         'Chill for at least 1 hour until firm.',
-        'Slice and place on hot food. The butter keeps for 1 week in the fridge, or 3 months in the freezer.',
+        'Slice and place on hot food. Keep refrigerated and use within 1 week. The butter can be frozen for up to 3 months.',
       ],
     },
   },
@@ -88,7 +88,7 @@ export const recipes: Recipe[] = [
     servings: 10,
     title: { no: 'Ramsløkolje', en: 'Wild garlic oil' },
     intro: {
-      no: 'Klar grønn olje til å dryppe over supper, salat, ost og fisk. Bladene blancheres først, så fargen holder seg.',
+      no: 'En klar grønn olje til å dryppe over supper, salat, ost og fisk. Bladene blancheres først, så fargen holder seg.',
       en: 'A vivid green oil to drizzle over soups, salads, cheese and fish. The leaves are blanched first so the colour holds.',
     },
     ingredients: {
@@ -101,14 +101,14 @@ export const recipes: Recipe[] = [
         'Klem ut så mye vann du kan, og tørk bladene helt tørre. Vann i oljen gjør at den ikke holder seg.',
         'Blend ramsløk, olje og salt på høy hastighet i 1–2 minutter til oljen er dypgrønn.',
         'Sil oljen gjennom en fin sil eller kaffefilter. La den dryppe av seg selv, uten å presse.',
-        'Hell på et rent, tørt glass og oppbevar i kjøleskapet. Bruk innen 1 uke. Ramsløk i olje må ikke stå i romtemperatur, fordi det gir risiko for botulisme. Du kan fryse oljen i isbitbrett for å ha den lenger.',
+        'Hell på et rent, tørt glass. Oppbevares i kjøleskap og brukes innen 3–4 dager. Ramsløk i olje må ikke stå i romtemperatur, fordi det gir risiko for botulisme. Du kan fryse oljen i isbitbrett for å ha den lenger.',
       ],
       en: [
         'Bring a large pot of water to the boil. Add the wild garlic for 10 seconds, then plunge it straight into ice-cold water.',
         'Squeeze out as much water as you can and dry the leaves completely. Water in the oil will shorten its keeping time.',
         'Blend the leaves, oil and salt on high speed for 1–2 minutes until the oil is deep green.',
         'Strain the oil through a fine sieve or a coffee filter. Let it drip through on its own, without pressing.',
-        'Pour into a clean, dry jar and keep in the fridge. Use within 1 week. Wild garlic in oil must not be kept at room temperature because of the risk of botulism. You can freeze the oil in an ice cube tray to keep it longer.',
+        'Pour into a clean, dry jar. Keep refrigerated and use within 3–4 days. Wild garlic in oil must not be kept at room temperature because of the risk of botulism. You can freeze the oil in an ice cube tray to keep it longer.',
       ],
     },
   },
@@ -205,15 +205,15 @@ export const recipes: Recipe[] = [
     ingredients: {
       no: [
         '200 g ramsløkblader',
-        '300 g (3 dl) kaldt, kokt vann',
-        '12 g havsalt uten tilsetninger (ca. 2,4 % av totalvekten)',
-        '1 rent glass på ca. 0,5 liter med tettsluttende lokk',
+        '600 g (6 dl) kaldt, kokt vann',
+        '20 g havsalt uten tilsetninger (ca. 2,5 % av totalvekten)',
+        '1 rent glass på ca. 1 liter med tettsluttende lokk',
       ],
       en: [
         '200 g wild garlic leaves',
-        '300 g (300 ml) cold, boiled water',
-        '12 g additive-free sea salt (about 2.4% of the total weight)',
-        '1 clean jar of about 500 ml with an airtight lid',
+        '600 g (600 ml) cold, boiled water',
+        '20 g additive-free sea salt (about 2.5% of the total weight)',
+        '1 clean jar of about 1 litre with an airtight lid',
       ],
     },
     steps: {

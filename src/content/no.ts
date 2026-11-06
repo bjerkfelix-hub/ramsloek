@@ -26,7 +26,7 @@ export const no: Dictionary = {
     story: {
       title: 'Historien – Nesodden Ramsløk',
       description:
-        'Fra skogbunnen på Nesodden til markedsbordet i Oslo samme dag. Slik plukker og kontrollerer vi ramsløken, og slik skiller du den fra liljekonvall.',
+        'Fra en privat eiendom på Nesodden til markedsbordet i Oslo. Slik plukker og kontrollerer vi ramsløken, og slik skiller du den fra liljekonvall.',
     },
     recipes: {
       title: 'Oppskrifter med ramsløk – Nesodden Ramsløk',
@@ -103,40 +103,41 @@ export const no: Dictionary = {
   },
   story: {
     heading: 'Historien vår',
-    lead: 'Fra skogbunnen på Nesodden til markedsbordet i Oslo, samme dag.',
+    lead: 'Fra en privat eiendom på Nesodden til markedsbordet i Oslo.',
     sections: [
       {
         heading: 'Ramsløk fra en privat eiendom',
         paragraphs: [
-          'Ramsløken vår vokser vilt på en privat eiendom på Nesodden, i løvskog der den kommer opp hvert år tidlig om våren. Vi dyrker den ikke. Vi plukker det naturen gir, og vi tar ikke mer enn at planten klarer seg fra år til år.',
+          'Ramsløken vår kommer fra en privat eiendom på Nesodden.',
         ],
       },
       {
         heading: 'Plukket for hånd',
         paragraphs: [
-          'Alt plukkes for hånd, blad for blad. Det går langsommere enn med maskin, men vi ser hva vi holder i, og bladene blir ikke knust.',
+          'Ramsløken plukkes for hånd.',
         ],
       },
       {
         heading: 'Sortert og kontrollert',
         paragraphs: [
-          'Før noe pakkes, går vi gjennom hele partiet og sorterer det. Vi leter spesielt etter liljekonvall, som vokser noen av de samme stedene og kan ligne på ramsløk når den er ung. Liljekonvall er giftig, og derfor er denne kontrollen det viktigste vi gjør. Det som er det minste usikkert, kastes.',
+          'Hver sending sorteres og kontrolleres for liljekonvall. Liljekonvall er giftig og kan ligne på ramsløk, så denne kontrollen er det viktigste steget før ramsløken selges.',
         ],
       },
       {
-        heading: 'Samme dag til Oslo',
+        heading: 'Fersk til Oslo',
         paragraphs: [
-          'Ramsløk er best når den er fersk. Derfor plukker vi, sorterer og pakker så nær markedsdagen som mulig, og tar den med til Bondens marked i Oslo. Se under Marked hvor og når du finner oss.',
+          'Ramsløk er best når den er fersk. Vi selger den fersk på Bondens marked i Oslo. Se under Marked hvor og når du finner oss.',
         ],
       },
     ],
     safetyHeading: 'Slik skiller du ramsløk fra liljekonvall',
     safetyIntro:
-      'Plukker du selv, eller vil du bare vite hva du kjøper? Disse tre tegnene hjelper, men bruk dem sammen. Er du i tvil, la den stå eller kast den.',
+      'Plukker du selv, eller vil du bare vite hva du kjøper? Disse tegnene hjelper, men bruk dem sammen. Er du i tvil, skal du ikke spise den.',
     safetyTips: [
       'Lukt: Knus et blad mellom fingrene. Ramsløk lukter tydelig av hvitløk. Liljekonvall lukter ikke av hvitløk.',
       'Bladstilk: Ramsløkbladene vokser enkeltvis, hvert på sin egen stilk opp fra bakken.',
       'Bladpar: Liljekonvall har vanligvis to blad som sitter tett sammen og er viklet rundt samme stengel.',
+      'Blomster: Ramsløk har hvite, stjerneformede blomster samlet i en skjerm. Liljekonvall har små hvite, klokkeformede blomster som henger langs én stilk.',
     ],
     safetyAdvice:
       'Kjøp ramsløk fra selgere som kontrollerer og sorterer partiene sine, og som kan fortelle deg hvordan. Luktetesten alene er ikke nok: hvis du har håndtert hvitløk eller ramsløk, kan lukten sitte på fingrene og lure deg.',
@@ -158,7 +159,7 @@ export const no: Dictionary = {
     heading: 'Personvern',
     updated: 'Sist oppdatert: november 2026',
     intro:
-      'Denne siden forklarer hva vi gjør med opplysningene dine hvis du melder deg på sesongvarsel. Vi bruker ikke sporingsinfokapsler eller analyseverktøy på nettsiden.',
+      'Denne siden forklarer hva vi gjør med opplysningene dine hvis du melder deg på sesongvarsel. Vi bruker ikke informasjonskapsler for sporing eller analyseverktøy på nettsiden.',
     sections: [
       {
         heading: 'Hva vi lagrer',
