@@ -12,11 +12,13 @@ export function ActionForm({
   children,
   submitLabel = 'Lagre',
   resetOnSuccess = false,
+  disabled = false,
 }: {
   action: (form: FormData) => Promise<ActionResult>
   children: React.ReactNode
   submitLabel?: string
   resetOnSuccess?: boolean
+  disabled?: boolean
 }) {
   const [result, setResult] = useState<ActionResult | null>(null)
   const [pending, startTransition] = useTransition()
@@ -45,7 +47,7 @@ export function ActionForm({
           Lagret.
         </p>
       )}
-      <button type="submit" disabled={pending} className={buttonClass}>
+      <button type="submit" disabled={pending || disabled} className={buttonClass}>
         {submitLabel}
       </button>
     </form>
