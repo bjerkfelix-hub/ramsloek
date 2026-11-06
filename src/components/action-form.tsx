@@ -15,6 +15,7 @@ export function ActionForm({
   disabled = false,
   onResult,
   testId,
+  successMessage = 'Lagret.',
 }: {
   action: (form: FormData) => Promise<ActionResult>
   children: React.ReactNode
@@ -23,6 +24,7 @@ export function ActionForm({
   disabled?: boolean
   onResult?: (res: ActionResult) => void
   testId?: string
+  successMessage?: string
 }) {
   const [result, setResult] = useState<ActionResult | null>(null)
   const [pending, startTransition] = useTransition()
@@ -49,7 +51,7 @@ export function ActionForm({
       )}
       {result?.ok && (
         <p role="status" className="text-sm text-green-800">
-          Lagret.
+          {successMessage}
         </p>
       )}
       <button type="submit" disabled={pending || disabled} className={buttonClass}>

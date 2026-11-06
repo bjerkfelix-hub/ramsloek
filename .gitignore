@@ -51,3 +51,6 @@ next-env.d.ts
 
 # scratch
 .superpowers/
+
+# local artifacts
+sample-label.pdf

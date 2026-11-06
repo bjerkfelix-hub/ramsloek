@@ -63,7 +63,7 @@ test('owner creates products with GTIN validation and duplicate detection', asyn
   await admin.from('products').delete().eq('gtin', '07038010055713')
 })
 
-test('owner invites a picker', async ({ page }) => {
+test('owner adds a picker', async ({ page }) => {
   const admin = adminClient()
   const { data } = await admin.auth.admin.listUsers({ perPage: 1000 })
   for (const u of data.users.filter((u) => u.email === 'ny@test.local')) await admin.auth.admin.deleteUser(u.id)
@@ -73,7 +73,10 @@ test('owner invites a picker', async ({ page }) => {
   await page.getByLabel('E-post').fill('ny@test.local')
   await page.getByLabel('Navn').fill('Ny Plukker')
   await page.getByLabel('Rolle').selectOption('picker')
-  await page.getByRole('button', { name: 'Inviter' }).click()
+  await page.getByRole('button', { name: 'Legg til bruker' }).click()
+  await expect(page.getByRole('status')).toHaveText(
+    'Brukeren er lagt til. Be dem logge inn på innloggingssiden med e-postadressen sin.',
+  )
   const row = page.getByRole('row', { name: /ny@test\.local/ })
   await expect(row).toBeVisible()
   await expect(row).toContainText('Plukker')

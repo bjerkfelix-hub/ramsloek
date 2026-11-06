@@ -1,6 +1,5 @@
 'use server'
 
-import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { requireRole } from '@/lib/auth'
 import { dbErrorToMessage } from '@/lib/errors'
@@ -18,15 +17,14 @@ export async function inviteUser(form: FormData): Promise<ActionResult> {
   if (!email || !fullName) return { ok: false, error: 'E-post og navn må fylles ut.' }
   if (!ROLES.includes(role)) return { ok: false, error: 'Velg en rolle.' }
 
-  const h = await headers()
-  const host = h.get('x-forwarded-host') ?? h.get('host')
-  const proto = h.get('x-forwarded-proto') ?? (host?.startsWith('localhost') ? 'http' : 'https')
-  const { error } = await createAdminClient().auth.admin.inviteUserByEmail(email, {
-    data: { full_name: fullName, role },
-    redirectTo: `${proto}://${host}/auth/callback`,
+  // Create the user directly (no invite e-mail): they sign in from the login page with a magic link.
+  const { error } = await createAdminClient().auth.admin.createUser({
+    email,
+    email_confirm: true,
+    user_metadata: { role, full_name: fullName },
   })
   if (error) {
-    return { ok: false, error: /already|registered/i.test(error.message) ? 'Dette finnes allerede.' : 'Kunne ikke sende invitasjonen. Prøv igjen.' }
+    return { ok: false, error: /already|registered/i.test(error.message) ? 'Dette finnes allerede.' : 'Kunne ikke legge til brukeren. Prøv igjen.' }
   }
   revalidatePath('/users')
   return { ok: true }

@@ -1,5 +1,5 @@
 // Usage: npm run create-owner -- <email> "<full name>"
-// Invites the first owner by e-mail (sign-up is disabled, so this is the only way in).
+// Creates the first owner directly (sign-up is disabled). They then sign in from the login page with a magic link.
 import { loadEnvConfig } from '@next/env'
 import { createClient } from '@supabase/supabase-js'
 
@@ -18,14 +18,16 @@ async function main() {
     process.exit(1)
   }
   const admin = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } })
-  const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
-    data: { role: 'owner', full_name: fullName },
+  const { data, error } = await admin.auth.admin.createUser({
+    email,
+    email_confirm: true,
+    user_metadata: { role: 'owner', full_name: fullName },
   })
   if (error) {
-    console.error(`Could not invite owner: ${error.message}`)
+    console.error(`Could not create owner: ${error.message}`)
     process.exit(1)
   }
-  console.log(`Invited ${data.user.email} as owner.`)
+  console.log(`Created ${data.user.email} as owner. Sign in from the login page with that e-mail.`)
 }
 
 void main()

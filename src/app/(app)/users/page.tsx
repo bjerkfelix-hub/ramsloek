@@ -20,8 +20,9 @@ export default async function UsersPage() {
     <div className="flex flex-col gap-6">
       <h1 className="text-xl font-semibold">Brukere</h1>
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-medium">Inviter bruker</h2>
-        <ActionForm action={inviteUser} submitLabel="Inviter" resetOnSuccess>
+        <h2 className="text-lg font-medium">Legg til bruker</h2>
+        <ActionForm action={inviteUser} submitLabel="Legg til bruker" resetOnSuccess
+          successMessage="Brukeren er lagt til. Be dem logge inn på innloggingssiden med e-postadressen sin.">
           <Field label="E-post">
             <input name="email" type="email" required className={inputClass} />
           </Field>
@@ -51,7 +52,7 @@ export default async function UsersPage() {
           <tbody>
             {profiles?.map((p) => {
               const u = authById.get(p.id)
-              const invited = u && !u.email_confirmed_at && !u.last_sign_in_at
+              const invited = u && !u.last_sign_in_at
               const status = !p.active ? 'Deaktivert' : invited ? 'Invitert' : 'Aktiv'
               return (
                 <tr key={p.id} className="border-b border-zinc-200">
