@@ -62,5 +62,5 @@ test('home page shows role-specific shortcuts', async ({ page }) => {
   await loginAs(page, 'seller')
   await expect(shortcuts).toHaveText(['Partier', 'Lager'])
   await loginAs(page, 'owner')
-  await expect(shortcuts).toHaveText(['Ny høsting', 'Partier', 'Lager', 'Produkter', 'Brukere', 'Innstillinger'])
+  await expect(shortcuts).toHaveText(['Ny høsting', 'Partier', 'Lager', 'Produkter', 'Marked', 'Brukere', 'Innstillinger'])
 })
