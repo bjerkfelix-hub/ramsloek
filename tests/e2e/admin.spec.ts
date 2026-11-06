@@ -24,6 +24,17 @@ test('owner saves company settings', async ({ page }) => {
   await expect(page.getByLabel('Org.nr')).toHaveValue('999888777')
 })
 
+test('lot prefix must be A–Z and 0–9, at most 5 characters', async ({ page }) => {
+  await loginAs(page, 'owner')
+  await page.goto('/settings')
+  await page.getByLabel('Partiprefiks').fill('ab-1')
+  await page.getByRole('button', { name: 'Lagre' }).click()
+  await expect(page.locator('form').getByRole('alert')).toHaveText('Partiprefiks kan bare ha A–Z og 0–9, maks 5 tegn.')
+  await page.getByLabel('Partiprefiks').fill('RL')
+  await page.getByRole('button', { name: 'Lagre' }).click()
+  await expect(page.locator('form').getByRole('status')).toHaveText('Lagret.')
+})
+
 test('owner creates a harvest area', async ({ page }) => {
   const name = `Lia ${stamp}`
   await loginAs(page, 'owner')
@@ -80,7 +91,7 @@ test('owner adds a picker', async ({ page }) => {
   const row = page.getByRole('row', { name: /ny@test\.local/ })
   await expect(row).toBeVisible()
   await expect(row).toContainText('Plukker')
-  await expect(row).toContainText('Invitert')
+  await expect(row).toContainText('Ikke logget inn ennå')
 })
 
 test('deactivating the seller locks them out', async ({ page, browser }) => {

@@ -1,10 +1,11 @@
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import { requireRole } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { formatGrams } from '@/lib/domain/weight'
 import { formatDate, formatDateTime } from '@/lib/domain/time'
 import { SortingBadge } from '@/components/sorting-badge'
-import { SignButton, TemperatureForm } from './batch-actions'
+import { EditBatchForm, SignButton, TemperatureForm } from './batch-actions'
 import { LooseWasteForm, PackForm } from './pack-forms'
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -23,12 +24,13 @@ export default async function BatchPage({ params }: { params: Promise<{ id: stri
     .maybeSingle()
   if (!batch) notFound()
 
-  const [{ data: check }, { data: temps }, { data: remaining }, { data: packings }, { data: products }] = await Promise.all([
+  const [{ data: check }, { data: temps }, { data: remaining }, { data: packings }, { data: products }, { data: settings }] = await Promise.all([
     supabase.from('sorting_checks').select('statement, checked_by, checked_at').eq('batch_id', id).maybeSingle(),
     supabase.from('temperature_logs').select('id, measured_at, celsius, logged_by').eq('batch_id', id).order('measured_at', { ascending: false }),
     supabase.rpc('batch_remaining_g', { p_batch: id }),
     supabase.from('packings').select('id, units, best_before, packed_at, products(name)').eq('batch_id', id).order('packed_at', { ascending: false }),
     supabase.from('products').select('id, name').eq('active', true).order('name'),
+    supabase.from('settings').select('company_name, address').maybeSingle(),
   ])
   const personIds = [...new Set([check?.checked_by, ...(temps ?? []).map((t) => t.logged_by)].filter(Boolean) as string[])]
   const { data: people } = personIds.length
@@ -37,6 +39,7 @@ export default async function BatchPage({ params }: { params: Promise<{ id: stri
   const nameOf = (uid: string) => people?.find((p) => p.id === uid)?.full_name ?? '–'
   const area = Array.isArray(batch.harvest_areas) ? batch.harvest_areas[0] : batch.harvest_areas
   const canWrite = user.role === 'owner' || user.role === 'picker'
+  const labelInfoMissing = !settings?.company_name?.trim() || !settings?.address?.trim()
 
   return (
     <div className="flex flex-col gap-6">
@@ -50,6 +53,13 @@ export default async function BatchPage({ params }: { params: Promise<{ id: stri
           Brutto {formatGrams(batch.gross_weight_g)} · Igjen <span data-testid="remaining">{remaining != null ? formatGrams(remaining) : '–'}</span>
         </p>
         {batch.notes && <p className="text-sm text-zinc-700">{batch.notes}</p>}
+        {user.role === 'owner' && (
+          <EditBatchForm
+            batchId={id}
+            grossKg={String(batch.gross_weight_g / 1000).replace('.', ',')}
+            notes={batch.notes ?? ''}
+          />
+        )}
       </header>
 
       <section className="flex flex-col gap-2">
@@ -93,6 +103,19 @@ export default async function BatchPage({ params }: { params: Promise<{ id: stri
         ) : (
           <>
             {canWrite && <PackForm batchId={id} products={products ?? []} />}
+            {labelInfoMissing && (packings?.length ?? 0) > 0 && (
+              <p role="note" data-testid="label-info-warning" className="rounded border border-amber-300 bg-amber-50 p-3 text-sm">
+                Firmanavn og adresse mangler i Innstillinger – de skal stå på etiketten.
+                {user.role === 'owner' && (
+                  <>
+                    {' '}
+                    <Link href="/settings" className="underline">
+                      Gå til Innstillinger
+                    </Link>
+                  </>
+                )}
+              </p>
+            )}
             <ul className="flex flex-col gap-2">
               {packings?.map((p) => {
                 const product = Array.isArray(p.products) ? p.products[0] : p.products
@@ -112,7 +135,7 @@ export default async function BatchPage({ params }: { params: Promise<{ id: stri
         )}
       </div>
 
-      {check && canWrite && (
+      {canWrite && (
         <section className="flex flex-col gap-2">
           <h2 className="text-lg font-medium">Svinn (løs vekt)</h2>
           <LooseWasteForm batchId={id} />

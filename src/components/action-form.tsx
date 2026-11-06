@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import type { ActionResult } from '@/lib/action-result'
+import { callAction, type ActionResult } from '@/lib/action-result'
 
 export const inputClass = 'rounded border border-zinc-400 px-3 py-3 text-base'
 export const buttonClass = 'rounded bg-green-800 px-4 py-3 text-base font-medium text-white disabled:opacity-60'
@@ -34,7 +34,7 @@ export function ActionForm({
     const form = e.currentTarget
     const data = new FormData(form)
     startTransition(async () => {
-      const res = await action(data)
+      const res = await callAction(() => action(data), `Ingen forbindelse – trykk ${submitLabel} igjen.`)
       setResult(res)
       onResult?.(res)
       if (res.ok && resetOnSuccess) form.reset()

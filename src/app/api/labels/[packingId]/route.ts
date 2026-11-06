@@ -50,7 +50,12 @@ export async function GET(request: Request, ctx: { params: Promise<{ packingId: 
     companyName: settings?.company_name ?? '',
     companyAddress: settings?.address ?? '',
   }
-  const pdf = await renderLabelPdf(data, copies)
+  let pdf: Uint8Array
+  try {
+    pdf = await renderLabelPdf(data, copies)
+  } catch {
+    return text('Kunne ikke lage strekkode for denne etiketten.', 500)
+  }
   const filename = batch.lot_number.replace(/[^A-Za-z0-9._-]/g, '_')
   return new Response(Buffer.from(pdf), {
     headers: {

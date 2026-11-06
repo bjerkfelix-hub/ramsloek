@@ -17,7 +17,7 @@ function LoginForm() {
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent'>('idle')
   const [submitError, setError] = useState<string | null>(null)
-  const error = submitError ?? (callbackFailed ? 'Innloggingslenken er ugyldig eller utløpt. Be om en ny.' : null)
+  const error = submitError ?? (callbackFailed ? 'Innloggingslenken er ugyldig eller utløpt. Be om en ny, og åpne den på samme enhet og i samme nettleser.' : null)
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -29,7 +29,12 @@ function LoginForm() {
     })
     if (error) {
       setStatus('idle')
-      setError('Kunne ikke sende innloggingslenke. Sjekk e-postadressen og prøv igjen.')
+      const rateLimited = error.status === 429 || error.code === 'over_email_send_rate_limit'
+      setError(
+        rateLimited
+          ? 'For mange forsøk. Vent litt og prøv igjen.'
+          : 'Kunne ikke sende innloggingslenke. Sjekk e-postadressen og prøv igjen.',
+      )
       return
     }
     setStatus('sent')
@@ -39,7 +44,10 @@ function LoginForm() {
     <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 p-6">
       <h1 className="text-2xl font-semibold">Logg inn</h1>
       {status === 'sent' ? (
-        <p role="status">Sjekk e-posten din. Vi har sendt deg en innloggingslenke.</p>
+        <div role="status" className="flex flex-col gap-2">
+          <p>Sjekk e-posten din. Vi har sendt deg en innloggingslenke.</p>
+          <p className="text-sm text-zinc-700">Åpne lenken på samme enhet og i samme nettleser som du ba om den fra.</p>
+        </div>
       ) : (
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <label className="flex flex-col gap-1 text-sm font-medium">

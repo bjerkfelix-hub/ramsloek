@@ -1,7 +1,7 @@
 import { loadEnvConfig } from '@next/env'
 import { createClient } from '@supabase/supabase-js'
 import { expect, test, type Page } from '@playwright/test'
-import { loginAs } from './helpers'
+import { loginAs, signSortingCheck } from './helpers'
 
 function adminClient() {
   loadEnvConfig(process.cwd())
@@ -22,7 +22,7 @@ async function setupBatch(page: Page) {
   await page.getByLabel('Bruttovekt (kg)').fill('2,5')
   await page.getByRole('button', { name: 'Lagre' }).click()
   await page.waitForURL(/\/batches\/[0-9a-f-]{36}$/)
-  await page.getByRole('button', { name: 'Signer sorteringskontroll' }).click()
+  await signSortingCheck(page)
   await expect(page.getByTestId('pack-section')).toHaveAttribute('aria-disabled', 'false')
   const lot = (await page.getByRole('heading', { level: 1 }).textContent())!.trim()
   return { url: page.url(), lot }
@@ -110,6 +110,22 @@ test.describe.serial('packing, stock and waste', () => {
       await expect(page.getByTestId('stock-row').filter({ hasText: lot })).toContainText('Går ut snart')
     } finally {
       await admin.from('settings').update({ best_before_warning_days: before!.best_before_warning_days }).eq('id', true)
+    }
+  })
+
+  test('stock past its best-before date is marked Utgått instead of Går ut snart', async ({ page }) => {
+    const admin = adminClient()
+    const { data: batch } = await admin.from('batches').select('id').eq('lot_number', lot).single()
+    const { data: packings } = await admin.from('packings').select('id, best_before').eq('batch_id', batch!.id)
+    try {
+      await admin.from('packings').update({ best_before: '2020-01-01' }).eq('batch_id', batch!.id)
+      await loginAs(page, 'picker')
+      await page.goto('/stock')
+      const row = page.getByTestId('stock-row').filter({ hasText: lot })
+      await expect(row).toContainText('Utgått')
+      await expect(row).not.toContainText('Går ut snart')
+    } finally {
+      for (const p of packings!) await admin.from('packings').update({ best_before: p.best_before }).eq('id', p.id)
     }
   })
 

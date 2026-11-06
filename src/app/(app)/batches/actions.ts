@@ -7,7 +7,7 @@ import { dbErrorToMessage } from '@/lib/errors'
 import { createClient } from '@/lib/supabase/server'
 import { text, textOrNull, type ActionResult } from '@/lib/action-result'
 import { parseKgToGrams } from '@/lib/domain/weight'
-import { osloLocalToIso } from '@/lib/domain/time'
+import { isHarvestInFuture, osloLocalToIso } from '@/lib/domain/time'
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -19,6 +19,7 @@ export async function createBatch(form: FormData): Promise<ActionResult> {
   if (!UUID.test(areaId)) return { ok: false, error: 'Velg område.' }
   const harvestedAt = osloLocalToIso(text(form, 'harvested_at'))
   if (!harvestedAt) return { ok: false, error: 'Ugyldig tidspunkt.' }
+  if (isHarvestInFuture(harvestedAt)) return { ok: false, error: 'Høstetidspunktet kan ikke være i fremtiden.' }
   const pickers = text(form, 'pickers')
   if (!pickers) return { ok: false, error: 'Skriv hvem som plukket.' }
   const grams = parseKgToGrams(text(form, 'gross_weight'))
@@ -43,6 +44,27 @@ export async function createBatch(form: FormData): Promise<ActionResult> {
   }
   revalidatePath('/batches')
   redirect(`/batches/${id}`)
+}
+
+// Owner-only correction of gross weight and notes; the database refuses weights below what is already used.
+export async function updateBatch(form: FormData): Promise<ActionResult> {
+  await requireRole('owner')
+  const batchId = text(form, 'batch_id')
+  if (!UUID.test(batchId)) return { ok: false, error: 'Noe gikk galt. Prøv igjen.' }
+  const grams = parseKgToGrams(text(form, 'gross_weight'))
+  if (grams === null) return { ok: false, error: 'Skriv vekt i kg, f.eks. 2,5' }
+
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('batches')
+    .update({ gross_weight_g: grams, notes: textOrNull(form, 'notes') })
+    .eq('id', batchId)
+    .select('id')
+  if (error) return { ok: false, error: dbErrorToMessage(error) }
+  if (!data?.length) return { ok: false, error: 'Fant ikke partiet.' }
+  revalidatePath(`/batches/${batchId}`)
+  revalidatePath('/batches')
+  return { ok: true }
 }
 
 export async function signSortingCheck(batchId: string): Promise<ActionResult> {

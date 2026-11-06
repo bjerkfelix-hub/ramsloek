@@ -26,8 +26,8 @@ export async function proxy(request: NextRequest) {
 
   const { data } = await supabase.auth.getClaims()
   const { pathname } = request.nextUrl
-  // API routes answer 401 themselves instead of redirecting to the login page.
-  const isPublic = pathname === '/login' || pathname.startsWith('/auth/') || pathname.startsWith('/api/')
+  // The label route answers 401 itself instead of redirecting to the login page.
+  const isPublic = pathname === '/login' || pathname.startsWith('/auth/') || pathname.startsWith('/api/labels/')
 
   if (!data?.claims && !isPublic) {
     const redirectUrl = request.nextUrl.clone()

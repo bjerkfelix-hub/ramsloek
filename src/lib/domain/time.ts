@@ -52,3 +52,18 @@ export function nowOsloLocal(): string {
   }).format(new Date())
   return p.replace(' ', 'T')
 }
+
+/** Today's date in Oslo as YYYY-MM-DD. */
+export function todayOslo(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat('sv-SE', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now)
+}
+
+/** True when a YYYY-MM-DD best-before date is before today (Oslo). */
+export function isExpired(bestBefore: string, now: Date = new Date()): boolean {
+  return bestBefore < todayOslo(now)
+}
+
+/** Harvest times more than a day ahead of now are rejected (slack for clock/timezone differences). */
+export function isHarvestInFuture(iso: string, now: number = Date.now()): boolean {
+  return new Date(iso).getTime() > now + 24 * 60 * 60 * 1000
+}

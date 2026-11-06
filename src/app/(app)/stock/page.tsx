@@ -1,6 +1,6 @@
 import { requireRole } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
-import { formatDate } from '@/lib/domain/time'
+import { formatDate, isExpired } from '@/lib/domain/time'
 import { StockWasteForm } from './waste-form'
 
 type Row = {
@@ -48,10 +48,14 @@ export default async function StockPage() {
                 <p className="text-sm">
                   <span className="font-medium">{r.lot_number}</span> · {r.units} stk · Best før{' '}
                   {r.best_before ? formatDate(r.best_before) : '–'}
-                  {r.near_expiry && (
-                    <span className="ml-2 rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900">
-                      Går ut snart
-                    </span>
+                  {r.best_before && isExpired(r.best_before) ? (
+                    <span className="ml-2 rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-900">Utgått</span>
+                  ) : (
+                    r.near_expiry && (
+                      <span className="ml-2 rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900">
+                        Går ut snart
+                      </span>
+                    )
                   )}
                 </p>
                 {canWrite && <StockWasteForm batchId={r.batch_id} productId={r.product_id} />}

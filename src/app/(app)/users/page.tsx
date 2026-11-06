@@ -53,7 +53,7 @@ export default async function UsersPage() {
             {profiles?.map((p) => {
               const u = authById.get(p.id)
               const invited = u && !u.last_sign_in_at
-              const status = !p.active ? 'Deaktivert' : invited ? 'Invitert' : 'Aktiv'
+              const status = !p.active ? 'Deaktivert' : invited ? 'Ikke logget inn ennå' : 'Aktiv'
               return (
                 <tr key={p.id} className="border-b border-zinc-200">
                   <td className="py-2 pr-3">{p.full_name}</td>

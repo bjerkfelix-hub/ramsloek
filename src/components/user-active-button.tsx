@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import type { ActionResult } from '@/lib/action-result'
+import { callAction, type ActionResult } from '@/lib/action-result'
 
 export function UserActiveButton({
   userId,
@@ -21,7 +21,7 @@ export function UserActiveButton({
         disabled={pending}
         onClick={() =>
           startTransition(async () => {
-            const res = await action(userId, !active)
+            const res = await callAction(() => action(userId, !active))
             setError(res.ok ? null : res.error)
           })
         }

@@ -11,6 +11,7 @@ export async function saveSettings(form: FormData): Promise<ActionResult> {
   const lotPrefix = text(form, 'lot_prefix')
   const warning = Number(text(form, 'best_before_warning_days'))
   if (!lotPrefix) return { ok: false, error: 'Partiprefiks må fylles ut.' }
+  if (!/^[A-Z0-9]{1,5}$/.test(lotPrefix)) return { ok: false, error: 'Partiprefiks kan bare ha A–Z og 0–9, maks 5 tegn.' }
   if (!Number.isInteger(warning) || warning < 0) return { ok: false, error: 'Ugyldig antall dager for advarsel.' }
 
   const supabase = await createClient()

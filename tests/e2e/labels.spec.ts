@@ -1,6 +1,8 @@
 import { expect, test, type Page } from '@playwright/test'
 import { PDFDocument } from 'pdf-lib'
-import { loginAs } from './helpers'
+import { loadEnvConfig } from '@next/env'
+import { createClient } from '@supabase/supabase-js'
+import { loginAs, signSortingCheck } from './helpers'
 
 const PRODUCT = 'Ramsløk 100 g pose'
 
@@ -12,7 +14,7 @@ async function setupPacking(page: Page) {
   await page.getByLabel('Bruttovekt (kg)').fill('2,5')
   await page.getByRole('button', { name: 'Lagre' }).click()
   await page.waitForURL(/\/batches\/[0-9a-f-]{36}$/)
-  await page.getByRole('button', { name: 'Signer sorteringskontroll' }).click()
+  await signSortingCheck(page)
   await expect(page.getByTestId('pack-section')).toHaveAttribute('aria-disabled', 'false')
   const form = page.getByTestId('pack-form')
   await form.getByLabel('Produkt').selectOption({ label: PRODUCT })
@@ -60,4 +62,32 @@ test('seller can print labels too', async ({ page }) => {
   await loginAs(page, 'seller')
   const res = await page.request.get(href)
   expect(res.status()).toBe(200)
+})
+
+test('batch page warns when company name or address is missing, but printing still works', async ({ page }) => {
+  loadEnvConfig(process.cwd())
+  const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
+  const { data: before } = await admin.from('settings').select('company_name, address').single()
+  const warning = 'Firmanavn og adresse mangler i Innstillinger – de skal stå på etiketten.'
+  try {
+    await admin.from('settings').update({ company_name: 'Test AS', address: 'Gata 1' }).eq('id', true)
+    const href = await setupPacking(page)
+    const batchUrl = page.url()
+    await expect(page.getByTestId('label-info-warning')).toHaveCount(0)
+
+    await admin.from('settings').update({ address: null }).eq('id', true)
+    await page.goto(batchUrl)
+    await expect(page.getByTestId('label-info-warning')).toContainText(warning)
+    // Picker sees no settings link; printing is still allowed.
+    await expect(page.getByTestId('label-info-warning').getByRole('link')).toHaveCount(0)
+    expect((await page.request.get(href)).status()).toBe(200)
+
+    await loginAs(page, 'owner')
+    await page.goto(batchUrl)
+    await expect(page.getByTestId('label-info-warning').getByRole('link', { name: 'Gå til Innstillinger' })).toHaveAttribute('href', '/settings')
+  } finally {
+    await admin.from('settings').update({ company_name: before!.company_name, address: before!.address }).eq('id', true)
+  }
 })

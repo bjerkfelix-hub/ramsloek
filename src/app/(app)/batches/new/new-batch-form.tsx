@@ -35,6 +35,7 @@ export function NewBatchForm({ areas }: { areas: { id: string; name: string }[] 
           type="datetime-local"
           name="harvested_at"
           required
+          max={init?.now}
           key={init?.now ?? 'pending'}
           defaultValue={init?.now ?? ''}
           className={inputClass}

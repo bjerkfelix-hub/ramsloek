@@ -11,6 +11,14 @@ describe('dbErrorToMessage', () => {
   it('maps negative stock', () => {
     expect(dbErrorToMessage({ message: 'STOCK_NEGATIVE' })).toBe('Det er ikke nok på lager.')
   })
+  it('maps weight below used', () => {
+    expect(dbErrorToMessage({ message: 'WEIGHT_BELOW_USED' })).toBe(
+      'Vekten kan ikke være mindre enn det som allerede er pakket eller kastet.',
+    )
+  })
+  it('maps future time', () => {
+    expect(dbErrorToMessage({ message: 'FUTURE_TIME' })).toBe('Tidspunktet kan ikke være i fremtiden.')
+  })
   it('maps permission denied', () => {
     expect(dbErrorToMessage({ code: '42501' })).toBe('Du har ikke tilgang til dette.')
   })

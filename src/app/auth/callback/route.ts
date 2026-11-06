@@ -2,11 +2,11 @@ import type { EmailOtpType } from '@supabase/supabase-js'
 import { type NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
-const OTP_TYPES: readonly string[] = ['magiclink', 'email', 'invite']
+const OTP_TYPES: readonly string[] = ['magiclink', 'email']
 
 // Completes magic-link sign-in: PKCE code (browser-initiated links) or token hash (admin-generated links).
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = request.nextUrl
+  const { searchParams } = request.nextUrl
   const supabase = await createClient()
 
   const code = searchParams.get('code')
@@ -20,6 +20,11 @@ export async function GET(request: NextRequest) {
     error = (await supabase.auth.verifyOtp({ token_hash: tokenHash, type: type as EmailOtpType })).error
   }
 
-  if (error) return NextResponse.redirect(`${origin}/login?error=callback`)
-  return NextResponse.redirect(`${origin}/`)
+  // Relative Location: behind a proxy (Railway) request.nextUrl.origin is localhost:<PORT>, not the public host.
+  // The session cookies set by the server client are merged into this response by Next.
+  return redirectTo(error ? '/login?error=callback' : '/')
+}
+
+function redirectTo(location: string) {
+  return new NextResponse(null, { status: 303, headers: { Location: location } })
 }

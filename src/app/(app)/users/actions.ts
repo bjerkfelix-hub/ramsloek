@@ -24,7 +24,8 @@ export async function inviteUser(form: FormData): Promise<ActionResult> {
     user_metadata: { role, full_name: fullName },
   })
   if (error) {
-    return { ok: false, error: /already|registered/i.test(error.message) ? 'Dette finnes allerede.' : 'Kunne ikke legge til brukeren. Prøv igjen.' }
+    const duplicate = error.code === 'email_exists' || /already|registered/i.test(error.message)
+    return { ok: false, error: duplicate ? 'Dette finnes allerede.' : 'Kunne ikke legge til brukeren. Prøv igjen.' }
   }
   revalidatePath('/users')
   return { ok: true }
