@@ -1,8 +1,20 @@
-# Ramsløk – høsting og lager (fase 1)
+# Nesodden Ramsløk – offentlig nettsted og internt system
 
-Webapp for et lite ramsløk-firma: fra innhøsting til pakket vare på lager. Bygget med Next.js og Supabase (Postgres, Auth, Storage).
+Webapp for et lite ramsløk-firma: et offentlig, tospråklig nettsted og et internt system fra innhøsting til pakket vare på lager. Bygget med Next.js og Supabase (Postgres, Auth, Storage).
 
-## Hva fase 1 gjør
+## Struktur
+
+| Adresse  | Innhold                                                                  |
+| -------- | ------------------------------------------------------------------------ |
+| `/`      | Offentlig nettsted på norsk: sesongstatus, historie, oppskrifter, marked, personvern, sesongpåmelding og avmelding |
+| `/en`    | Samme nettsted på engelsk                                                |
+| `/admin` | Internt system (innlogging kreves): høsting, pakking, lager, svinn, etiketter, marked og påmeldinger |
+
+De gamle interne adressene (f.eks. `/batches`, `/stock`) videresendes til tilsvarende side under `/admin`.
+
+## Fase 1: det interne systemet (`/admin`)
+
+Det interne systemet gjør:
 
 - **Høstepartier**: registrer høsting (område, dato, vekt, plukker) og få et partinummer.
 - **Sorteringskontroll**: kontroller partiet før pakking.
@@ -11,6 +23,8 @@ Webapp for et lite ramsløk-firma: fra innhøsting til pakket vare på lager. By
 - **Svinn**: registrer svinn med årsak.
 - **Etiketter**: PDF-etiketter med GS1-strekkode (GTIN).
 - **Eieradmin**: firmainnstillinger, høsteområder, produkter og brukere.
+- **Marked**: kalender over markedsdager som vises på det offentlige nettstedet.
+- **Påmeldinger**: liste over sesongpåmeldinger, med CSV-eksport.
 - **Innlogging**: magisk lenke på e-post (ingen passord). Roller: eier, plukker, selger.
 
 ## Lokalt oppsett
@@ -32,7 +46,7 @@ SUPABASE_SERVICE_ROLE_KEY=<service_role key>
 
 ```bash
 npm run db:reset      # kjører migrasjonene og supabase/seed.sql
-npm run dev           # http://localhost:3000
+npm run dev           # http://localhost:3000 (internt system: /admin)
 ```
 
 ### Seedede innlogginger (kun lokalt)
@@ -56,6 +70,50 @@ npm run build     # produksjonsbygg
 npm run test:e2e  # ende-til-ende (Playwright, krever lokal Supabase)
 ```
 
+- **Enhet** (Vitest): ren logikk, innhold og sesongregler.
+- **db** (pgTAP): tabeller, RLS og funksjoner i databasen.
+- **e2e** (Playwright): hele flyten i nettleseren. De kjører kun mot en lokal Supabase; en vakt i `tests/e2e/helpers.ts` nekter å kjøre mot noe annet, så de kan aldri skrive til produksjon.
+
+## Slik bruker eieren systemet
+
+### Markedsdager
+
+Gå til **Admin → Marked**. Her legger du til, redigerer og avlyser markedsdager. Avlyste dager vises som avlyst på det offentlige nettstedet, og de teller ikke med i sesongstatusen.
+
+### Sesongstatus på forsiden
+
+Statusen regnes ut fra markedskalenderen:
+
+- **I sesong**: det er en markedsdag (ikke avlyst) innen 14 dager.
+- **Snart**: det finnes en kommende markedsdag, men den er mer enn 14 dager unna.
+- **Utenfor sesong**: ingen kommende markedsdager er lagt inn.
+
+### Påmeldinger
+
+Folk melder seg på sesongvarsel på det offentlige nettstedet. Listen finner du under **Admin → Påmeldinger**, med eksport til CSV.
+
+**Avmelding:** hver e-post har en avmeldingslenke. Den åpner en side med knappen «Meld meg av»; avmeldingen skjer først når knappen trykkes (så e-postskannere ikke melder noen av ved et uhell).
+
+### Mørk modus
+
+Under **Mer / Innstillinger** velger du System, Lys eller Mørk.
+
+## Tekster og oppskrifter
+
+Alt innhold på det offentlige nettstedet ligger i `src/content`:
+
+- `no.ts` og `en.ts`: tekstene på norsk og engelsk
+- `recipes.ts`: oppskriftene
+- `site.ts`: sidenavn og `CONTACT_EMAIL`. Adressen er foreløpig en plassholder (`post@ramsløk.no`) som eieren må bekrefte før lansering.
+
+Endring i disse filene krever en ny deploy.
+
+## Personvern
+
+- Lagret om påmeldte: e-postadresse, språk, samtykketeksten som ble vist, tidspunkt for samtykke og eventuell avmelding, samt en tilfeldig avmeldingsnøkkel. Ingenting annet.
+- Etter avmelding slettes raden etter 30 dager. Slettingen kjører når siden **Admin → Påmeldinger** åpnes.
+- Nettstedet bruker ingen sporingsinformasjonskapsler og ingen analyseverktøy. Den eneste informasjonskapselen er innloggingen i `/admin`.
+
 ## Produksjon (slik det er satt opp)
 
 ### 1. Supabase-prosjekt
@@ -73,12 +131,15 @@ Hvis `supabase db push` ikke får kontakt (pooler-tilkoblingen feilet på nettve
 
 Kjør aldri `seed.sql` mot produksjon.
 
-**Herdingsmigrasjon.** Etter at denne grenen er deployet må eieren lime inn `supabase/migrations/20261106000004_hardening.sql` i **SQL Editor** i Supabase-dashboardet og kjøre den (hele filen, én gang). Registrer deretter versjonen, slik at `supabase db push` ikke prøver å kjøre den på nytt:
+**Nye migrasjoner.** Databaseendringer rulles ikke ut av deployen. Lim inn den nye filen fra `supabase/migrations/` (hele filen, én gang) i **SQL Editor** i Supabase-dashboardet og kjør den. Registrer deretter versjonen, slik at `supabase db push` ikke prøver å kjøre den på nytt:
 
 ```sql
 insert into supabase_migrations.schema_migrations (version, name)
-values ('20261106000004', 'hardening');
+values ('<versjon>', '<navn>')
+on conflict do nothing;
 ```
+
+Ferdig anvendt og registrert: migrasjon 1–5, sist `20261106000005_public_site` (offentlig nettsted: markedsdager og påmeldinger).
 
 **Auth-innstillinger** (Authentication i dashboardet):
 
@@ -87,6 +148,8 @@ values ('20261106000004', 'hardening');
 - «Allow new users to sign up»: **av**. Nye brukere legges kun til av en eier.
 
 ### 2. Railway
+
+Deploy: push til `main` bygger og deployer automatisk i Railway (tjenesten `ramsloek`, EU West, domene ramsløk.no).
 
 Sett disse miljøvariablene på tjenesten:
 
