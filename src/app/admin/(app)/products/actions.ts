@@ -43,6 +43,6 @@ export async function saveProduct(form: FormData): Promise<ActionResult> {
     ? await supabase.from('products').update(row).eq('id', id)
     : await supabase.from('products').insert(row)
   if (error) return { ok: false, error: dbErrorToMessage(error) }
-  revalidatePath('/products')
+  revalidatePath('/admin/products')
   return { ok: true }
 }

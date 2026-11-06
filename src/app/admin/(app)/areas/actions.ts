@@ -27,6 +27,6 @@ export async function saveArea(form: FormData): Promise<ActionResult> {
     ? await supabase.from('harvest_areas').update(row).eq('id', id)
     : await supabase.from('harvest_areas').insert(row)
   if (error) return { ok: false, error: dbErrorToMessage(error) }
-  revalidatePath('/areas')
+  revalidatePath('/admin/areas')
   return { ok: true }
 }

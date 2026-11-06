@@ -28,7 +28,7 @@ export async function loginAs(page: Page, role: Role): Promise<void> {
   // The action link would land on Supabase's verify endpoint with tokens in a URL fragment;
   // go straight to our callback with the hashed token instead (same session result).
   await page.goto(`/auth/callback?token_hash=${token}&type=magiclink`)
-  await page.waitForURL((u) => u.pathname === '/')
+  await page.waitForURL((u) => u.pathname === '/admin')
 }
 
 // Ticks the confirmation and signs the sorting check on the batch page.

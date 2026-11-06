@@ -14,7 +14,7 @@ const stamp = Date.now()
 
 test('owner saves company settings', async ({ page }) => {
   await loginAs(page, 'owner')
-  await page.goto('/settings')
+  await page.goto('/admin/settings')
   await page.getByLabel('Firmanavn').fill('Nesodden Ramsløk AS')
   await page.getByLabel('Org.nr').fill('999888777')
   await page.getByRole('button', { name: 'Lagre' }).click()
@@ -26,7 +26,7 @@ test('owner saves company settings', async ({ page }) => {
 
 test('lot prefix must be A–Z and 0–9, at most 5 characters', async ({ page }) => {
   await loginAs(page, 'owner')
-  await page.goto('/settings')
+  await page.goto('/admin/settings')
   await page.getByLabel('Partiprefiks').fill('ab-1')
   await page.getByRole('button', { name: 'Lagre' }).click()
   await expect(page.locator('form').getByRole('alert')).toHaveText('Partiprefiks kan bare ha A–Z og 0–9, maks 5 tegn.')
@@ -38,7 +38,7 @@ test('lot prefix must be A–Z and 0–9, at most 5 characters', async ({ page }
 test('owner creates a harvest area', async ({ page }) => {
   const name = `Lia ${stamp}`
   await loginAs(page, 'owner')
-  await page.goto('/areas')
+  await page.goto('/admin/areas')
   await page.getByLabel('Navn').first().fill(name)
   await page.getByRole('button', { name: 'Lagre' }).first().click()
   await expect(page.getByRole('row', { name: new RegExp(name) })).toBeVisible()
@@ -49,7 +49,7 @@ test('owner creates products with GTIN validation and duplicate detection', asyn
   await admin.from('products').delete().eq('gtin', '07038010055713')
   const name = `Ramsløk 250 g pose ${stamp}`
   await loginAs(page, 'owner')
-  await page.goto('/products')
+  await page.goto('/admin/products')
 
   const form = page.locator('form:has(input[name="gtin"])')
   await form.getByLabel('Navn').fill(name)
@@ -80,7 +80,7 @@ test('owner adds a picker', async ({ page }) => {
   for (const u of data.users.filter((u) => u.email === 'ny@test.local')) await admin.auth.admin.deleteUser(u.id)
 
   await loginAs(page, 'owner')
-  await page.goto('/users')
+  await page.goto('/admin/users')
   await page.getByLabel('E-post').fill('ny@test.local')
   await page.getByLabel('Navn').fill('Ny Plukker')
   await page.getByLabel('Rolle').selectOption('picker')
@@ -100,12 +100,12 @@ test('deactivating the seller locks them out', async ({ page, browser }) => {
     const sellerPage = await (await browser.newContext()).newPage()
     await loginAs(sellerPage, 'seller')
     await loginAs(page, 'owner')
-    await page.goto('/users')
+    await page.goto('/admin/users')
     const row = page.getByRole('row', { name: /selger@test\.local/ })
     await row.getByRole('button', { name: 'Deaktiver' }).click()
     await expect(row).toContainText('Deaktivert')
-    await sellerPage.goto('/')
-    await expect(sellerPage).toHaveURL(/\/login$/)
+    await sellerPage.goto('/admin')
+    await expect(sellerPage).toHaveURL(/\/admin\/login$/)
     // The owner cannot deactivate themselves.
     await expect(page.getByRole('row', { name: /eier@test\.local/ }).getByRole('button')).toHaveCount(0)
   } finally {

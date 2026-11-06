@@ -54,7 +54,7 @@ export default async function AreasPage({ searchParams }: { searchParams: Promis
                 <td className="py-2 pr-3">{a.lat != null && a.lng != null ? `${a.lat}, ${a.lng}` : '–'}</td>
                 <td className="py-2 pr-3">{a.active ? 'Aktiv' : 'Inaktiv'}</td>
                 <td className="py-2">
-                  <Link href={`/areas?edit=${a.id}`} className="text-green-900 underline">
+                  <Link href={`/admin/areas?edit=${a.id}`} className="text-green-900 underline">
                     Rediger
                   </Link>
                 </td>

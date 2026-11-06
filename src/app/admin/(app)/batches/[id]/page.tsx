@@ -109,7 +109,7 @@ export default async function BatchPage({ params }: { params: Promise<{ id: stri
                 {user.role === 'owner' && (
                   <>
                     {' '}
-                    <Link href="/settings" className="underline">
+                    <Link href="/admin/settings" className="underline">
                       Gå til Innstillinger
                     </Link>
                   </>

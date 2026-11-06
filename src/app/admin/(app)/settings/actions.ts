@@ -27,6 +27,6 @@ export async function saveSettings(form: FormData): Promise<ActionResult> {
     })
     .eq('id', true)
   if (error) return { ok: false, error: dbErrorToMessage(error) }
-  revalidatePath('/settings')
+  revalidatePath('/admin/settings')
   return { ok: true }
 }

@@ -8,7 +8,7 @@ const PRODUCT = 'Ramsløk 100 g pose'
 
 async function setupPacking(page: Page) {
   await loginAs(page, 'picker')
-  await page.goto('/batches/new')
+  await page.goto('/admin/batches/new')
   await page.getByLabel('Område').selectOption({ label: 'Bekken' })
   await page.getByLabel('Plukkere').fill('Kari og Ola')
   await page.getByLabel('Bruttovekt (kg)').fill('2,5')
@@ -86,7 +86,7 @@ test('batch page warns when company name or address is missing, but printing sti
 
     await loginAs(page, 'owner')
     await page.goto(batchUrl)
-    await expect(page.getByTestId('label-info-warning').getByRole('link', { name: 'Gå til Innstillinger' })).toHaveAttribute('href', '/settings')
+    await expect(page.getByTestId('label-info-warning').getByRole('link', { name: 'Gå til Innstillinger' })).toHaveAttribute('href', '/admin/settings')
   } finally {
     await admin.from('settings').update({ company_name: before!.company_name, address: before!.address }).eq('id', true)
   }

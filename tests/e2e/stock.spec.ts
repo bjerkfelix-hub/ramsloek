@@ -16,7 +16,7 @@ const PRODUCT = 'Ramsløk 100 g pose'
 // Creates a fresh 2,5 kg batch and signs the sorting check through the UI; returns batch url and lot number.
 async function setupBatch(page: Page) {
   await loginAs(page, 'picker')
-  await page.goto('/batches/new')
+  await page.goto('/admin/batches/new')
   await page.getByLabel('Område').selectOption({ label: 'Bekken' })
   await page.getByLabel('Plukkere').fill('Kari og Ola')
   await page.getByLabel('Bruttovekt (kg)').fill('2,5')
@@ -64,7 +64,7 @@ test.describe.serial('packing, stock and waste', () => {
 
   test('stock page lists the product, lot and units', async ({ page }) => {
     await loginAs(page, 'picker')
-    await page.goto('/stock')
+    await page.goto('/admin/stock')
     await expect(page.getByRole('heading', { name: PRODUCT })).toBeVisible()
     const row = page.getByTestId('stock-row').filter({ hasText: lot })
     await expect(row).toContainText('10 stk')
@@ -72,7 +72,7 @@ test.describe.serial('packing, stock and waste', () => {
 
   test('waste of units from the stock page lowers the stock', async ({ page }) => {
     await loginAs(page, 'picker')
-    await page.goto('/stock')
+    await page.goto('/admin/stock')
     const row = page.getByTestId('stock-row').filter({ hasText: lot })
     await row.getByLabel('Antall svinn').fill('2')
     await row.getByLabel('Årsak').selectOption({ label: 'Visnet' })
@@ -82,7 +82,7 @@ test.describe.serial('packing, stock and waste', () => {
 
   test('wasting more than is in stock is rejected', async ({ page }) => {
     await loginAs(page, 'picker')
-    await page.goto('/stock')
+    await page.goto('/admin/stock')
     const row = page.getByTestId('stock-row').filter({ hasText: lot })
     await row.getByLabel('Antall svinn').fill('50')
     await row.getByRole('button', { name: 'Registrer svinn' }).click()
@@ -106,7 +106,7 @@ test.describe.serial('packing, stock and waste', () => {
     try {
       await admin.from('settings').update({ best_before_warning_days: 30 }).eq('id', true)
       await loginAs(page, 'picker')
-      await page.goto('/stock')
+      await page.goto('/admin/stock')
       await expect(page.getByTestId('stock-row').filter({ hasText: lot })).toContainText('Går ut snart')
     } finally {
       await admin.from('settings').update({ best_before_warning_days: before!.best_before_warning_days }).eq('id', true)
@@ -120,7 +120,7 @@ test.describe.serial('packing, stock and waste', () => {
     try {
       await admin.from('packings').update({ best_before: '2020-01-01' }).eq('batch_id', batch!.id)
       await loginAs(page, 'picker')
-      await page.goto('/stock')
+      await page.goto('/admin/stock')
       const row = page.getByTestId('stock-row').filter({ hasText: lot })
       await expect(row).toContainText('Utgått')
       await expect(row).not.toContainText('Går ut snart')
@@ -131,7 +131,7 @@ test.describe.serial('packing, stock and waste', () => {
 
   test('seller sees stock but no waste or pack forms', async ({ page }) => {
     await loginAs(page, 'seller')
-    await page.goto('/stock')
+    await page.goto('/admin/stock')
     await expect(page.getByTestId('stock-row').filter({ hasText: lot })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Registrer svinn' })).toHaveCount(0)
     await page.goto(url)

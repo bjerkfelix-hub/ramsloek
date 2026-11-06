@@ -27,7 +27,7 @@ export async function inviteUser(form: FormData): Promise<ActionResult> {
     const duplicate = error.code === 'email_exists' || /already|registered/i.test(error.message)
     return { ok: false, error: duplicate ? 'Dette finnes allerede.' : 'Kunne ikke legge til brukeren. Prøv igjen.' }
   }
-  revalidatePath('/users')
+  revalidatePath('/admin/users')
   return { ok: true }
 }
 
@@ -38,6 +38,6 @@ export async function setUserActive(userId: string, active: boolean): Promise<Ac
   const { data, error } = await supabase.from('profiles').update({ active }).eq('id', userId).select('id')
   if (error) return { ok: false, error: dbErrorToMessage(error) }
   if (!data?.length) return { ok: false, error: 'Fant ikke brukeren.' }
-  revalidatePath('/users')
+  revalidatePath('/admin/users')
   return { ok: true }
 }

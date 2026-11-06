@@ -3,16 +3,16 @@ import { requireRole, type Role } from '@/lib/auth'
 import { signOut } from '@/app/actions/auth'
 
 const NAV: { href: string; label: string; roles: Role[] }[] = [
-  { href: '/batches', label: 'Partier', roles: ['owner', 'picker', 'seller'] },
-  { href: '/stock', label: 'Lager', roles: ['owner', 'picker', 'seller'] },
-  { href: '/products', label: 'Produkter', roles: ['owner'] },
-  { href: '/areas', label: 'Områder', roles: ['owner'] },
-  { href: '/users', label: 'Brukere', roles: ['owner'] },
-  { href: '/settings', label: 'Innstillinger', roles: ['owner'] },
+  { href: '/admin/batches', label: 'Partier', roles: ['owner', 'picker', 'seller'] },
+  { href: '/admin/stock', label: 'Lager', roles: ['owner', 'picker', 'seller'] },
+  { href: '/admin/products', label: 'Produkter', roles: ['owner'] },
+  { href: '/admin/areas', label: 'Områder', roles: ['owner'] },
+  { href: '/admin/users', label: 'Brukere', roles: ['owner'] },
+  { href: '/admin/settings', label: 'Innstillinger', roles: ['owner'] },
 ]
 
 // Every page here depends on the signed-in user, so the layout reads the session per request
-// and blocks on it: real HTTP statuses (redirect to /login, 404 for a disallowed role).
+// and blocks on it: real HTTP statuses (redirect to /admin/login, 404 for a disallowed role).
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireRole('owner', 'picker', 'seller')
   const links = NAV.filter((item) => item.roles.includes(user.role))
@@ -20,7 +20,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <>
       <header className="border-b border-zinc-300 bg-green-900 text-white">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3">
-          <Link href="/" className="text-lg font-semibold">
+          <Link href="/admin" className="text-lg font-semibold">
             Ramsløk
           </Link>
           <div className="flex items-center gap-3">

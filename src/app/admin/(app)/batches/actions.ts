@@ -42,8 +42,8 @@ export async function createBatch(form: FormData): Promise<ActionResult> {
     )
     if (error) return { ok: false, error: dbErrorToMessage(error) }
   }
-  revalidatePath('/batches')
-  redirect(`/batches/${id}`)
+  revalidatePath('/admin/batches')
+  redirect(`/admin/batches/${id}`)
 }
 
 // Owner-only correction of gross weight and notes; the database refuses weights below what is already used.
@@ -62,8 +62,8 @@ export async function updateBatch(form: FormData): Promise<ActionResult> {
     .select('id')
   if (error) return { ok: false, error: dbErrorToMessage(error) }
   if (!data?.length) return { ok: false, error: 'Fant ikke partiet.' }
-  revalidatePath(`/batches/${batchId}`)
-  revalidatePath('/batches')
+  revalidatePath(`/admin/batches/${batchId}`)
+  revalidatePath('/admin/batches')
   return { ok: true }
 }
 
@@ -73,8 +73,8 @@ export async function signSortingCheck(batchId: string): Promise<ActionResult> {
   const { error } = await supabase.from('sorting_checks').insert({ batch_id: batchId })
   // Already signed (e.g. a second tap) is fine.
   if (error && error.code !== '23505') return { ok: false, error: dbErrorToMessage(error) }
-  revalidatePath(`/batches/${batchId}`)
-  revalidatePath('/batches')
+  revalidatePath(`/admin/batches/${batchId}`)
+  revalidatePath('/admin/batches')
   return { ok: true }
 }
 
@@ -90,7 +90,7 @@ export async function logTemperature(batchId: string, celsius: string): Promise<
     .from('temperature_logs')
     .insert({ batch_id: batchId, celsius: Math.round(value * 10) / 10 })
   if (error) return { ok: false, error: dbErrorToMessage(error) }
-  revalidatePath(`/batches/${batchId}`)
+  revalidatePath(`/admin/batches/${batchId}`)
   return { ok: true }
 }
 
@@ -122,8 +122,8 @@ export async function packBatch(
     const { error } = await supabase.from('packings').insert({ id, batch_id: batchId, product_id: productId, units })
     if (error && error.code !== '23505') return { ok: false, error: dbErrorToMessage(error) }
   }
-  revalidatePath(`/batches/${batchId}`)
-  revalidatePath('/stock')
+  revalidatePath(`/admin/batches/${batchId}`)
+  revalidatePath('/admin/stock')
   return { ok: true, packingId: id }
 }
 
@@ -157,7 +157,7 @@ export async function registerWaste(form: FormData): Promise<ActionResult> {
       .insert({ id, batch_id: batchId, reason, note: textOrNull(form, 'note'), ...row })
     if (error && error.code !== '23505') return { ok: false, error: dbErrorToMessage(error) }
   }
-  revalidatePath(`/batches/${batchId}`)
-  revalidatePath('/stock')
+  revalidatePath(`/admin/batches/${batchId}`)
+  revalidatePath('/admin/stock')
   return { ok: true }
 }

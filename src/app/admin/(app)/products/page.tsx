@@ -87,7 +87,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
                 <td className="py-2 pr-3">{p.shelf_life_days} d</td>
                 <td className="py-2 pr-3">{p.active ? 'Aktiv' : 'Inaktiv'}</td>
                 <td className="py-2">
-                  <Link href={`/products?edit=${p.id}`} className="text-green-900 underline">
+                  <Link href={`/admin/products?edit=${p.id}`} className="text-green-900 underline">
                     Rediger
                   </Link>
                 </td>

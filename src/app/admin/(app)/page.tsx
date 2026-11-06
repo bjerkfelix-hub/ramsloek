@@ -2,12 +2,12 @@ import Link from 'next/link'
 import { requireRole, type Role } from '@/lib/auth'
 
 const SHORTCUTS: { href: string; label: string; roles: Role[] }[] = [
-  { href: '/batches/new', label: 'Ny høsting', roles: ['owner', 'picker'] },
-  { href: '/batches', label: 'Partier', roles: ['owner', 'picker', 'seller'] },
-  { href: '/stock', label: 'Lager', roles: ['owner', 'picker', 'seller'] },
-  { href: '/products', label: 'Produkter', roles: ['owner'] },
-  { href: '/users', label: 'Brukere', roles: ['owner'] },
-  { href: '/settings', label: 'Innstillinger', roles: ['owner'] },
+  { href: '/admin/batches/new', label: 'Ny høsting', roles: ['owner', 'picker'] },
+  { href: '/admin/batches', label: 'Partier', roles: ['owner', 'picker', 'seller'] },
+  { href: '/admin/stock', label: 'Lager', roles: ['owner', 'picker', 'seller'] },
+  { href: '/admin/products', label: 'Produkter', roles: ['owner'] },
+  { href: '/admin/users', label: 'Brukere', roles: ['owner'] },
+  { href: '/admin/settings', label: 'Innstillinger', roles: ['owner'] },
 ]
 
 export default async function HomePage() {

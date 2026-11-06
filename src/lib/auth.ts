@@ -27,7 +27,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
 
 export async function requireRole(...roles: Role[]): Promise<CurrentUser> {
   const user = await getCurrentUser()
-  if (!user) redirect('/login')
+  if (!user) redirect('/admin/login')
   if (roles.length > 0 && !roles.includes(user.role)) notFound()
   return user
 }

@@ -4,7 +4,7 @@ import { loginAs } from './helpers'
 const yy = new Date().toLocaleDateString('en-GB', { timeZone: 'Europe/Oslo', year: '2-digit' })
 
 async function fillBatch(page: Page, weight: string) {
-  await page.goto('/batches/new')
+  await page.goto('/admin/batches/new')
   await page.getByLabel('Område').selectOption({ label: 'Bekken' })
   await page.getByLabel('Plukkere').fill('Kari og Ola')
   await page.getByLabel('Bruttovekt (kg)').fill(weight)
@@ -26,23 +26,23 @@ test('picker registers a batch and sees lot number and weight', async ({ page })
 
 test('double-tapping Lagre creates exactly one batch', async ({ page }) => {
   await loginAs(page, 'picker')
-  await page.goto('/batches')
+  await page.goto('/admin/batches')
   const before = await page.locator('[data-testid="batch-row"]').count()
   await fillBatch(page, '1,2')
   await page.getByRole('button', { name: 'Lagre' }).dblclick()
   await page.waitForURL(/\/batches\/[0-9a-f-]{36}$/)
-  await page.goto('/batches')
+  await page.goto('/admin/batches')
   await expect(page.locator('[data-testid="batch-row"]')).toHaveCount(before + 1)
 })
 
 test('invalid weight shows an error and creates nothing', async ({ page }) => {
   await loginAs(page, 'picker')
-  await page.goto('/batches')
+  await page.goto('/admin/batches')
   const before = await page.locator('[data-testid="batch-row"]').count()
   await fillBatch(page, 'abc')
   await page.getByRole('button', { name: 'Lagre' }).click()
   await expect(page.locator('form').getByRole('alert')).toHaveText('Skriv vekt i kg, f.eks. 2,5')
-  await page.goto('/batches')
+  await page.goto('/admin/batches')
   await expect(page.locator('[data-testid="batch-row"]')).toHaveCount(before)
 })
 
@@ -76,10 +76,10 @@ test('temperature log accepts a decimal comma', async ({ page }) => {
 
 test('seller can read the list but not register', async ({ page }) => {
   await loginAs(page, 'seller')
-  await page.goto('/batches')
+  await page.goto('/admin/batches')
   await expect(page.getByRole('heading', { name: 'Partier' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Ny høsting' })).toHaveCount(0)
-  const res = await page.goto('/batches/new')
+  const res = await page.goto('/admin/batches/new')
   expect(res?.status()).toBe(404)
 })
 
@@ -97,7 +97,7 @@ test('loose waste works before the sorting check is signed', async ({ page }) =>
 
 test('offline save shows a message, keeps the id, and the retry creates exactly one batch', async ({ page, context }) => {
   await loginAs(page, 'picker')
-  await page.goto('/batches')
+  await page.goto('/admin/batches')
   const before = await page.locator('[data-testid="batch-row"]').count()
   await fillBatch(page, '1,7')
   await context.setOffline(true)
@@ -107,7 +107,7 @@ test('offline save shows a message, keeps the id, and the retry creates exactly 
   await context.setOffline(false)
   await page.getByRole('button', { name: 'Lagre' }).click()
   await page.waitForURL(/\/batches\/[0-9a-f-]{36}$/)
-  await page.goto('/batches')
+  await page.goto('/admin/batches')
   await expect(page.locator('[data-testid="batch-row"]')).toHaveCount(before + 1)
 })
 
@@ -140,7 +140,7 @@ test('owner can correct gross weight and notes, but not below what is used', asy
 
 test('harvest time input cannot be in the future', async ({ page }) => {
   await loginAs(page, 'picker')
-  await page.goto('/batches/new')
+  await page.goto('/admin/batches/new')
   const input = page.getByLabel('Høstet (Oslo-tid)')
   await expect(input).toHaveAttribute('max', /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)
 })

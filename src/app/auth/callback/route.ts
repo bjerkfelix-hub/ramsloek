@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
   // Relative Location: behind a proxy (Railway) request.nextUrl.origin is localhost:<PORT>, not the public host.
   // The session cookies set by the server client are merged into this response by Next.
-  return redirectTo(error ? '/login?error=callback' : '/')
+  return redirectTo(error ? '/admin/login?error=callback' : '/admin')
 }
 
 function redirectTo(location: string) {

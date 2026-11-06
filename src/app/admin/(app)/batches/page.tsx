@@ -26,7 +26,7 @@ export default async function BatchesPage() {
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl font-semibold">Partier</h1>
         {canCreate && (
-          <Link href="/batches/new" className="rounded bg-green-800 px-4 py-3 text-base font-medium text-white">
+          <Link href="/admin/batches/new" className="rounded bg-green-800 px-4 py-3 text-base font-medium text-white">
             Ny høsting
           </Link>
         )}
@@ -37,7 +37,7 @@ export default async function BatchesPage() {
           const signed = Array.isArray(b.sorting_checks) ? b.sorting_checks.length > 0 : !!b.sorting_checks
           return (
             <li key={b.id} data-testid="batch-row">
-              <Link href={`/batches/${b.id}`} className="flex flex-col gap-1 rounded border border-zinc-300 p-3">
+              <Link href={`/admin/batches/${b.id}`} className="flex flex-col gap-1 rounded border border-zinc-300 p-3">
                 <span className="flex items-center justify-between gap-2">
                   <span className="font-semibold">{b.lot_number}</span>
                   <SortingBadge signed={signed} />
