@@ -101,7 +101,8 @@ create policy harvest_areas_update on public.harvest_areas
 create policy batches_select on public.batches
   for select to authenticated using (public.app_role() is not null);
 create policy batches_insert on public.batches
-  for insert to authenticated with check (public.app_role() in ('owner', 'picker'));
+  for insert to authenticated
+  with check (public.app_role() in ('owner', 'picker') and created_by = (select auth.uid()));
 create policy batches_update on public.batches
   for update to authenticated
   using (public.app_role() = 'owner') with check (public.app_role() = 'owner');
@@ -109,12 +110,14 @@ create policy batches_update on public.batches
 create policy sorting_checks_select on public.sorting_checks
   for select to authenticated using (public.app_role() is not null);
 create policy sorting_checks_insert on public.sorting_checks
-  for insert to authenticated with check (public.app_role() in ('owner', 'picker'));
+  for insert to authenticated
+  with check (public.app_role() in ('owner', 'picker') and checked_by = (select auth.uid()));
 
 create policy temperature_logs_select on public.temperature_logs
   for select to authenticated using (public.app_role() is not null);
 create policy temperature_logs_insert on public.temperature_logs
-  for insert to authenticated with check (public.app_role() in ('owner', 'picker'));
+  for insert to authenticated
+  with check (public.app_role() in ('owner', 'picker') and logged_by = (select auth.uid()));
 
 revoke all on public.harvest_areas, public.batches, public.sorting_checks, public.temperature_logs
   from anon, authenticated;

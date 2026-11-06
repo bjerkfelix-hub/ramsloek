@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 \ir helpers.psql
-select plan(19);
+select plan(22);
 
 -- fixtures (as postgres)
 insert into public.harvest_areas (id, name) values ('00000000-0000-0000-0000-0000000000a1', 'Testområde');
@@ -69,6 +69,24 @@ select throws_ok(
   $$insert into public.temperature_logs (batch_id, celsius) values ('00000000-0000-0000-0000-0000000000b1', 80)$$,
   '23514', null, 'celsius 80 violates the check constraint');
 
+-- actor spoofing
+select throws_ok(
+  $$insert into public.batches (id, harvested_at, area_id, pickers, gross_weight_g, created_by)
+    values (gen_random_uuid(), '2027-04-24 10:00+02', '00000000-0000-0000-0000-0000000000a1', 'X', 100,
+            '00000000-0000-0000-0000-0000000000ff')$$,
+  '42501', null, 'picker cannot set created_by to another user');
+insert into public.batches (id, harvested_at, area_id, pickers, gross_weight_g)
+values ('00000000-0000-0000-0000-0000000000b5', '2027-04-24 10:00+02',
+        '00000000-0000-0000-0000-0000000000a1', 'Kari', 100);
+select throws_ok(
+  $$insert into public.sorting_checks (batch_id, checked_by)
+    values ('00000000-0000-0000-0000-0000000000b5', '00000000-0000-0000-0000-0000000000ff')$$,
+  '42501', null, 'picker cannot set checked_by to another user');
+select throws_ok(
+  $$insert into public.temperature_logs (batch_id, celsius, logged_by)
+    values ('00000000-0000-0000-0000-0000000000b5', 4, '00000000-0000-0000-0000-0000000000ff')$$,
+  '42501', null, 'picker cannot set logged_by to another user');
+
 -- picker cannot create areas or call next_number
 select throws_ok(
   $$insert into public.harvest_areas (name) values ('Testområde 2')$$,
@@ -83,7 +101,7 @@ select is((select row_id from public.audit_log where table_name = 'sorting_check
 
 -- seller
 select tests.login_as('seller');
-select is((select count(*) from public.batches), 5::bigint, 'seller can read batches');
+select is((select count(*) from public.batches), 6::bigint, 'seller can read batches');
 select throws_ok(
   $$insert into public.batches (id, harvested_at, area_id, pickers, gross_weight_g)
     values (gen_random_uuid(), '2027-04-24 10:00+02', '00000000-0000-0000-0000-0000000000a1', 'X', 100)$$,
