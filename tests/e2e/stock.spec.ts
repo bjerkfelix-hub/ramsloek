@@ -1,14 +1,5 @@
-import { loadEnvConfig } from '@next/env'
-import { createClient } from '@supabase/supabase-js'
 import { expect, test, type Page } from '@playwright/test'
-import { loginAs, signSortingCheck } from './helpers'
-
-function adminClient() {
-  loadEnvConfig(process.cwd())
-  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  })
-}
+import { adminClient, loginAs, signSortingCheck } from './helpers'
 
 const osloDate = new Intl.DateTimeFormat('nb-NO', { timeZone: 'Europe/Oslo', dateStyle: 'medium' })
 const PRODUCT = 'Ramsløk 100 g pose'

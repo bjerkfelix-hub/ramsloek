@@ -1,8 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { PDFDocument } from 'pdf-lib'
-import { loadEnvConfig } from '@next/env'
-import { createClient } from '@supabase/supabase-js'
-import { loginAs, signSortingCheck } from './helpers'
+import { adminClient, loginAs, signSortingCheck } from './helpers'
 
 const PRODUCT = 'Ramsløk 100 g pose'
 
@@ -65,10 +63,7 @@ test('seller can print labels too', async ({ page }) => {
 })
 
 test('batch page warns when company name or address is missing, but printing still works', async ({ page }) => {
-  loadEnvConfig(process.cwd())
-  const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  })
+  const admin = adminClient()
   const { data: before } = await admin.from('settings').select('company_name, address').single()
   const warning = 'Firmanavn og adresse mangler i Innstillinger – de skal stå på etiketten.'
   try {

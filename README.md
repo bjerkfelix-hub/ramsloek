@@ -72,7 +72,7 @@ npm run test:e2e  # ende-til-ende (Playwright, krever lokal Supabase)
 
 - **Enhet** (Vitest): ren logikk, innhold og sesongregler.
 - **db** (pgTAP): tabeller, RLS og funksjoner i databasen.
-- **e2e** (Playwright): hele flyten i nettleseren. De kjører kun mot en lokal Supabase; en vakt i `tests/e2e/helpers.ts` nekter å kjøre mot noe annet, så de kan aldri skrive til produksjon.
+- **e2e** (Playwright): hele flyten i nettleseren. Testene bruker service-role-klienten `adminClient()` fra `tests/e2e/helpers.ts`, og den nekter å kjøre med mindre `NEXT_PUBLIC_SUPABASE_URL` peker på en lokal Supabase (127.0.0.1, localhost eller [::1]). Dermed kan oppsett og opprydding i testene aldri skrive til produksjon.
 
 ## Slik bruker eieren systemet
 
@@ -96,7 +96,7 @@ Folk melder seg på sesongvarsel på det offentlige nettstedet. Listen finner du
 
 ### Mørk modus
 
-Under **Mer / Innstillinger** velger du System, Lys eller Mørk.
+Velg System, Lys eller Mørk under **Mer / Innstillinger** (mobil) eller med bryteren i sidemenyen (skrivebord).
 
 ## Tekster og oppskrifter
 
@@ -104,15 +104,16 @@ Alt innhold på det offentlige nettstedet ligger i `src/content`:
 
 - `no.ts` og `en.ts`: tekstene på norsk og engelsk
 - `recipes.ts`: oppskriftene
-- `site.ts`: sidenavn og `CONTACT_EMAIL`. Adressen er foreløpig en plassholder (`post@ramsløk.no`) som eieren må bekrefte før lansering.
+- `site.ts`: sidenavn, `CONTACT_EMAIL` og `COMPANY` (firmanavn, org.nr., adresse). Kontaktadressen (`post@ramsløk.no`) og firmaopplysningene er foreløpig plassholdere som eieren må bekrefte før lansering. De vises i bunnteksten og på personvernsiden.
 
 Endring i disse filene krever en ny deploy.
 
 ## Personvern
 
 - Lagret om påmeldte: e-postadresse, språk, samtykketeksten som ble vist, tidspunkt for samtykke og eventuell avmelding, samt en tilfeldig avmeldingsnøkkel. Ingenting annet.
-- Etter avmelding slettes raden etter 30 dager. Slettingen kjører når siden **Admin → Påmeldinger** åpnes.
-- Nettstedet bruker ingen sporingsinformasjonskapsler og ingen analyseverktøy. Den eneste informasjonskapselen er innloggingen i `/admin`.
+- Etter avmelding slettes raden senest 31 dager senere. Slettingen kjører daglig kl. 03:17 (pg_cron, `purge_unsubscribed_signups_system()`, migrasjon 6), og i tillegg når siden **Admin → Påmeldinger** åpnes.
+- Nettstedet bruker ingen sporingsinformasjonskapsler og ingen analyseverktøy. Det settes to informasjonskapsler: innloggingsøkta (kun for innloggede brukere i `/admin`) og temavalget (lys/mørk/system), som ikke sporer deg.
+- Etter hver deploy: eier/utvikler bør verifisere at påmeldings-rate-limiten fungerer bak Railway-proxyen, ved å sende gjentatte påmeldinger med forfalskede `X-Forwarded-For`-/`X-Real-IP`-headere og sjekke at grensen (5 per 10 min per IP) fortsatt slår inn.
 
 ## Produksjon (slik det er satt opp)
 
@@ -140,6 +141,8 @@ on conflict do nothing;
 ```
 
 Ferdig anvendt og registrert: migrasjon 1–5, sist `20261106000005_public_site` (offentlig nettsted: markedsdager og påmeldinger).
+
+Skal anvendes: `20261106000006_privacy_hardening` (daglig sletting av avmeldte via pg_cron, og kolonnebegrenset lesetilgang for `anon` på `market_days`). Kjør hele filen i SQL Editor og registrer versjonen som beskrevet over.
 
 **Auth-innstillinger** (Authentication i dashboardet):
 
