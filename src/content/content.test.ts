@@ -42,6 +42,10 @@ describe('dictionaries', () => {
     const b = new Map(strings(en).map((s) => [s.path, s.value]))
     for (const s of strings(no)) expect(placeholders(b.get(s.path)!), s.path).toEqual(placeholders(s.value))
   })
+  it('makes no unconfirmed claim that the ramsløk grows wild', () => {
+    for (const s of strings(no)) expect(s.value, s.path).not.toMatch(/\bvilt\b|vokser vilt/i)
+    for (const s of strings(en)) expect(s.value, s.path).not.toMatch(/grows wild/i)
+  })
   it('getDictionary returns the right language', () => {
     expect(getDictionary('no')).toBe(no)
     expect(getDictionary('en')).toBe(en)
@@ -53,6 +57,12 @@ describe('dictionaries', () => {
     expect(en.markets.loadFailed).toBe('Market days could not be loaded right now')
     expect(no.season.offSeason).toBe('Sesongen starter til våren')
     expect(CONTACT_EMAIL).toBe('post@ramsløk.no')
+    expect(no.home.intro[0]).toBe('Nesodden Ramsløk selger ramsløk fra en privat eiendom på Nesodden. Hvert blad plukkes for hånd.')
+    expect(en.home.intro[0]).toBe(
+      'Nesodden Ramsløk sells wild garlic (ramsløk) from a private estate on Nesodden. Every leaf is picked by hand.',
+    )
+    expect(no.signup.comingSoon).toBe('Påmeldingen åpner snart.')
+    expect(en.signup.comingSoon).toBe('Sign-up opens soon.')
   })
 })
 

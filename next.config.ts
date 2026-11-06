@@ -14,7 +14,10 @@ const nextConfig: NextConfig = {
     ];
   },
   experimental: {
-    // Several root layouts (public NO, public EN, admin): unmatched URLs need app/global-not-found.tsx.
+    // The app has several root layouts (public NO, public EN, admin) and no top-level layout, so
+    // there is no single layout to render a 404 for unmatched URLs in. Next's documented answer is
+    // app/global-not-found.tsx, which is still behind this experimental flag (Next 16.4). Side effect:
+    // unknown /admin/... URLs also get the (Norwegian) public 404; notFound() inside admin is unchanged.
     globalNotFound: true,
   },
   // cacheComponents/partialPrefetching are off: every page is per-user and dynamic, and with them

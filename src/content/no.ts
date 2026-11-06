@@ -61,7 +61,7 @@ export const no: Dictionary = {
   home: {
     heading: 'Ramsløk fra Nesodden',
     intro: [
-      'Nesodden Ramsløk selger ramsløk som vokser vilt på en privat eiendom på Nesodden. Hvert blad plukkes for hånd.',
+      'Nesodden Ramsløk selger ramsløk fra en privat eiendom på Nesodden. Hvert blad plukkes for hånd.',
       'Hver eneste sending sorteres og kontrolleres for liljekonvall, den giftige dobbeltgjengeren, før den pakkes. Du får den fersk på Bondens marked i Oslo.',
     ],
     nextMarketsHeading: 'Neste markedsdager',
@@ -88,6 +88,7 @@ export const no: Dictionary = {
     consentText:
       'Jeg samtykker til at Nesodden Ramsløk lagrer e-postadressen min og sender meg beskjed når sesongen starter. Jeg kan melde meg av når som helst.',
     button: 'Meld meg på',
+    comingSoon: 'Påmeldingen åpner snart.',
     sending: 'Sender …',
     success: 'Takk! Vi sier fra når sesongen starter.',
     errorInvalidEmail: 'Skriv en gyldig e-postadresse.',

@@ -14,7 +14,7 @@ export function SignupSlot({ locale }: { locale: Locale }) {
       <h2 id={`${SIGNUP_ANCHOR}-tittel`} className="font-display text-2xl font-semibold text-forest">
         {signup.heading}
       </h2>
-      <p className="mt-2 text-muted">{locale === 'en' ? 'Sign-up opens soon.' : 'Påmeldingen åpner snart.'}</p>
+      <p className="mt-2 text-muted">{signup.comingSoon}</p>
     </section>
   )
 }

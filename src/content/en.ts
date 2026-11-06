@@ -61,7 +61,7 @@ export const en: Dictionary = {
   home: {
     heading: 'Wild garlic from Nesodden',
     intro: [
-      'Nesodden Ramsløk sells wild garlic (ramsløk) that grows wild on a private estate on Nesodden. Every leaf is picked by hand.',
+      'Nesodden Ramsløk sells wild garlic (ramsløk) from a private estate on Nesodden. Every leaf is picked by hand.',
       'Every single batch is sorted and checked for lily of the valley, the poisonous look-alike, before it is packed. You can buy it fresh at Bondens marked in Oslo.',
     ],
     nextMarketsHeading: 'Next market days',
@@ -88,6 +88,7 @@ export const en: Dictionary = {
     consentText:
       'I consent to Nesodden Ramsløk storing my email address and sending me a notice when the season starts. I can unsubscribe at any time.',
     button: 'Sign me up',
+    comingSoon: 'Sign-up opens soon.',
     sending: 'Sending …',
     success: "Thanks! We'll let you know when the season starts.",
     errorInvalidEmail: 'Please enter a valid email address.',

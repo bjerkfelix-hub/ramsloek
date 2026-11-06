@@ -10,12 +10,19 @@ const EMAIL: Record<Role, string> = {
   seller: 'selger@test.local',
 }
 
-// Service-role client for test setup (bypasses RLS). Local Supabase only.
+const LOCAL_HOSTS = new Set(['127.0.0.1', 'localhost', '[::1]'])
+
+// Service-role client for test setup (bypasses RLS). Refuses anything but a local Supabase, since
+// the tests generate login links and delete rows with it.
 export function adminClient() {
   loadEnvConfig(process.cwd())
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!url || !key) throw new Error('Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (see .env.example)')
+  const host = new URL(url).hostname
+  if (!LOCAL_HOSTS.has(host)) {
+    throw new Error(`e2e tests only run against a local Supabase (127.0.0.1, localhost or [::1]); got host "${host}"`)
+  }
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } })
 }
 
@@ -24,11 +31,8 @@ export const E2E_PLACE_PREFIX = 'E2E '
 
 // Removes market days left behind by earlier e2e runs, so they never crowd the public front page.
 export async function deleteTestMarketDays(): Promise<void> {
-  const admin = adminClient()
-  for (const pattern of [`${E2E_PLACE_PREFIX}%`, 'Bondens marked Test %']) {
-    const { error } = await admin.from('market_days').delete().like('place_name', pattern)
-    if (error) throw error
-  }
+  const { error } = await adminClient().from('market_days').delete().like('place_name', `${E2E_PLACE_PREFIX}%`)
+  if (error) throw error
 }
 
 // YYYY-MM-DD `days` from now (UTC date; tests use offsets of several days, so the Oslo date agrees).

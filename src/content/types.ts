@@ -55,6 +55,7 @@ export type Dictionary = {
     emailPlaceholder: string
     consentText: string
     button: string
+    comingSoon: string // shown until the sign-up form exists
     sending: string
     success: string
     errorInvalidEmail: string
