@@ -88,7 +88,7 @@ export const no: Dictionary = {
     consentText:
       'Jeg samtykker til at Nesodden Ramsløk lagrer e-postadressen min og sender meg beskjed når sesongen starter. Jeg kan melde meg av når som helst.',
     button: 'Meld meg på',
-    comingSoon: 'Påmeldingen åpner snart.',
+    honeypotLabel: 'Ikke fyll ut dette feltet',
     sending: 'Sender …',
     success: 'Takk! Vi sier fra når sesongen starter.',
     errorInvalidEmail: 'Skriv en gyldig e-postadresse.',
@@ -180,7 +180,7 @@ export const no: Dictionary = {
         heading: 'Hvor lenge vi lagrer det',
         paragraphs: [
           'Vi lagrer opplysningene til du melder deg av. Etter avmelding slettes de senest 30 dager senere.',
-          'E-postene vi sender vil inneholde en lenke for å melde seg av. Du kan også alltid melde deg av via lenken på bekreftelsessiden, eller ved å kontakte oss. Det koster ingenting og krever ingen innlogging.',
+          'Du kan melde deg av når som helst ved å kontakte oss på kontaktadressen under. Hver e-post vi sender vil inneholde en lenke som melder deg av med ett klikk. Det koster ingenting og krever ingen innlogging.',
         ],
       },
       {

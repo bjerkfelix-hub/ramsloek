@@ -27,6 +27,14 @@ describe("jsonLdString", () => {
     expect(s).not.toContain("</");
     expect(JSON.parse(s)).toEqual({ a: "</script><b>" });
   });
+  it("escapes every < and the U+2028/U+2029 separators", () => {
+    const value = { a: "<!-- <script> \u2028 \u2029 x" };
+    const s = jsonLdString(value);
+    expect(s).not.toContain("<");
+    expect(s).not.toContain("\u2028");
+    expect(s).not.toContain("\u2029");
+    expect(JSON.parse(s)).toEqual(value);
+  });
 });
 
 describe("recipeJsonLd", () => {

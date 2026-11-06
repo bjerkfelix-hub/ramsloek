@@ -20,9 +20,12 @@ export function osloIso(ymd: string, hhmm: string): string {
   return `${ymd}T${h}:${m}:00${offset}`;
 }
 
-/** JSON for a <script type="application/ld+json"> element; "</" is escaped so the script cannot be closed early. */
+/** JSON for a <script type="application/ld+json"> element; every "<" and the JS line separators are escaped so the script cannot be closed early. */
 export function jsonLdString(data: unknown): string {
-  return JSON.stringify(data).replace(/<\//g, "<\\/");
+  return JSON.stringify(data)
+    .replace(/</g, "\\u003c")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
 }
 
 export function recipeJsonLd(

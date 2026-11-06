@@ -88,7 +88,7 @@ export const en: Dictionary = {
     consentText:
       'I consent to Nesodden Ramsløk storing my email address and sending me a notice when the season starts. I can unsubscribe at any time.',
     button: 'Sign me up',
-    comingSoon: 'Sign-up opens soon.',
+    honeypotLabel: 'Do not fill in this field',
     sending: 'Sending …',
     success: "Thanks! We'll let you know when the season starts.",
     errorInvalidEmail: 'Please enter a valid email address.',
@@ -180,7 +180,7 @@ export const en: Dictionary = {
         heading: 'How long we keep it',
         paragraphs: [
           'We keep the information until you unsubscribe. After you unsubscribe, it is deleted within 30 days.',
-          'The emails we send will contain an unsubscribe link. You can also always unsubscribe using the link on the confirmation page, or by contacting us. It is free and needs no login.',
+          'You can unsubscribe at any time by contacting us at the contact address below. Every email we send will contain a link that unsubscribes you with one click. It is free and needs no login.',
         ],
       },
       {

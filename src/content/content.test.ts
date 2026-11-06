@@ -61,8 +61,8 @@ describe('dictionaries', () => {
     expect(en.home.intro[0]).toBe(
       'Nesodden Ramsløk sells wild garlic (ramsløk) from a private estate on Nesodden. Every leaf is picked by hand.',
     )
-    expect(no.signup.comingSoon).toBe('Påmeldingen åpner snart.')
-    expect(en.signup.comingSoon).toBe('Sign-up opens soon.')
+    expect(no.signup.honeypotLabel).toBe('Ikke fyll ut dette feltet')
+    expect(en.signup.honeypotLabel).toBe('Do not fill in this field')
   })
 })
 

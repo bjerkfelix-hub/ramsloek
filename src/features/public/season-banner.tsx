@@ -1,6 +1,6 @@
 import { getDictionary, type Locale } from '@/content'
 import type { SeasonStatus } from '@/lib/domain/season'
-import { SIGNUP_ANCHOR } from './signup-slot'
+import { SIGNUP_ANCHOR } from './signup-anchor'
 import { seasonBannerText } from './view'
 
 export function SeasonBanner({ status, locale }: { status: SeasonStatus; locale: Locale }) {

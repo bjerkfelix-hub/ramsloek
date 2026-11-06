@@ -7,7 +7,7 @@ import { ROUTES } from '@/lib/public/routes'
 import { LeafIllustration } from './leaf-illustration'
 import { MarketList } from './market-list'
 import { SeasonBanner } from './season-banner'
-import { SignupSlot } from './signup-slot'
+import { SignupForm } from './SignupForm'
 import { calendarView, seasonFromResult } from './view'
 
 const FRONT_PAGE_MARKETS = 3
@@ -69,7 +69,7 @@ export async function FrontPage({ locale }: { locale: Locale }) {
         </p>
       </section>
 
-      <SignupSlot locale={locale} />
+      <SignupForm locale={locale} signup={dict.signup} />
     </div>
   )
 }

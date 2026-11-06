@@ -7,6 +7,7 @@ const SHORTCUTS: { href: string; label: string; roles: Role[] }[] = [
   { href: '/admin/stock', label: 'Lager', roles: ['owner', 'picker', 'seller'] },
   { href: '/admin/products', label: 'Produkter', roles: ['owner'] },
   { href: '/admin/marked', label: 'Marked', roles: ['owner'] },
+  { href: '/admin/pameldinger', label: 'Påmeldinger', roles: ['owner'] },
   { href: '/admin/users', label: 'Brukere', roles: ['owner'] },
   { href: '/admin/settings', label: 'Innstillinger', roles: ['owner'] },
 ]

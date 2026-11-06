@@ -55,7 +55,7 @@ export type Dictionary = {
     emailPlaceholder: string
     consentText: string
     button: string
-    comingSoon: string // shown until the sign-up form exists
+    honeypotLabel: string // label of the hidden spam-trap field
     sending: string
     success: string
     errorInvalidEmail: string
