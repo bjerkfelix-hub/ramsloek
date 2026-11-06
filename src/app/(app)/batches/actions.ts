@@ -71,3 +71,71 @@ export async function logTemperature(batchId: string, celsius: string): Promise<
   revalidatePath(`/batches/${batchId}`)
   return { ok: true }
 }
+
+const REASONS = ['visnet', 'skadet', 'utgått', 'annet']
+const GENERIC = 'Noe gikk galt. Prøv igjen.'
+
+function parseUnits(raw: string): number | null {
+  if (!/^\d{1,6}$/.test(raw)) return null
+  const n = Number(raw)
+  return n > 0 ? n : null
+}
+
+export async function packBatch(
+  form: FormData,
+): Promise<{ ok: true; packingId: string } | { ok: false; error: string }> {
+  await requireRole('owner', 'picker')
+  const id = text(form, 'id')
+  const batchId = text(form, 'batch_id')
+  const productId = text(form, 'product_id')
+  if (!UUID.test(id) || !UUID.test(batchId)) return { ok: false, error: GENERIC }
+  if (!UUID.test(productId)) return { ok: false, error: 'Velg produkt.' }
+  const units = parseUnits(text(form, 'units'))
+  if (units === null) return { ok: false, error: 'Skriv antall som et helt tall, f.eks. 10' }
+
+  const supabase = await createClient()
+  // weight_g and best_before are derived by the database trigger. A repeated submit (same id) is a no-op.
+  const { data: existing } = await supabase.from('packings').select('id').eq('id', id).maybeSingle()
+  if (!existing) {
+    const { error } = await supabase.from('packings').insert({ id, batch_id: batchId, product_id: productId, units })
+    if (error && error.code !== '23505') return { ok: false, error: dbErrorToMessage(error) }
+  }
+  revalidatePath(`/batches/${batchId}`)
+  revalidatePath('/stock')
+  return { ok: true, packingId: id }
+}
+
+export async function registerWaste(form: FormData): Promise<ActionResult> {
+  await requireRole('owner', 'picker')
+  const id = text(form, 'id')
+  const batchId = text(form, 'batch_id')
+  if (!UUID.test(id) || !UUID.test(batchId)) return { ok: false, error: GENERIC }
+  const reason = text(form, 'reason')
+  if (!REASONS.includes(reason)) return { ok: false, error: 'Velg årsak.' }
+
+  const weightText = text(form, 'weight')
+  let row: Record<string, unknown>
+  if (weightText) {
+    const grams = parseKgToGrams(weightText)
+    if (grams === null) return { ok: false, error: 'Skriv vekt i kg, f.eks. 0,5' }
+    row = { weight_g: grams }
+  } else {
+    const productId = text(form, 'product_id')
+    if (!UUID.test(productId)) return { ok: false, error: 'Velg produkt.' }
+    const units = parseUnits(text(form, 'units'))
+    if (units === null) return { ok: false, error: 'Skriv antall som et helt tall, f.eks. 2' }
+    row = { product_id: productId, units }
+  }
+
+  const supabase = await createClient()
+  const { data: existing } = await supabase.from('waste_records').select('id').eq('id', id).maybeSingle()
+  if (!existing) {
+    const { error } = await supabase
+      .from('waste_records')
+      .insert({ id, batch_id: batchId, reason, note: textOrNull(form, 'note'), ...row })
+    if (error && error.code !== '23505') return { ok: false, error: dbErrorToMessage(error) }
+  }
+  revalidatePath(`/batches/${batchId}`)
+  revalidatePath('/stock')
+  return { ok: true }
+}

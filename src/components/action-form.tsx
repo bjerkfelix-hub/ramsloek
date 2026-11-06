@@ -13,12 +13,16 @@ export function ActionForm({
   submitLabel = 'Lagre',
   resetOnSuccess = false,
   disabled = false,
+  onResult,
+  testId,
 }: {
   action: (form: FormData) => Promise<ActionResult>
   children: React.ReactNode
   submitLabel?: string
   resetOnSuccess?: boolean
   disabled?: boolean
+  onResult?: (res: ActionResult) => void
+  testId?: string
 }) {
   const [result, setResult] = useState<ActionResult | null>(null)
   const [pending, startTransition] = useTransition()
@@ -30,12 +34,13 @@ export function ActionForm({
     startTransition(async () => {
       const res = await action(data)
       setResult(res)
+      onResult?.(res)
       if (res.ok && resetOnSuccess) form.reset()
     })
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-3">
+    <form onSubmit={onSubmit} data-testid={testId} className="flex flex-col gap-3">
       {children}
       {result && !result.ok && (
         <p role="alert" className="text-sm text-red-700">
