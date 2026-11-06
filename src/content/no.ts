@@ -180,7 +180,7 @@ export const no: Dictionary = {
         heading: 'Hvor lenge vi lagrer det',
         paragraphs: [
           'Vi lagrer opplysningene til du melder deg av. Etter avmelding slettes de senest 30 dager senere.',
-          'Du melder deg av med ett klikk på lenken «avmelding» som følger med hver beskjed. Det koster ingenting og krever ingen innlogging.',
+          'E-postene vi sender vil inneholde en lenke for å melde seg av. Du kan også alltid melde deg av via lenken på bekreftelsessiden, eller ved å kontakte oss. Det koster ingenting og krever ingen innlogging.',
         ],
       },
       {

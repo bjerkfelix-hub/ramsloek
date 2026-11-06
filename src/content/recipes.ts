@@ -4,6 +4,7 @@ export const recipes: Recipe[] = [
   {
     slug: 'ramslokpesto',
     image: null,
+    durationIso: 'PT15M',
     time: { no: '15 minutter', en: '15 minutes' },
     servings: 4,
     title: { no: 'Ramsløkpesto', en: 'Wild garlic pesto' },
@@ -84,6 +85,7 @@ export const recipes: Recipe[] = [
   {
     slug: 'ramslokolje',
     image: null,
+    durationIso: 'PT15M',
     time: { no: '15 minutter', en: '15 minutes' },
     servings: 10,
     title: { no: 'Ramsløkolje', en: 'Wild garlic oil' },
@@ -115,6 +117,7 @@ export const recipes: Recipe[] = [
   {
     slug: 'ramslokssuppe',
     image: null,
+    durationIso: 'PT30M',
     time: { no: '30 minutter', en: '30 minutes' },
     servings: 4,
     title: { no: 'Ramsløksuppe', en: 'Wild garlic soup' },
@@ -164,6 +167,7 @@ export const recipes: Recipe[] = [
   {
     slug: 'ramslok-i-eggerore',
     image: null,
+    durationIso: 'PT10M',
     time: { no: '10 minutter', en: '10 minutes' },
     servings: 2,
     title: { no: 'Ramsløk i eggerøre', en: 'Wild garlic scrambled eggs' },

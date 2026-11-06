@@ -180,7 +180,7 @@ export const en: Dictionary = {
         heading: 'How long we keep it',
         paragraphs: [
           'We keep the information until you unsubscribe. After you unsubscribe, it is deleted within 30 days.',
-          'You unsubscribe with one click on the "unsubscribe" link included in every notice. It is free and needs no login.',
+          'The emails we send will contain an unsubscribe link. You can also always unsubscribe using the link on the confirmation page, or by contacting us. It is free and needs no login.',
         ],
       },
       {

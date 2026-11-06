@@ -111,6 +111,8 @@ export type Recipe = {
   slug: string
   image: null
   time: { no: string; en: string }
+  /** ISO-8601 duration for structured data; only set when the time is a single exact duration. */
+  durationIso?: string
   servings: number
   title: { no: string; en: string }
   intro: { no: string; en: string }
