@@ -1,0 +1,57 @@
+/* Public site base styles. Tokens live in src/app/globals.css. Unlayered on purpose so they win
+   over the admin-oriented `body` rule there (always light: the palette is checked for AA in light). */
+body.public-site {
+  background: var(--rl-paper);
+  color: var(--rl-ink);
+  font-family: var(--font-inter), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+}
+
+.public-site h1,
+.public-site h2,
+.public-site h3 {
+  text-wrap: balance;
+  line-height: 1.15;
+}
+
+.public-site p {
+  text-wrap: pretty;
+}
+
+.public-site a {
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+}
+
+.public-site a:hover {
+  text-decoration-thickness: 2px;
+}
+
+.public-site :focus-visible {
+  outline: 3px solid var(--rl-forest);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* On the green band the focus ring must stand out against forest green. */
+.public-site .on-forest :focus-visible {
+  outline-color: var(--rl-cream);
+}
+
+.public-site ::selection {
+  background: var(--rl-forest);
+  color: var(--rl-cream);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html:has(body.public-site) {
+    scroll-behavior: smooth;
+  }
+  .public-site a {
+    transition: color 150ms ease-out, text-decoration-color 150ms ease-out;
+  }
+}

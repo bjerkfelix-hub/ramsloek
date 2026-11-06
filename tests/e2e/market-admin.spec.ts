@@ -1,15 +1,13 @@
 import { expect, test } from '@playwright/test'
-import { loginAs } from './helpers'
+import { deleteTestMarketDays, E2E_PLACE_PREFIX, isoInDays, loginAs } from './helpers'
 
 const stamp = Date.now()
 
-function isoInDays(days: number): string {
-  const d = new Date(Date.now() + days * 86400000)
-  return d.toISOString().slice(0, 10)
-}
+test.beforeAll(deleteTestMarketDays)
+test.afterAll(deleteTestMarketDays)
 
 test('owner adds, edits, cancels and restores a market day', async ({ page }) => {
-  const place = `Bondens marked Test ${stamp}`
+  const place = `${E2E_PLACE_PREFIX}Bondens marked Test ${stamp}`
   await loginAs(page, 'owner')
   await page.goto('/admin/marked')
 
@@ -50,7 +48,7 @@ test('ends before starts, or missing fields, show an error', async ({ page }) =>
   await form.getByLabel('Dato').fill(isoInDays(8))
   await form.getByLabel('Fra').fill('15:00')
   await form.getByLabel('Til').fill('10:00')
-  await form.getByLabel('Sted').fill(`Feil tid ${stamp}`)
+  await form.getByLabel('Sted').fill(`${E2E_PLACE_PREFIX}Feil tid ${stamp}`)
   await form.getByLabel('Adresse').fill('Torget 1')
   await form.getByRole('button', { name: 'Lagre' }).click()
   await expect(form.getByRole('alert')).toHaveText('Sluttid må være etter starttid.')

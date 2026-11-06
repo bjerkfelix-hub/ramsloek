@@ -13,7 +13,10 @@ const nextConfig: NextConfig = {
       ]),
     ];
   },
-  /* config options here */
+  experimental: {
+    // Several root layouts (public NO, public EN, admin): unmatched URLs need app/global-not-found.tsx.
+    globalNotFound: true,
+  },
   // cacheComponents/partialPrefetching are off: every page is per-user and dynamic, and with them
   // on, session reads must stream behind Suspense, which loses real 404/redirect status codes.
   turbopack: {

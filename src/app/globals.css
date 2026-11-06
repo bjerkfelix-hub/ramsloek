@@ -3,6 +3,20 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Brand colour tokens, defined once. WCAG contrast (normal text, AA needs 4.5:1):
+     ink/paper 14.4, forest/paper 6.95, muted/paper 6.25, cream/forest 7.5, ink/sage 13.2,
+     forest/sage 6.3, muted/sage 5.7, alert/alert-bg 6.3. `line` is decorative only. */
+  --rl-forest: #2f5d3a;
+  --rl-forest-dark: #234a2d;
+  --rl-paper: #f7f4ec;
+  --rl-ink: #1d241f;
+  --rl-cream: #fffdf5;
+  --rl-muted: #4f5e52;
+  --rl-sage: #e6ecdf;
+  --rl-line: #d9d3c3;
+  --rl-alert: #9a2b1f;
+  --rl-alert-bg: #f8e4df;
 }
 
 @theme inline {
@@ -10,6 +24,19 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --color-forest: var(--rl-forest);
+  --color-forest-dark: var(--rl-forest-dark);
+  --color-paper: var(--rl-paper);
+  --color-ink: var(--rl-ink);
+  --color-cream: var(--rl-cream);
+  --color-muted: var(--rl-muted);
+  --color-sage: var(--rl-sage);
+  --color-line: var(--rl-line);
+  --color-alert: var(--rl-alert);
+  --color-alert-bg: var(--rl-alert-bg);
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-body: var(--font-inter), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
