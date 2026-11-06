@@ -1,0 +1,37 @@
+-- Shared pgTAP helpers. Included from every test file with `\ir helpers.psql`
+-- (inside the test's transaction, so nothing here is ever committed or migrated).
+create schema if not exists tests;
+grant usage on schema tests to authenticated;
+
+-- Act as an existing user (by id) with the `authenticated` database role.
+create or replace function tests.login_as_user(p_user uuid) returns void
+language plpgsql as $$
+begin
+  perform set_config('request.jwt.claims',
+    json_build_object('sub', p_user, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+end $$;
+
+-- Create a user with the given app role (profile comes from the auth.users
+-- trigger), then act as that user. Returns the user id.
+create or replace function tests.login_as(p_role app_role) returns uuid
+language plpgsql as $$
+declare
+  v_id uuid := gen_random_uuid();
+begin
+  reset role;
+  insert into auth.users (id, aud, role, email, raw_user_meta_data)
+  values (v_id, 'authenticated', 'authenticated',
+          v_id || '@example.test',
+          jsonb_build_object('role', p_role, 'full_name', 'Test ' || p_role));
+  perform tests.login_as_user(v_id);
+  return v_id;
+end $$;
+
+create or replace function tests.logout() returns void
+language plpgsql as $$
+begin
+  perform set_config('request.jwt.claims', '', true);
+  reset role;
+end $$;
+grant execute on all functions in schema tests to authenticated;
