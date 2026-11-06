@@ -6,7 +6,7 @@ const dateFmt = new Intl.DateTimeFormat('nb-NO', {
   year: 'numeric',
 })
 
-/** "2027-05-09" -> "lørdag 9. mai 2027". */
+/** "2027-05-09" -> "søndag 9. mai 2027". */
 export function formatMarketDate(date: string): string {
   return dateFmt.format(new Date(`${date}T12:00:00Z`))
 }

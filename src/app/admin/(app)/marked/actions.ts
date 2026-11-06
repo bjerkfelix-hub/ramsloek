@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidateMarketPages } from '@/lib/public/revalidate'
 import { requireRole } from '@/lib/auth'
 import { dbErrorToMessage } from '@/lib/errors'
 import { createClient } from '@/lib/supabase/server'
@@ -42,7 +42,7 @@ export async function saveMarketDay(form: FormData): Promise<ActionResult> {
     const { error } = await supabase.from('market_days').insert(row)
     if (error) return { ok: false, error: error.code === '23514' ? MARKET_TIME_ORDER : dbErrorToMessage(error) }
   }
-  revalidatePath('/admin/marked')
+  revalidateMarketPages()
   return { ok: true }
 }
 
@@ -53,6 +53,6 @@ export async function setMarketDayCancelled(id: string, cancelled: boolean): Pro
   const { data, error } = await supabase.from('market_days').update({ cancelled }).eq('id', id).select('id')
   if (error) return { ok: false, error: dbErrorToMessage(error) }
   if (!data?.length) return { ok: false, error: 'Fant ikke markedsdagen.' }
-  revalidatePath('/admin/marked')
+  revalidateMarketPages()
   return { ok: true }
 }
