@@ -73,6 +73,13 @@ Hvis `supabase db push` ikke får kontakt (pooler-tilkoblingen feilet på nettve
 
 Kjør aldri `seed.sql` mot produksjon.
 
+**Herdingsmigrasjon.** Etter at denne grenen er deployet må eieren lime inn `supabase/migrations/20261106000004_hardening.sql` i **SQL Editor** i Supabase-dashboardet og kjøre den (hele filen, én gang). Registrer deretter versjonen, slik at `supabase db push` ikke prøver å kjøre den på nytt:
+
+```sql
+insert into supabase_migrations.schema_migrations (version, name)
+values ('20261106000004', 'hardening');
+```
+
 **Auth-innstillinger** (Authentication i dashboardet):
 
 - Site URL: `https://ramsløk.no` (punycode: `https://xn--ramslk-fya.no`)
@@ -86,6 +93,8 @@ Sett disse miljøvariablene på tjenesten:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY` (hemmelig, må aldri eksponeres i nettleseren)
+
+`NEXT_PUBLIC_*`-variabler bygges inn ved build – endring krever ny deploy i Railway, ikke bare restart.
 
 Node 22 er festet via `engines` i `package.json` og `.node-version`.
 
@@ -103,7 +112,9 @@ Skriptet oppretter brukeren direkte (ingen invitasjons-e-post). Eieren går dere
 
 ### 4. Nye brukere
 
-Eier legger til brukere under **Brukere → Legg til bruker** (e-post, navn, rolle). De får ingen e-post automatisk; be dem logge inn på innloggingssiden med e-postadressen sin. Status vises som «Invitert» til første innlogging.
+Eier legger til brukere under **Brukere → Legg til bruker** (e-post, navn, rolle). De får ingen e-post automatisk; be dem logge inn på innloggingssiden med e-postadressen sin. Status vises som «Ikke logget inn ennå» til første innlogging.
+
+**Deaktiver brukere i appen – slett dem aldri i Supabase (navnet forsvinner fra signerte partier).**
 
 ### 5. E-post (viktig før ansatte skal logge inn)
 
