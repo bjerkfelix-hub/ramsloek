@@ -24,3 +24,14 @@ test('signed-out /admin/batches ends at /admin/login', async ({ page }) => {
   await page.goto('/admin/batches')
   await expect(page).toHaveURL(/\/admin\/login$/)
 })
+
+for (const [from, to] of [
+  ['/oppskrifter/ramslokssuppe', '/oppskrifter/ramsloksuppe'],
+  ['/en/recipes/ramslokssuppe', '/en/recipes/ramsloksuppe'],
+]) {
+  test(`${from} permanently redirects to the corrected recipe slug`, async ({ request }) => {
+    const res = await request.get(from, { maxRedirects: 0 })
+    expect(res.status()).toBe(308)
+    expect(res.headers()['location']).toBe(to)
+  })
+}

@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 \ir helpers.psql
-select plan(24);
+select plan(31);
 
 -- fixtures (as postgres)
 insert into public.market_days (id, market_date, starts_at, ends_at, place_name, address, published, cancelled) values
@@ -26,6 +26,9 @@ select throws_ok(
   '42501', null, 'anon cannot insert market_days');
 select throws_ok($$update public.market_days set place_name = 'x'$$, '42501', null, 'anon cannot update market_days');
 select throws_ok($$select 1 from public.season_signups$$, '42501', null, 'anon cannot select season_signups');
+
+select throws_ok($$select created_by from public.market_days$$, '42501', null, 'anon cannot select market_days.created_by');
+select lives_ok($$select id, market_date, place_name, cancelled from public.market_days$$, 'anon can select the public columns');
 
 -- picker
 reset role;
@@ -71,6 +74,22 @@ select tests.login_as_user(:'owner_id'::uuid);
 select is(public.purge_unsubscribed_signups(), 1, 'owner purge deletes the 31-day-old row');
 select tests.logout();
 select is((select count(*) from public.season_signups where email = 'ny@example.test'), 1::bigint, '29-day-old row is kept');
+
+-- system purge (cron): runs without a role check, not callable by clients
+set local role service_role;
+insert into public.season_signups (email, language, consent_text, unsubscribed_at) values
+  ('gammel2@example.test', 'no', 'samtykke', now() - interval '31 days'),
+  ('ny2@example.test',     'en', 'consent',  now() - interval '29 days');
+reset role;
+select is(public.purge_unsubscribed_signups_system(), 1, 'system purge deletes the 31-day-old row');
+select is((select count(*) from public.season_signups where email = 'ny2@example.test'), 1::bigint, 'system purge keeps the 29-day-old row');
+set local role anon;
+select throws_ok($$select public.purge_unsubscribed_signups_system()$$, '42501', null, 'anon cannot run the system purge');
+reset role;
+select tests.login_as_user(:'owner_id'::uuid);
+select throws_ok($$select public.purge_unsubscribed_signups_system()$$, '42501', null, 'authenticated cannot run the system purge');
+select tests.logout();
+select ok(exists(select 1 from cron.job where jobname = 'purge-unsubscribed-signups'), 'cron job purge-unsubscribed-signups is scheduled');
 
 -- audit
 select ok(exists(select 1 from public.audit_log where table_name = 'market_days' and row_id = '00000000-0000-0000-0000-00000000c006' and action = 'INSERT'), 'market_days insert writes an audit_log row');
