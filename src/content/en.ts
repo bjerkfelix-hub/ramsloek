@@ -101,6 +101,8 @@ export const en: Dictionary = {
     done: 'You have been unsubscribed.',
     invalid: 'The link is invalid or has already been used.',
     backHome: 'Back to the front page',
+    button: 'Unsubscribe',
+    error: 'Something went wrong – please try again later.',
   },
   story: {
     heading: 'Our story',

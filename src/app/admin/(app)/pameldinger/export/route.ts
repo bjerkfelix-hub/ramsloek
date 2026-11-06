@@ -31,6 +31,7 @@ export async function GET() {
       'content-type': 'text/csv; charset=utf-8',
       'content-disposition': 'attachment; filename="pameldinger.csv"',
       'cache-control': 'no-store',
+      'x-content-type-options': 'nosniff',
     },
   })
 }

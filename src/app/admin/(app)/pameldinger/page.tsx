@@ -7,7 +7,8 @@ export default async function SignupsPage() {
   await requireRole('owner')
   // Housekeeping: deletes sign-ups unsubscribed more than 30 days ago (owner-only function).
   const supabase = await createClient()
-  await supabase.rpc('purge_unsubscribed_signups')
+  const { error: purgeError } = await supabase.rpc('purge_unsubscribed_signups')
+  if (purgeError) console.error('purge_unsubscribed_signups failed', purgeError)
   const signups = await listActiveSignups()
 
   return (

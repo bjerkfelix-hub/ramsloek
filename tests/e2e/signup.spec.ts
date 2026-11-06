@@ -19,11 +19,17 @@ async function row(email: string) {
   return data
 }
 
-// The sign-up limiter allows 5 attempts per IP per 10 minutes, so tests use distinct fake client IPs.
+// The sign-up limiter allows 5 attempts per IP per 10 minutes and trusts x-real-ip, so each test gets its own
+// deterministic fake client IP (TEST-NET-3 range, varied per run and per test).
 test.beforeEach(async ({ page }, info) => {
-  const ip = `10.${(stamp >> 8) % 250}.${info.workerIndex}.${(info.title.length * 7 + Math.floor(Math.random() * 200)) % 250}`
-  await page.setExtraHTTPHeaders({ 'x-forwarded-for': ip })
+  await page.setExtraHTTPHeaders({ 'x-real-ip': `203.0.113.${(stamp + hash(info.title)) % 250}` })
 })
+
+function hash(s: string): number {
+  let h = 0
+  for (const c of s) h = (h * 31 + c.charCodeAt(0)) % 100000
+  return h
+}
 
 test.afterAll(async () => {
   await adminClient().from('season_signups').delete().like('email', `e2e+${stamp}-%`)
@@ -40,11 +46,15 @@ test('sign up, repeat, unsubscribe via token, sign up again', async ({ page }) =
   await signUp(page, email)
   await expect(page.getByTestId('signup-success')).toHaveText(SUCCESS_NO)
 
+  // GET only shows the button; nothing is unsubscribed yet.
   await page.goto(`/avmelding/${first!.unsubscribe_token}`)
+  expect((await row(email))?.unsubscribed_at).toBeNull()
+  await page.getByRole('button', { name: 'Meld meg av' }).click()
   await expect(page.getByText('Du er meldt av.')).toBeVisible()
   expect((await row(email))?.unsubscribed_at).not.toBeNull()
   // Idempotent
-  await page.reload()
+  await page.goto(`/avmelding/${first!.unsubscribe_token}`)
+  await page.getByRole('button', { name: 'Meld meg av' }).click()
   await expect(page.getByText('Du er meldt av.')).toBeVisible()
 
   await signUp(page, email)
@@ -62,6 +72,7 @@ test('English sign-up and unsubscribe page', async ({ page }) => {
   const r = await row(email)
   expect(r?.language).toBe('en')
   await page.goto(`/avmelding/${r!.unsubscribe_token}`)
+  await page.getByRole('button', { name: 'Unsubscribe' }).click()
   await expect(page.getByText('You have been unsubscribed.')).toBeVisible()
 })
 
@@ -99,7 +110,7 @@ test('invalid unsubscribe token shows a neutral page', async ({ page }) => {
 })
 
 test('rate limit blocks the sixth attempt from one IP', async ({ page }) => {
-  await page.setExtraHTTPHeaders({ 'x-forwarded-for': `192.0.2.${stamp % 250}` })
+  await page.setExtraHTTPHeaders({ 'x-real-ip': `192.0.2.${stamp % 250}`, 'x-forwarded-for': '6.6.6.6' })
   await page.goto('/')
   await page.evaluate(() => document.querySelector('form')?.setAttribute('novalidate', ''))
   for (let i = 0; i < 5; i++) {

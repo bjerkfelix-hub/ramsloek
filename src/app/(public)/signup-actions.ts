@@ -23,7 +23,7 @@ export async function signUpForSeason(form: FormData): Promise<SignupResult> {
   // Honeypot: bots fill every field. Pretend it worked, store nothing.
   if (field(form, 'website') !== '') return { ok: true }
 
-  const ip = clientIp((await headers()).get('x-forwarded-for'))
+  const ip = clientIp(await headers())
   if (!limiter.attempt(ip)) return { ok: false, error: signup.errorTryLater }
 
   const raw = field(form, 'email')

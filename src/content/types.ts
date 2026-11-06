@@ -68,6 +68,8 @@ export type Dictionary = {
     done: string
     invalid: string
     backHome: string
+    button: string
+    error: string
   }
   story: {
     heading: string

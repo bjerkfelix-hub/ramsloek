@@ -101,6 +101,8 @@ export const no: Dictionary = {
     done: 'Du er meldt av.',
     invalid: 'Lenken er ugyldig eller allerede brukt.',
     backHome: 'Til forsiden',
+    button: 'Meld meg av',
+    error: 'Noe gikk galt – prøv igjen senere.',
   },
   story: {
     heading: 'Historien vår',
