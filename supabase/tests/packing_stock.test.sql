@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 \ir helpers.psql
-select plan(20);
+select plan(25);
 
 -- fixtures (as postgres)
 insert into public.harvest_areas (id, name) values ('00000000-0000-0000-0000-0000000000a1', 'Testområde');
@@ -111,6 +111,33 @@ select throws_ok(
     values (gen_random_uuid(), '00000000-0000-0000-0000-0000000000b2', '00000000-0000-0000-0000-0000000000d1', 1)$$,
   '42501', null, 'seller cannot pack');
 select cmp_ok((select count(*) from public.stock_levels), '>', 0::bigint, 'seller can read stock_levels');
+
+-- seller: cannot probe via insert guards (42501 before any batch state is revealed)
+select throws_ok(
+  $$insert into public.waste_records (id, batch_id, weight_g, reason, created_by)
+    values (gen_random_uuid(), '00000000-0000-0000-0000-0000000000b3', 100000, 'annet', auth.uid())$$,
+  '42501', null, 'seller cannot probe waste guard');
+select throws_ok(
+  $$insert into public.packings (id, batch_id, product_id, units, packed_by)
+    values (gen_random_uuid(), gen_random_uuid(), '00000000-0000-0000-0000-0000000000d1', 1, auth.uid())$$,
+  '42501', null, 'seller gets 42501, not BATCH_NOT_FOUND');
+
+-- inactive user
+select tests.logout();
+select tests.login_as('picker') as inactive_id \gset
+select tests.logout();
+update public.profiles set active = false where id = :'inactive_id';
+select tests.login_as_user(:'inactive_id');
+select is(public.batch_remaining_g('00000000-0000-0000-0000-0000000000b3'), null,
+  'inactive user gets no remaining value');
+select throws_ok(
+  $$insert into public.packings (id, batch_id, product_id, units, packed_by)
+    values (gen_random_uuid(), '00000000-0000-0000-0000-0000000000b1', '00000000-0000-0000-0000-0000000000d1', 1, auth.uid())$$,
+  '42501', null, 'inactive user cannot probe packing guard');
+select throws_ok(
+  $$insert into public.waste_records (id, batch_id, weight_g, reason, created_by)
+    values (gen_random_uuid(), '00000000-0000-0000-0000-0000000000b3', 100000, 'annet', auth.uid())$$,
+  '42501', null, 'inactive user cannot probe waste guard');
 
 select * from finish();
 rollback;

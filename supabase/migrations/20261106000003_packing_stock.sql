@@ -57,7 +57,7 @@ create index stock_movements_product_batch_idx on public.stock_movements (produc
 
 -- Grams of the batch not yet packed or wasted loose.
 create function public.batch_remaining_g(p_batch uuid) returns int
-language sql stable security definer set search_path = ''
+language sql stable security invoker set search_path = ''
 as $$
   select b.gross_weight_g
     - coalesce((select sum(p.weight_g) from public.packings p where p.batch_id = b.id), 0)
@@ -76,7 +76,10 @@ declare
   v_net int;
   v_shelf int;
 begin
-  select harvest_date into v_harvest from public.batches where id = new.batch_id for update;
+  if auth.uid() is not null and coalesce(public.app_role()::text, '') not in ('owner', 'picker') then
+    raise exception 'insufficient_privilege' using errcode = '42501';
+  end if;
+  select harvest_date into v_harvest from public.batches where id = new.batch_id for no key update;
   if not found then
     raise exception 'BATCH_NOT_FOUND';
   end if;
@@ -112,8 +115,11 @@ create function public.waste_guard() returns trigger
 language plpgsql security definer set search_path = ''
 as $$
 begin
+  if auth.uid() is not null and coalesce(public.app_role()::text, '') not in ('owner', 'picker') then
+    raise exception 'insufficient_privilege' using errcode = '42501';
+  end if;
   if new.weight_g is not null then
-    perform 1 from public.batches where id = new.batch_id for update;
+    perform 1 from public.batches where id = new.batch_id for no key update;
     if new.weight_g > public.batch_remaining_g(new.batch_id) then
       raise exception 'NOT_ENOUGH_LEFT';
     end if;
