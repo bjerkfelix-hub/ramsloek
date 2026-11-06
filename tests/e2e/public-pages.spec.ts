@@ -212,8 +212,13 @@ test("privacy page shows contact email and no unsubscribe-in-every-notice promis
 }) => {
   await page.goto("/personvern");
   await expect(
-    page.getByRole("main").getByRole("link", { name: "post@ramsløk.no" }),
+    page.getByRole("main").getByRole("link", { name: "post@ramsløk.no" }).last(),
   ).toHaveAttribute("href", "mailto:post@xn--ramslk-fya.no");
+  const controller = page.getByTestId("data-controller");
+  await expect(controller).toContainText("Behandlingsansvarlig");
+  await expect(controller).toContainText("Nesodden Ramsløk AS");
+  await expect(controller).toContainText("Org.nr.");
+  await expect(page.getByTestId("footer-company")).toContainText("Nesodden Ramsløk AS");
   await expect(page.getByRole("main")).not.toContainText("hver beskjed");
 });
 

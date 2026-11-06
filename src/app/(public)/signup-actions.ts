@@ -21,7 +21,7 @@ export async function signUpForSeason(form: FormData): Promise<SignupResult> {
   const { signup } = getDictionary(locale)
 
   // Honeypot: bots fill every field. Pretend it worked, store nothing.
-  if (field(form, 'website') !== '') return { ok: true }
+  if (field(form, 'hp_extra_field') !== '') return { ok: true }
 
   const ip = clientIp(await headers())
   if (!limiter.attempt(ip)) return { ok: false, error: signup.errorTryLater }
@@ -61,7 +61,8 @@ export async function signUpForSeason(form: FormData): Promise<SignupResult> {
     // Existing active sign-up: nothing to change, same success message (no enumeration).
     return { ok: true }
   } catch (e) {
-    console.error('Season sign-up failed', e)
+    const err = e as { code?: string; message?: string }
+    console.error('Season sign-up failed', { code: err?.code, message: err?.message })
     return { ok: false, error: signup.errorGeneric }
   }
 }

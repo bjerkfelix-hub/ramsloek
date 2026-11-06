@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { getUpcomingMarketDays } from './market-days'
+import { getUpcomingMarketDays, timeoutFetch } from './market-days'
 
 const row = {
   id: 'a1',
@@ -102,5 +102,26 @@ describe('getUpcomingMarketDays', () => {
     } finally {
       vi.unstubAllEnvs()
     }
+  })
+})
+
+describe('timeoutFetch', () => {
+  it('aborts a hanging request so the loader resolves to { ok: false }', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const hanging = ((_i: unknown, init?: RequestInit) =>
+      new Promise((_res, rej) => {
+        init?.signal?.addEventListener('abort', () => rej(init.signal?.reason))
+      })) as unknown as typeof fetch
+    const f = timeoutFetch(50, hanging)
+    const client = {
+      from: () => {
+        const b: Record<string, unknown> = {}
+        for (const m of ['select', 'eq', 'gte', 'order', 'limit']) b[m] = () => b
+        b.then = (res: (v: unknown) => unknown, rej: (e: unknown) => unknown) =>
+          f('http://localhost/x').then(() => ({ data: [], error: null }), (e) => ({ data: null, error: { message: String(e) } })).then(res, rej)
+        return b
+      },
+    }
+    expect(await getUpcomingMarketDays(3, client as never)).toEqual({ ok: false })
   })
 })

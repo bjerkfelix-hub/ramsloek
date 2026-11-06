@@ -6,6 +6,8 @@ const MOVED = ["batches", "stock", "products", "areas", "users", "settings"];
 const nextConfig: NextConfig = {
   async redirects() {
     return [
+      { source: "/oppskrifter/ramslokssuppe", destination: "/oppskrifter/ramsloksuppe", permanent: true },
+      { source: "/en/recipes/ramslokssuppe", destination: "/en/recipes/ramsloksuppe", permanent: true },
       { source: "/login", destination: "/admin/login", permanent: true },
       ...MOVED.flatMap((name) => [
         { source: `/${name}`, destination: `/admin/${name}`, permanent: true },

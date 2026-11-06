@@ -96,7 +96,7 @@ test('honeypot: success is shown but nothing is stored', async ({ page }) => {
   await page.goto('/')
   await page.getByLabel('E-postadresse', { exact: true }).fill(email)
   await page.getByLabel(/Jeg samtykker/).check()
-  await page.locator('input[name="website"]').fill('http://spam.example')
+  await page.locator('input[name="hp_extra_field"]').fill('http://spam.example')
   await page.getByRole('button', { name: 'Meld meg på' }).click()
   await expect(page.getByTestId('signup-success')).toHaveText(SUCCESS_NO)
   expect(await row(email)).toBeNull()

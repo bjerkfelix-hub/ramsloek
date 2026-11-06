@@ -1,7 +1,7 @@
 import Link from 'next/link'
-import { CONTACT_EMAIL, format, getDictionary, SITE_NAME, type Locale } from '@/content'
-import { todayOslo } from '@/lib/domain/time'
+import { COMPANY, CONTACT_EMAIL, format, getDictionary, SITE_NAME, type Locale } from '@/content'
 import { contactHref, ROUTES } from '@/lib/public/routes'
+import { CurrentYear } from './current-year'
 import { LanguageSwitch } from './language-switch'
 
 const linkClass = 'inline-block py-1 text-ink underline decoration-line hover:decoration-forest'
@@ -15,18 +15,13 @@ export function Footer({ locale }: { locale: Locale }) {
     { href: routes.markets, label: nav.markets },
     { href: routes.privacy, label: nav.privacy },
   ]
+  const [rightsBefore, rightsAfter] = format(footer.rights, { year: '\u0000', name: SITE_NAME }).split('\u0000')
   return (
     <footer className="mt-16 border-t border-line bg-sage">
       <div className="mx-auto grid max-w-3xl gap-8 px-4 py-10 sm:grid-cols-2 sm:px-6">
         <div className="flex flex-col gap-2">
           <p className="font-display text-xl font-semibold text-forest">{SITE_NAME}</p>
           <p className="text-muted">{site.tagline}</p>
-          <p>
-            {footer.contact}:{' '}
-            <a href={contactHref(CONTACT_EMAIL)} className={linkClass}>
-              {CONTACT_EMAIL}
-            </a>
-          </p>
           <p>
             {footer.languageLabel}: <LanguageSwitch label={nav.switchToOther} className={linkClass} />
           </p>
@@ -41,7 +36,16 @@ export function Footer({ locale }: { locale: Locale }) {
           ))}
         </ul>
         <p className="text-sm text-muted sm:col-span-2">
-          {format(footer.rights, { year: todayOslo().slice(0, 4), name: SITE_NAME })}
+          {rightsBefore}
+          <CurrentYear />
+          {rightsAfter}
+        </p>
+        <p className="text-sm text-muted sm:col-span-2" data-testid="footer-company">
+          {COMPANY.legalName} · {format(footer.orgNumber, { orgNumber: COMPANY.orgNr })} · {COMPANY.address} ·{' '}
+          {footer.contact}:{' '}
+          <a href={contactHref(CONTACT_EMAIL)} className="underline">
+            {CONTACT_EMAIL}
+          </a>
         </p>
       </div>
     </footer>

@@ -19,6 +19,16 @@ type Row = {
   cancelled: boolean
 }
 
+// Public pages must not hang on a slow database: give up after this long.
+export const FETCH_TIMEOUT_MS = 3000
+
+export function timeoutFetch(timeoutMs = FETCH_TIMEOUT_MS, base: typeof fetch = (...a) => fetch(...a)): typeof fetch {
+  return (input, init) => {
+    const signal = AbortSignal.timeout(timeoutMs)
+    return base(input, { ...init, signal: init?.signal ? AbortSignal.any([init.signal, signal]) : signal })
+  }
+}
+
 const COLUMNS = 'id, market_date, starts_at, ends_at, place_name, address, note_no, note_en, cancelled'
 
 // Anonymous, cookie-less client: public pages never read or write the visitor's auth cookies.
@@ -27,6 +37,7 @@ function anonClient(): Reader {
   const { url, anonKey } = supabaseEnv()
   return createClient(url, anonKey, {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    global: { fetch: timeoutFetch() },
   })
 }
 

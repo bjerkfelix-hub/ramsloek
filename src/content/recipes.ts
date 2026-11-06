@@ -68,7 +68,7 @@ export const recipes: Recipe[] = [
     steps: {
       no: [
         'Skyll ramsløken, tørk den godt og hakk den veldig fint.',
-        'Visp smøret luftig med en gaffel eller visp, og rør inn ramsløk, sitronsaft, salt og pepper.',
+        'Rør smøret luftig med en gaffel, og rør inn ramsløk, sitronsaft, salt og pepper.',
         'Legg smøret på bakepapir, form det til en rull og vri endene igjen.',
         'Kjøl i minst 1 time til smøret har stivnet.',
         'Skjær i skiver og legg på varm mat. Oppbevares i kjøleskap og brukes innen 1 uke. Smøret kan fryses i opptil 3 måneder.',
@@ -115,7 +115,7 @@ export const recipes: Recipe[] = [
     },
   },
   {
-    slug: 'ramslokssuppe',
+    slug: 'ramsloksuppe',
     image: null,
     durationIso: 'PT30M',
     time: { no: '30 minutter', en: '30 minutes' },

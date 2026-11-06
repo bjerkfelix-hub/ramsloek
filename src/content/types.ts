@@ -4,14 +4,11 @@ export type Section = { heading: string; paragraphs: string[] }
 export type Dictionary = {
   site: { name: string; tagline: string; skipToContent: string }
   nav: {
-    home: string
     story: string
     recipes: string
     markets: string
     privacy: string
-    menu: string
     mainNavigation: string
-    languageSwitchLabel: string
     switchToOther: string
   }
   pages: {
@@ -46,7 +43,6 @@ export type Dictionary = {
     empty: string
     emptyPointer: string
     loadFailed: string
-    nextLabel: string
   }
   signup: {
     heading: string
@@ -54,6 +50,7 @@ export type Dictionary = {
     emailLabel: string
     emailPlaceholder: string
     consentText: string
+    privacyLink: string // link text to the privacy page, shown after the consent text
     button: string
     honeypotLabel: string // label of the hidden spam-trap field
     sending: string
@@ -97,6 +94,7 @@ export type Dictionary = {
     updated: string
     intro: string
     sections: Section[]
+    controllerHeading: string
     contactHeading: string
     contact: string // {email}
   }

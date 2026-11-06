@@ -7,14 +7,11 @@ export const en: Dictionary = {
     skipToContent: 'Skip to content',
   },
   nav: {
-    home: 'Home',
     story: 'Our story',
     recipes: 'Recipes',
     markets: 'Markets',
     privacy: 'Privacy',
-    menu: 'Menu',
     mainNavigation: 'Main navigation',
-    languageSwitchLabel: 'Language',
     switchToOther: 'Norsk',
   },
   pages: {
@@ -78,7 +75,6 @@ export const en: Dictionary = {
     empty: 'There are no market days on the calendar right now.',
     emptyPointer: "Wild garlic is a spring crop. Sign up below and we'll let you know when the season starts.",
     loadFailed: 'Market days could not be loaded right now',
-    nextLabel: 'Next market',
   },
   signup: {
     heading: 'Get notified when the season starts',
@@ -87,6 +83,7 @@ export const en: Dictionary = {
     emailPlaceholder: 'you@example.com',
     consentText:
       'I consent to Nesodden Ramsløk storing my email address and sending me a notice when the season starts. I can unsubscribe at any time.',
+    privacyLink: 'Read the privacy policy.',
     button: 'Sign me up',
     honeypotLabel: 'Do not fill in this field',
     sending: 'Sending …',
@@ -181,7 +178,7 @@ export const en: Dictionary = {
       {
         heading: 'How long we keep it',
         paragraphs: [
-          'We keep the information until you unsubscribe. After you unsubscribe, it is deleted within 30 days.',
+          'We keep the information until you unsubscribe. It is deleted no later than 31 days after you unsubscribe.',
           'You can unsubscribe at any time by contacting us at the contact address below. Every email we send will contain a link that unsubscribes you with one click. It is free and needs no login.',
         ],
       },
@@ -189,15 +186,17 @@ export const en: Dictionary = {
         heading: 'Who processes the information',
         paragraphs: [
           'We use the database service Supabase (data centre in the EU) and the hosting platform Railway (data centre in the EU). Once we start using a service to send email, it will also process your email address on our behalf. We do not share the information with anyone else and we never sell it.',
+          'The providers of the database and the hosting platform keep short-lived technical request logs (including IP address) for security and operation. We do not use these logs to follow you.',
         ],
       },
       {
         heading: 'Your rights',
         paragraphs: [
-          'You have the right to access, correct and delete your information, and to restrict or object to the processing. You can also complain to the Norwegian Data Protection Authority, Datatilsynet (datatilsynet.no), if you believe we are processing your information unlawfully.',
+          'You have the right to access, correct and delete your information, to restrict or object to the processing, and to data portability (to receive your information in a machine-readable format). You can also complain to the Norwegian Data Protection Authority, Datatilsynet (datatilsynet.no), if you believe we are processing your information unlawfully.',
         ],
       },
     ],
+    controllerHeading: 'Data controller',
     contactHeading: 'Contact us',
     contact: 'To see, correct or delete your information, send an email to {email}.',
   },

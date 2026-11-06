@@ -9,7 +9,7 @@ export function getDictionary(locale: Locale): Dictionary {
 }
 
 export { format } from './format'
-export { CONTACT_EMAIL, SITE_NAME } from './site'
+export { COMPANY, CONTACT_EMAIL, SITE_NAME } from './site'
 export { recipes } from './recipes'
 export type { Recipe } from './types'
 export type { Dictionary } from './types'

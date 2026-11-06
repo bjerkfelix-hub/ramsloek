@@ -7,14 +7,11 @@ export const no: Dictionary = {
     skipToContent: 'Hopp til innhold',
   },
   nav: {
-    home: 'Forside',
     story: 'Historien',
     recipes: 'Oppskrifter',
     markets: 'Marked',
     privacy: 'Personvern',
-    menu: 'Meny',
     mainNavigation: 'Hovednavigasjon',
-    languageSwitchLabel: 'Språk',
     switchToOther: 'English',
   },
   pages: {
@@ -78,7 +75,6 @@ export const no: Dictionary = {
     empty: 'Det er ingen markedsdager på kalenderen akkurat nå.',
     emptyPointer: 'Ramsløk er en vårvare. Meld deg på nedenfor, så sier vi fra når sesongen starter.',
     loadFailed: 'Markedsdagene kunne ikke lastes akkurat nå',
-    nextLabel: 'Neste marked',
   },
   signup: {
     heading: 'Si fra når sesongen starter',
@@ -87,6 +83,7 @@ export const no: Dictionary = {
     emailPlaceholder: 'din@epost.no',
     consentText:
       'Jeg samtykker til at Nesodden Ramsløk lagrer e-postadressen min og sender meg beskjed når sesongen starter. Jeg kan melde meg av når som helst.',
+    privacyLink: 'Les personvernerklæringen.',
     button: 'Meld meg på',
     honeypotLabel: 'Ikke fyll ut dette feltet',
     sending: 'Sender …',
@@ -181,7 +178,7 @@ export const no: Dictionary = {
       {
         heading: 'Hvor lenge vi lagrer det',
         paragraphs: [
-          'Vi lagrer opplysningene til du melder deg av. Etter avmelding slettes de senest 30 dager senere.',
+          'Vi lagrer opplysningene til du melder deg av. Opplysningene slettes senest 31 dager etter at du meldte deg av.',
           'Du kan melde deg av når som helst ved å kontakte oss på kontaktadressen under. Hver e-post vi sender vil inneholde en lenke som melder deg av med ett klikk. Det koster ingenting og krever ingen innlogging.',
         ],
       },
@@ -189,15 +186,17 @@ export const no: Dictionary = {
         heading: 'Hvem som behandler opplysningene',
         paragraphs: [
           'Vi bruker databasetjenesten Supabase (datasenter i EU) og driftsplattformen Railway (datasenter i EU). Når vi tar i bruk en tjeneste for å sende e-post, behandler den også e-postadressen din for oss. Vi deler ikke opplysningene med andre og selger dem ikke.',
+          'Leverandørene av databasen og driftsplattformen lagrer kortvarige tekniske forespørselslogger (blant annet IP-adresse) av hensyn til sikkerhet og drift. Vi bruker ikke disse loggene til å følge deg.',
         ],
       },
       {
         heading: 'Dine rettigheter',
         paragraphs: [
-          'Du har rett til innsyn, retting og sletting, og til å begrense eller protestere mot behandlingen. Du kan også klage til Datatilsynet (datatilsynet.no) hvis du mener vi behandler opplysningene dine i strid med regelverket.',
+          'Du har rett til innsyn, retting og sletting, til å begrense eller protestere mot behandlingen, og til dataportabilitet (å få opplysningene dine utlevert i et maskinlesbart format). Du kan også klage til Datatilsynet (datatilsynet.no) hvis du mener vi behandler opplysningene dine i strid med regelverket.',
         ],
       },
     ],
+    controllerHeading: 'Behandlingsansvarlig',
     contactHeading: 'Kontakt oss',
     contact: 'Vil du ha innsyn, rette eller slette opplysninger? Send en e-post til {email}.',
   },
