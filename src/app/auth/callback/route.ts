@@ -1,5 +1,8 @@
+import type { EmailOtpType } from '@supabase/supabase-js'
 import { type NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+
+const OTP_TYPES: readonly string[] = ['magiclink', 'email', 'invite']
 
 // Completes magic-link sign-in: PKCE code (browser-initiated links) or token hash (admin-generated links).
 export async function GET(request: NextRequest) {
@@ -13,8 +16,8 @@ export async function GET(request: NextRequest) {
   let error: unknown = new Error('missing code')
   if (code) {
     error = (await supabase.auth.exchangeCodeForSession(code)).error
-  } else if (tokenHash && type) {
-    error = (await supabase.auth.verifyOtp({ token_hash: tokenHash, type: type as 'magiclink' | 'email' })).error
+  } else if (tokenHash && type && OTP_TYPES.includes(type)) {
+    error = (await supabase.auth.verifyOtp({ token_hash: tokenHash, type: type as EmailOtpType })).error
   }
 
   if (error) return NextResponse.redirect(`${origin}/login?error=callback`)

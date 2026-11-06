@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { requireRole, type Role } from '@/lib/auth'
+import { signOut } from '@/app/actions/auth'
 
 const NAV: { href: string; label: string; roles: Role[] }[] = [
   { href: '/batches', label: 'Partier', roles: ['owner', 'picker', 'seller'] },
@@ -22,7 +23,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <Link href="/" className="text-lg font-semibold">
             Ramsløk
           </Link>
-          <span className="truncate text-sm">{user.fullName}</span>
+          <div className="flex items-center gap-3">
+            <span className="truncate text-sm">{user.fullName}</span>
+            <form action={signOut}>
+              <button type="submit" className="rounded border border-white/60 px-3 py-1 text-sm hover:bg-green-800">
+                Logg ut
+              </button>
+            </form>
+          </div>
         </div>
         <nav aria-label="Hovedmeny" className="mx-auto max-w-3xl overflow-x-auto px-2">
           <ul className="flex gap-1 pb-2">

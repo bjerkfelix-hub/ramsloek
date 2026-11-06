@@ -1,12 +1,23 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/browser'
 
 export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
+  )
+}
+
+function LoginForm() {
+  const callbackFailed = useSearchParams().get('error') === 'callback'
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent'>('idle')
-  const [error, setError] = useState<string | null>(null)
+  const [submitError, setError] = useState<string | null>(null)
+  const error = submitError ?? (callbackFailed ? 'Innloggingslenken er ugyldig eller utløpt. Be om en ny.' : null)
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
