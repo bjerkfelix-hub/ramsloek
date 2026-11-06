@@ -6,6 +6,8 @@ import { MarketCancelButton } from '@/components/market-cancel-button'
 import { formatMarketDate, formatMarketTimes } from '@/lib/domain/market'
 import { todayOslo } from '@/lib/domain/time'
 import { saveMarketDay, setMarketDayCancelled } from './actions'
+import { LargeTitle, Page } from '@/features/admin/ui/Page'
+import { ResponsiveSheet } from '@/features/admin/ui/ResponsiveSheet'
 
 type MarketDay = {
   id: string
@@ -22,22 +24,24 @@ type MarketDay = {
 
 function DayItem({ day }: { day: MarketDay }) {
   return (
-    <li className="flex flex-col gap-1 border-b border-zinc-200 py-3">
-      <div className="font-medium">
+    <li className="flex flex-col gap-1 px-4 py-3">
+      <div className="font-semibold">
         {formatMarketDate(day.market_date)}, {formatMarketTimes(day.starts_at, day.ends_at)}
       </div>
-      <div className="text-sm">
+      <div>
         {day.place_name}, {day.address}
       </div>
       {(day.note_no || day.note_en) && (
-        <div className="text-sm text-zinc-600">{[day.note_no, day.note_en].filter(Boolean).join(' / ')}</div>
+        <div className="a-sub">{[day.note_no, day.note_en].filter(Boolean).join(' / ')}</div>
       )}
-      <div className="flex flex-wrap items-center gap-2 text-sm">
-        {day.cancelled && <span className="rounded bg-red-100 px-2 py-1 font-medium text-red-800">Avlyst</span>}
-        {!day.published && <span className="rounded bg-zinc-200 px-2 py-1">Ikke publisert</span>}
-      </div>
+      {(day.cancelled || !day.published) && (
+        <div className="flex flex-wrap items-center gap-2">
+          {day.cancelled && <span className="a-badge a-badge-danger">Avlyst</span>}
+          {!day.published && <span className="a-badge a-badge-neutral">Ikke publisert</span>}
+        </div>
+      )}
       <div className="flex flex-wrap items-center gap-3">
-        <Link href={`/admin/marked?edit=${day.id}`} className="py-2 text-green-900 underline">
+        <Link href={`/admin/marked?edit=${day.id}`} className="a-link a-link-tap">
           Rediger
         </Link>
         <MarketCancelButton id={day.id} cancelled={day.cancelled} action={setMarketDayCancelled} />
@@ -58,12 +62,11 @@ export default async function MarkedPage({ searchParams }: { searchParams: Promi
   const editing = days.find((d) => d.id === edit)
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold">Marked</h1>
-      <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-medium">{editing ? `Rediger ${editing.place_name}` : 'Ny markedsdag'}</h2>
+    <Page>
+      <LargeTitle>Marked</LargeTitle>
+      <ResponsiveSheet title={editing ? `Rediger ${editing.place_name}` : 'Ny markedsdag'} inline={!!editing}>
         {editing && (
-          <Link href="/admin/marked" className="text-green-900 underline">
+          <Link href="/admin/marked" className="a-link a-link-tap self-start">
             Avbryt redigering
           </Link>
         )}
@@ -97,34 +100,34 @@ export default async function MarkedPage({ searchParams }: { searchParams: Promi
           <Field label="Merknad (engelsk)">
             <input name="note_en" defaultValue={editing?.note_en ?? ''} className={inputClass} />
           </Field>
-          <label className="flex items-center gap-2 text-sm font-medium">
-            <input type="checkbox" name="published" defaultChecked={editing?.published ?? true} className="h-5 w-5" />
+          <label className="a-check">
+            <input type="checkbox" name="published" defaultChecked={editing?.published ?? true} />
             Publisert
           </label>
         </ActionForm>
-      </section>
-      <section className="flex flex-col gap-2">
-        <h2 className="text-lg font-medium">Kommende markedsdager</h2>
+      </ResponsiveSheet>
+      <section className="a-section">
+        <h2 className="a-h2 px-1">Kommende markedsdager</h2>
         {upcoming.length ? (
-          <ul>
+          <ul className="a-list">
             {upcoming.map((d) => (
               <DayItem key={d.id} day={d} />
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-zinc-600">Ingen kommende markedsdager.</p>
+          <p className="a-sub px-1">Ingen kommende markedsdager.</p>
         )}
       </section>
       {past.length > 0 && (
-        <details>
-          <summary className="cursor-pointer py-2 text-lg font-medium">Tidligere markedsdager</summary>
-          <ul>
+        <details className="a-details a-section">
+          <summary className="a-h2">Tidligere markedsdager</summary>
+          <ul className="a-list">
             {past.map((d) => (
               <DayItem key={d.id} day={d} />
             ))}
           </ul>
         </details>
       )}
-    </div>
+    </Page>
   )
 }

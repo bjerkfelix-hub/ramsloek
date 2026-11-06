@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { ActionForm, Field, inputClass } from '@/components/action-form'
 import { GeoButton } from '@/components/geo-button'
 import { saveArea } from './actions'
+import { LargeTitle, Page } from '@/features/admin/ui/Page'
+import { ResponsiveSheet } from '@/features/admin/ui/ResponsiveSheet'
 
 export default async function AreasPage({ searchParams }: { searchParams: Promise<{ edit?: string }> }) {
   await requireRole('owner')
@@ -13,10 +15,9 @@ export default async function AreasPage({ searchParams }: { searchParams: Promis
   const editing = areas?.find((a) => a.id === edit)
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold">Områder</h1>
-      <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-medium">{editing ? `Rediger ${editing.name}` : 'Nytt område'}</h2>
+    <Page>
+      <LargeTitle>Områder</LargeTitle>
+      <ResponsiveSheet title={editing ? `Rediger ${editing.name}` : 'Nytt område'} inline={!!editing}>
         <ActionForm key={editing?.id ?? 'new'} action={saveArea} resetOnSuccess={!editing}>
           {editing && <input type="hidden" name="id" value={editing.id} />}
           <Field label="Navn">
@@ -30,31 +31,31 @@ export default async function AreasPage({ searchParams }: { searchParams: Promis
           </Field>
           <GeoButton />
           {editing && (
-            <label className="flex items-center gap-2 text-sm font-medium">
-              <input type="checkbox" name="active" defaultChecked={editing.active} className="h-5 w-5" />
+            <label className="a-check">
+              <input type="checkbox" name="active" defaultChecked={editing.active} />
               Aktiv
             </label>
           )}
         </ActionForm>
-      </section>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
+      </ResponsiveSheet>
+      <div className="a-table-wrap">
+        <table className="a-table">
           <thead>
-            <tr className="border-b border-zinc-300">
-              <th className="py-2 pr-3">Navn</th>
-              <th className="py-2 pr-3">Posisjon</th>
-              <th className="py-2 pr-3">Status</th>
-              <th className="py-2" />
+            <tr>
+              <th>Navn</th>
+              <th>Posisjon</th>
+              <th>Status</th>
+              <th />
             </tr>
           </thead>
           <tbody>
             {areas?.map((a) => (
-              <tr key={a.id} className="border-b border-zinc-200">
-                <td className="py-2 pr-3">{a.name}</td>
-                <td className="py-2 pr-3">{a.lat != null && a.lng != null ? `${a.lat}, ${a.lng}` : '–'}</td>
-                <td className="py-2 pr-3">{a.active ? 'Aktiv' : 'Inaktiv'}</td>
-                <td className="py-2">
-                  <Link href={`/admin/areas?edit=${a.id}`} className="text-green-900 underline">
+              <tr key={a.id}>
+                <td>{a.name}</td>
+                <td>{a.lat != null && a.lng != null ? `${a.lat}, ${a.lng}` : '–'}</td>
+                <td>{a.active ? 'Aktiv' : 'Inaktiv'}</td>
+                <td>
+                  <Link href={`/admin/areas?edit=${a.id}`} className="a-link a-link-tap">
                     Rediger
                   </Link>
                 </td>
@@ -63,6 +64,6 @@ export default async function AreasPage({ searchParams }: { searchParams: Promis
           </tbody>
         </table>
       </div>
-    </div>
+    </Page>
   )
 }

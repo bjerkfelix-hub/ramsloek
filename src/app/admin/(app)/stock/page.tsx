@@ -2,6 +2,8 @@ import { requireRole } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { formatDate, isExpired } from '@/lib/domain/time'
 import { StockWasteForm } from './waste-form'
+import { LargeTitle, Page } from '@/features/admin/ui/Page'
+import { ResponsiveSheet } from '@/features/admin/ui/ResponsiveSheet'
 
 type Row = {
   product_id: string
@@ -31,39 +33,44 @@ export default async function StockPage() {
   const sorted = [...groups.entries()].sort((a, b) => a[1].name.localeCompare(b[1].name, 'nb'))
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold">Lager</h1>
-      {sorted.length === 0 && <p className="text-sm text-zinc-700">Ingenting på lager.</p>}
+    <Page>
+      <LargeTitle>Lager</LargeTitle>
+      {sorted.length === 0 && <p className="a-sub">Ingenting på lager.</p>}
       {sorted.map(([productId, g]) => (
-        <section key={productId} className="flex flex-col gap-2">
-          <h2 className="text-lg font-medium">{g.name}</h2>
-          <p className="text-sm text-zinc-700">Totalt {g.rows.reduce((s, r) => s + r.units, 0)} stk</p>
-          <ul className="flex flex-col gap-2">
+        <section key={productId} className="a-section">
+          <div className="flex items-baseline justify-between gap-3 px-1">
+            <h2 className="a-h2">{g.name}</h2>
+            <p className="a-sub whitespace-nowrap">Totalt {g.rows.reduce((s, r) => s + r.units, 0)} stk</p>
+          </div>
+          <ul className="a-list">
             {g.rows.map((r) => (
-              <li
-                key={r.batch_id}
-                data-testid="stock-row"
-                className="flex flex-col gap-2 rounded border border-zinc-300 p-3"
-              >
-                <p className="text-sm">
-                  <span className="font-medium">{r.lot_number}</span> · {r.units} stk · Best før{' '}
-                  {r.best_before ? formatDate(r.best_before) : '–'}
+              <li key={r.batch_id} data-testid="stock-row" className="flex flex-col gap-3 p-4">
+                <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span className="font-semibold">{r.lot_number}</span>
+                  <span>
+                    · {r.units} stk · Best før {r.best_before ? formatDate(r.best_before) : '–'}
+                  </span>
                   {r.best_before && isExpired(r.best_before) ? (
-                    <span className="ml-2 rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-900">Utgått</span>
+                    <span className="a-badge a-badge-danger">Utgått</span>
                   ) : (
-                    r.near_expiry && (
-                      <span className="ml-2 rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900">
-                        Går ut snart
-                      </span>
-                    )
+                    r.near_expiry && <span className="a-badge a-badge-warn">Går ut snart</span>
                   )}
                 </p>
-                {canWrite && <StockWasteForm batchId={r.batch_id} productId={r.product_id} />}
+                {canWrite && (
+                  <ResponsiveSheet
+                    title={`Svinn – ${r.lot_number}`}
+                    triggerLabel="Registrer svinn"
+                    triggerClassName="a-btn a-btn-tinted a-btn-sm self-start"
+                    card={false}
+                  >
+                    <StockWasteForm batchId={r.batch_id} productId={r.product_id} />
+                  </ResponsiveSheet>
+                )}
               </li>
             ))}
           </ul>
         </section>
       ))}
-    </div>
+    </Page>
   )
 }

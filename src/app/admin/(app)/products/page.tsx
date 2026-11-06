@@ -3,6 +3,8 @@ import { requireRole } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { ActionForm, Field, inputClass } from '@/components/action-form'
 import { saveProduct } from './actions'
+import { LargeTitle, Page } from '@/features/admin/ui/Page'
+import { ResponsiveSheet } from '@/features/admin/ui/ResponsiveSheet'
 
 export default async function ProductsPage({ searchParams }: { searchParams: Promise<{ edit?: string }> }) {
   await requireRole('owner')
@@ -12,10 +14,10 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
   const editing = products?.find((p) => p.id === edit)
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold">Produkter</h1>
+    <Page>
+      <LargeTitle>Produkter</LargeTitle>
+      <ResponsiveSheet title={editing ? `Rediger ${editing.name}` : 'Nytt produkt'} inline={!!editing}>
       <ActionForm key={editing?.id ?? 'new'} action={saveProduct} resetOnSuccess={!editing}>
-        <h2 className="text-lg font-medium">{editing ? `Rediger ${editing.name}` : 'Nytt produkt'}</h2>
         {editing && <input type="hidden" name="id" value={editing.id} />}
         <Field label="Navn">
           <input name="name" required defaultValue={editing?.name ?? ''} className={inputClass} />
@@ -58,36 +60,37 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
           <input name="storage_text" defaultValue={editing?.storage_text ?? 'Oppbevares kjølig'} className={inputClass} />
         </Field>
         {editing && (
-          <label className="flex items-center gap-2 text-sm font-medium">
-            <input type="checkbox" name="active" defaultChecked={editing.active} className="h-5 w-5" />
+          <label className="a-check">
+            <input type="checkbox" name="active" defaultChecked={editing.active} />
             Aktiv
           </label>
         )}
       </ActionForm>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
+      </ResponsiveSheet>
+      <div className="a-table-wrap">
+        <table className="a-table">
           <thead>
-            <tr className="border-b border-zinc-300">
-              <th className="py-2 pr-3">Navn</th>
-              <th className="py-2 pr-3">Vekt</th>
-              <th className="py-2 pr-3">Type</th>
-              <th className="py-2 pr-3">GTIN</th>
-              <th className="py-2 pr-3">Holdbarhet</th>
-              <th className="py-2 pr-3">Status</th>
-              <th className="py-2" />
+            <tr>
+              <th>Navn</th>
+              <th>Vekt</th>
+              <th>Type</th>
+              <th>GTIN</th>
+              <th>Holdbarhet</th>
+              <th>Status</th>
+              <th />
             </tr>
           </thead>
           <tbody>
             {products?.map((p) => (
-              <tr key={p.id} className="border-b border-zinc-200">
-                <td className="py-2 pr-3">{p.name}</td>
-                <td className="py-2 pr-3">{p.net_weight_g} g</td>
-                <td className="py-2 pr-3">{p.unit_kind === 'consumer' ? 'Forbrukerpakning' : 'Gros'}</td>
-                <td className="py-2 pr-3">{p.gtin ?? '–'}</td>
-                <td className="py-2 pr-3">{p.shelf_life_days} d</td>
-                <td className="py-2 pr-3">{p.active ? 'Aktiv' : 'Inaktiv'}</td>
-                <td className="py-2">
-                  <Link href={`/admin/products?edit=${p.id}`} className="text-green-900 underline">
+              <tr key={p.id}>
+                <td>{p.name}</td>
+                <td>{p.net_weight_g} g</td>
+                <td>{p.unit_kind === 'consumer' ? 'Forbrukerpakning' : 'Gros'}</td>
+                <td>{p.gtin ?? '–'}</td>
+                <td>{p.shelf_life_days} d</td>
+                <td>{p.active ? 'Aktiv' : 'Inaktiv'}</td>
+                <td>
+                  <Link href={`/admin/products?edit=${p.id}`} className="a-link a-link-tap">
                     Rediger
                   </Link>
                 </td>
@@ -96,6 +99,6 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
           </tbody>
         </table>
       </div>
-    </div>
+    </Page>
   )
 }

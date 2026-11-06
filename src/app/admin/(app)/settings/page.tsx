@@ -2,6 +2,8 @@ import { requireRole } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { ActionForm, Field, inputClass } from '@/components/action-form'
 import { saveSettings } from './actions'
+import { LargeTitle, Page } from '@/features/admin/ui/Page'
+import { ThemeSwitch } from '@/features/admin/ui/ThemeSwitch'
 
 export default async function SettingsPage() {
   await requireRole('owner')
@@ -9,8 +11,13 @@ export default async function SettingsPage() {
   const { data: s } = await supabase.from('settings').select('*').eq('id', true).single()
 
   return (
-    <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-semibold">Innstillinger</h1>
+    <Page>
+      <LargeTitle>Innstillinger</LargeTitle>
+      <section className="a-card a-section">
+        <ThemeSwitch />
+      </section>
+      <section className="a-card a-section">
+      <h2 className="a-h2">Firma og etiketter</h2>
       <ActionForm action={saveSettings}>
         <Field label="Firmanavn">
           <input name="company_name" defaultValue={s?.company_name ?? ''} className={inputClass} />
@@ -38,6 +45,7 @@ export default async function SettingsPage() {
           />
         </Field>
       </ActionForm>
-    </div>
+      </section>
+    </Page>
   )
 }

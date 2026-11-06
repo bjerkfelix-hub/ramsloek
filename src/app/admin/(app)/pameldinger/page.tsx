@@ -2,6 +2,7 @@ import { requireRole } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { formatDate } from '@/lib/domain/time'
 import { listActiveSignups } from '@/lib/domain/signups'
+import { LargeTitle, Page } from '@/features/admin/ui/Page'
 
 export default async function SignupsPage() {
   await requireRole('owner')
@@ -12,40 +13,42 @@ export default async function SignupsPage() {
   const signups = await listActiveSignups()
 
   return (
-    <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-semibold">Påmeldinger</h1>
+    <Page>
+      <LargeTitle>Påmeldinger</LargeTitle>
+      <div className="flex flex-wrap items-center justify-between gap-3">
       <p data-testid="signup-count">
         Aktive påmeldinger: <strong>{signups.length}</strong>
       </p>
       <p>
-        <a href="/admin/pameldinger/export" className="inline-block py-2 text-green-900 underline">
+        <a href="/admin/pameldinger/export" className="a-btn a-btn-tinted a-btn-sm">
           Last ned CSV
         </a>
       </p>
+      </div>
       {signups.length === 0 ? (
-        <p className="text-zinc-600">Ingen påmeldinger ennå.</p>
+        <p className="a-sub">Ingen påmeldinger ennå.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+        <div className="a-table-wrap">
+          <table className="a-table">
             <thead>
-              <tr className="border-b border-zinc-300">
-                <th className="py-2 pr-4">E-post</th>
-                <th className="py-2 pr-4">Språk</th>
-                <th className="py-2">Påmeldt</th>
+              <tr>
+                <th>E-post</th>
+                <th>Språk</th>
+                <th>Påmeldt</th>
               </tr>
             </thead>
             <tbody>
               {signups.map((s) => (
-                <tr key={s.email} className="border-b border-zinc-200">
-                  <td className="py-2 pr-4 break-all">{s.email}</td>
-                  <td className="py-2 pr-4">{s.language === 'en' ? 'Engelsk' : 'Norsk'}</td>
-                  <td className="py-2">{formatDate(s.consented_at)}</td>
+                <tr key={s.email}>
+                  <td className="break-all">{s.email}</td>
+                  <td>{s.language === 'en' ? 'Engelsk' : 'Norsk'}</td>
+                  <td>{formatDate(s.consented_at)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
-    </div>
+    </Page>
   )
 }

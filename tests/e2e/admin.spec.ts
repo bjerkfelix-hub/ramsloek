@@ -18,7 +18,8 @@ test('owner saves company settings', async ({ page }) => {
   await page.getByLabel('Firmanavn').fill('Nesodden Ramsløk AS')
   await page.getByLabel('Org.nr').fill('999888777')
   await page.getByRole('button', { name: 'Lagre' }).click()
-  await expect(page.getByRole('status')).toHaveText('Lagret.')
+  // The form's own status line; the "Lagret ✓" toast is a second status outside the form.
+  await expect(page.locator('form').getByRole('status')).toHaveText('Lagret.')
   await page.reload()
   await expect(page.getByLabel('Firmanavn')).toHaveValue('Nesodden Ramsløk AS')
   await expect(page.getByLabel('Org.nr')).toHaveValue('999888777')
@@ -85,7 +86,7 @@ test('owner adds a picker', async ({ page }) => {
   await page.getByLabel('Navn').fill('Ny Plukker')
   await page.getByLabel('Rolle').selectOption('picker')
   await page.getByRole('button', { name: 'Legg til bruker' }).click()
-  await expect(page.getByRole('status')).toHaveText(
+  await expect(page.locator('form').getByRole('status')).toHaveText(
     'Brukeren er lagt til. Be dem logge inn på innloggingssiden med e-postadressen sin.',
   )
   const row = page.getByRole('row', { name: /ny@test\.local/ })

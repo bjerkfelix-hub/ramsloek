@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import { requireRole, type Role } from '@/lib/auth'
+import { Chevron } from '@/features/admin/ui/icons'
+import { LargeTitle, Page } from '@/features/admin/ui/Page'
 
 const SHORTCUTS: { href: string; label: string; roles: Role[] }[] = [
   { href: '/admin/batches/new', label: 'Ny høsting', roles: ['owner', 'picker'] },
@@ -16,21 +18,18 @@ export default async function HomePage() {
   const user = await requireRole('owner', 'picker', 'seller')
   const links = SHORTCUTS.filter((s) => s.roles.includes(user.role))
   return (
-    <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-semibold">Hei, {user.fullName}</h1>
-      <ul className="flex flex-col gap-2" aria-label="Snarveier">
+    <Page>
+      <LargeTitle>Hei, {user.fullName}</LargeTitle>
+      <ul className="a-list" aria-label="Snarveier">
         {links.map((s) => (
           <li key={s.href}>
-            <Link
-              href={s.href}
-              data-testid="shortcut"
-              className="block rounded border border-green-800 px-4 py-4 text-base font-medium text-green-900"
-            >
+            <Link href={s.href} data-testid="shortcut" className="a-row a-row-link font-medium">
               {s.label}
+              <Chevron />
             </Link>
           </li>
         ))}
       </ul>
-    </div>
+    </Page>
   )
 }

@@ -1,5 +1,6 @@
 import { requireRole } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
+import { LargeTitle, Page } from '@/features/admin/ui/Page'
 import { NewBatchForm } from './new-batch-form'
 
 export default async function NewBatchPage() {
@@ -7,9 +8,11 @@ export default async function NewBatchPage() {
   const supabase = await createClient()
   const { data: areas } = await supabase.from('harvest_areas').select('id, name').eq('active', true).order('name')
   return (
-    <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-semibold">Ny høsting</h1>
-      <NewBatchForm areas={areas ?? []} />
-    </div>
+    <Page>
+      <LargeTitle>Ny høsting</LargeTitle>
+      <div className="a-card">
+        <NewBatchForm areas={areas ?? []} />
+      </div>
+    </Page>
   )
 }

@@ -21,10 +21,10 @@ export function GeoButton() {
 
   return (
     <div className="flex flex-col gap-1">
-      <button type="button" onClick={fill} className="rounded border border-green-800 px-4 py-3 text-base text-green-900">
+      <button type="button" onClick={fill} className="a-btn a-btn-tinted">
         Bruk min posisjon
       </button>
-      {message && <p className="text-sm text-red-700">{message}</p>}
+      {message && <p className="a-msg-error">{message}</p>}
     </div>
   )
 }

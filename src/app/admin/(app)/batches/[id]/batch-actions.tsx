@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { ActionForm, buttonClass, Field, inputClass } from '@/components/action-form'
+import { ActionForm, buttonClass, Field, inputClass, SAVED_TOAST } from '@/components/action-form'
+import { useToast } from '@/features/admin/ui/Toast'
 import { callAction, type ActionResult } from '@/lib/action-result'
 import { logTemperature, signSortingCheck, updateBatch } from '../actions'
 
@@ -9,7 +10,7 @@ export const SORTING_STATEMENT = 'Sortert og kontrollert for liljekonvall og and
 
 function Error({ result }: { result: ActionResult | null }) {
   return result && !result.ok ? (
-    <p role="alert" className="text-sm text-red-700">
+    <p role="alert" className="a-msg-error">
       {result.error}
     </p>
   ) : null
@@ -21,14 +22,9 @@ export function SignButton({ batchId }: { batchId: string }) {
   const [confirmed, setConfirmed] = useState(false)
   return (
     <div className="flex flex-col gap-3">
-      <p className="rounded border border-zinc-300 bg-zinc-50 p-3 text-sm font-medium">{SORTING_STATEMENT}</p>
-      <label className="flex items-center gap-3 text-base">
-        <input
-          type="checkbox"
-          checked={confirmed}
-          onChange={(e) => setConfirmed(e.target.checked)}
-          className="h-6 w-6"
-        />
+      <p className="a-note a-note-plain">{SORTING_STATEMENT}</p>
+      <label className="a-check">
+        <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
         Jeg bekrefter dette
       </label>
       <button
@@ -54,9 +50,9 @@ export function EditBatchForm({
   notes: string
 }) {
   return (
-    <details className="rounded border border-zinc-300 p-3">
-      <summary className="cursor-pointer text-sm font-medium">Rediger</summary>
-      <div className="mt-3">
+    <details className="a-details">
+      <summary>Rediger</summary>
+      <div className="a-card mt-2">
         <ActionForm action={updateBatch} testId="edit-batch-form">
           <input type="hidden" name="batch_id" value={batchId} />
           <Field label="Bruttovekt (kg)">
@@ -74,9 +70,10 @@ export function EditBatchForm({
 export function TemperatureForm({ batchId }: { batchId: string }) {
   const [pending, start] = useTransition()
   const [result, setResult] = useState<ActionResult | null>(null)
+  const toast = useToast()
   return (
     <form
-      className="flex flex-col gap-2"
+      className="a-form"
       onSubmit={(e) => {
         e.preventDefault()
         const form = e.currentTarget
@@ -84,11 +81,14 @@ export function TemperatureForm({ batchId }: { batchId: string }) {
         start(async () => {
           const res = await callAction(() => logTemperature(batchId, value))
           setResult(res)
-          if (res.ok) form.reset()
+          if (res.ok) {
+            form.reset()
+            toast.show(SAVED_TOAST)
+          }
         })
       }}
     >
-      <label className="flex flex-col gap-1 text-sm font-medium">
+      <label className="a-field">
         Temperatur (°C)
         <input name="celsius" inputMode="decimal" required className={inputClass} />
       </label>

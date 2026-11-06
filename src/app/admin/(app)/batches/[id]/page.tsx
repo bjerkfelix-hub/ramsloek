@@ -7,6 +7,8 @@ import { formatDate, formatDateTime } from '@/lib/domain/time'
 import { SortingBadge } from '@/components/sorting-badge'
 import { EditBatchForm, SignButton, TemperatureForm } from './batch-actions'
 import { LooseWasteForm, PackForm } from './pack-forms'
+import { Page } from '@/features/admin/ui/Page'
+import { ResponsiveSheet } from '@/features/admin/ui/ResponsiveSheet'
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const nbTemp = new Intl.NumberFormat('nb-NO', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
@@ -42,17 +44,17 @@ export default async function BatchPage({ params }: { params: Promise<{ id: stri
   const labelInfoMissing = !settings?.company_name?.trim() || !settings?.address?.trim()
 
   return (
-    <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold">{batch.lot_number}</h1>
+    <Page>
+      <header className="flex flex-col gap-2 pt-2">
+        <h1 className="a-title">{batch.lot_number}</h1>
         <SortingBadge signed={!!check} />
-        <p className="text-sm text-zinc-700">
+        <p className="a-sub">
           {formatDate(batch.harvested_at)} · {area?.name ?? '–'} · {batch.pickers}
         </p>
-        <p className="text-sm">
+        <p className="font-medium">
           Brutto {formatGrams(batch.gross_weight_g)} · Igjen <span data-testid="remaining">{remaining != null ? formatGrams(remaining) : '–'}</span>
         </p>
-        {batch.notes && <p className="text-sm text-zinc-700">{batch.notes}</p>}
+        {batch.notes && <p className="a-sub">{batch.notes}</p>}
         {user.role === 'owner' && (
           <EditBatchForm
             batchId={id}
@@ -62,26 +64,26 @@ export default async function BatchPage({ params }: { params: Promise<{ id: stri
         )}
       </header>
 
-      <section className="flex flex-col gap-2">
-        <h2 className="text-lg font-medium">Sorteringskontroll</h2>
+      <section className="a-card a-section">
+        <h2 className="a-h2">Sorteringskontroll</h2>
         {check ? (
-          <div className="rounded border border-green-300 bg-green-50 p-3 text-sm">
+          <div className="a-note a-note-ok">
             <p>{check.statement}</p>
-            <p className="mt-1 text-zinc-700">
+            <p className="a-sub mt-1">
               Signert av {nameOf(check.checked_by)} {formatDateTime(check.checked_at)}
             </p>
           </div>
         ) : canWrite ? (
           <SignButton batchId={id} />
         ) : (
-          <p className="text-sm text-zinc-700">Ikke signert ennå.</p>
+          <p className="a-sub">Ikke signert ennå.</p>
         )}
       </section>
 
-      <section className="flex flex-col gap-2">
-        <h2 className="text-lg font-medium">Temperatur</h2>
+      <section className="a-card a-section">
+        <h2 className="a-h2">Temperatur</h2>
         {canWrite && <TemperatureForm batchId={id} />}
-        <ul data-testid="temperature-list" className="flex flex-col gap-1 text-sm">
+        <ul data-testid="temperature-list" className="flex flex-col gap-1 a-sub">
           {temps?.map((t) => (
             <li key={t.id}>
               {nbTemp.format(Number(t.celsius))} °C · {formatDateTime(t.measured_at)} · {nameOf(t.logged_by)}
@@ -95,52 +97,60 @@ export default async function BatchPage({ params }: { params: Promise<{ id: stri
         aria-label="Pakking"
         data-testid="pack-section"
         aria-disabled={!check}
-        className="flex flex-col gap-3"
+        className="a-card a-section"
       >
-        <h2 className="text-lg font-medium">Pakking</h2>
+        <h2 className="a-h2">Pakking</h2>
         {!check ? (
-          <p className="text-sm text-zinc-700">Signer sorteringskontrollen før pakking.</p>
+          <p className="a-sub">Signer sorteringskontrollen før pakking.</p>
         ) : (
           <>
-            {canWrite && <PackForm batchId={id} products={products ?? []} />}
+            {canWrite && (
+              <ResponsiveSheet title="Pakk" card={false}>
+                <PackForm batchId={id} products={products ?? []} />
+              </ResponsiveSheet>
+            )}
             {labelInfoMissing && (packings?.length ?? 0) > 0 && (
-              <p role="note" data-testid="label-info-warning" className="rounded border border-amber-300 bg-amber-50 p-3 text-sm">
+              <p role="note" data-testid="label-info-warning" className="a-note a-note-warn">
                 Firmanavn og adresse mangler i Innstillinger – de skal stå på etiketten.
                 {user.role === 'owner' && (
                   <>
                     {' '}
-                    <Link href="/admin/settings" className="underline">
+                    <Link href="/admin/settings" className="a-link">
                       Gå til Innstillinger
                     </Link>
                   </>
                 )}
               </p>
             )}
-            <ul className="flex flex-col gap-2">
-              {packings?.map((p) => {
-                const product = Array.isArray(p.products) ? p.products[0] : p.products
-                return (
-                  <li key={p.id} data-testid="packing-row" className="rounded border border-zinc-300 p-3 text-sm">
-                    <p>
-                      {product?.name ?? '–'} · {p.units} stk · Best før {formatDate(p.best_before)}
-                    </p>
-                    <a href={`/api/labels/${p.id}`} className="underline">
-                      Skriv ut etiketter
-                    </a>
-                  </li>
-                )
-              })}
-            </ul>
+            {(packings?.length ?? 0) > 0 && (
+              <ul className="a-list a-list-sub">
+                {packings!.map((p) => {
+                  const product = Array.isArray(p.products) ? p.products[0] : p.products
+                  return (
+                    <li key={p.id} data-testid="packing-row" className="a-row flex-wrap justify-between">
+                      <p>
+                        {product?.name ?? '–'} · {p.units} stk · Best før {formatDate(p.best_before)}
+                      </p>
+                      <a href={`/api/labels/${p.id}`} className="a-link a-link-tap">
+                        Skriv ut etiketter
+                      </a>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
           </>
         )}
       </div>
 
       {canWrite && (
-        <section className="flex flex-col gap-2">
-          <h2 className="text-lg font-medium">Svinn (løs vekt)</h2>
-          <LooseWasteForm batchId={id} />
+        <section className="a-card a-section">
+          <h2 className="a-h2">Svinn (løs vekt)</h2>
+          <ResponsiveSheet title="Svinn (løs vekt)" triggerLabel="Registrer svinn" card={false}>
+            <LooseWasteForm batchId={id} />
+          </ResponsiveSheet>
         </section>
       )}
-    </div>
+    </Page>
   )
 }

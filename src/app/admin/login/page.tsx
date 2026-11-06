@@ -41,16 +41,19 @@ function LoginForm() {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 p-6">
-      <h1 className="text-2xl font-semibold">Logg inn</h1>
+    <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 px-4 py-10">
+      <div className="flex flex-col gap-1 px-1">
+        <p className="a-sub font-semibold">Ramsløk</p>
+        <h1 className="a-title">Logg inn</h1>
+      </div>
       {status === 'sent' ? (
-        <div role="status" className="flex flex-col gap-2">
+        <div role="status" className="a-card flex flex-col gap-2">
           <p>Sjekk e-posten din. Vi har sendt deg en innloggingslenke.</p>
-          <p className="text-sm text-zinc-700">Åpne lenken på samme enhet og i samme nettleser som du ba om den fra.</p>
+          <p className="a-sub">Åpne lenken på samme enhet og i samme nettleser som du ba om den fra.</p>
         </div>
       ) : (
-        <form onSubmit={onSubmit} className="flex flex-col gap-4">
-          <label className="flex flex-col gap-1 text-sm font-medium">
+        <form onSubmit={onSubmit} className="a-card a-form">
+          <label className="a-field">
             E-post
             <input
               type="email"
@@ -58,18 +61,18 @@ function LoginForm() {
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="rounded border border-zinc-400 px-3 py-3 text-base"
+              className="a-input"
             />
           </label>
           {error && (
-            <p role="alert" className="text-sm text-red-700">
+            <p role="alert" className="a-msg-error">
               {error}
             </p>
           )}
           <button
             type="submit"
             disabled={status === 'sending'}
-            className="rounded bg-green-800 px-4 py-3 text-base font-medium text-white disabled:opacity-60"
+            className="a-btn a-btn-primary"
           >
             Send innloggingslenke
           </button>

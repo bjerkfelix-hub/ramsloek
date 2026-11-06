@@ -25,12 +25,12 @@ export function UserActiveButton({
             setError(res.ok ? null : res.error)
           })
         }
-        className="rounded border border-zinc-500 px-3 py-2 text-sm disabled:opacity-60"
+        className="a-btn a-btn-gray a-btn-sm"
       >
         {active ? 'Deaktiver' : 'Aktiver'}
       </button>
       {error && (
-        <span role="alert" className="ml-2 text-sm text-red-700">
+        <span role="alert" className="a-msg-error ml-2">
           {error}
         </span>
       )}

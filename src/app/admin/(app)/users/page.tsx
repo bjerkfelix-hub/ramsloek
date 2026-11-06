@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { ActionForm, Field, inputClass } from '@/components/action-form'
 import { UserActiveButton } from '@/components/user-active-button'
 import { inviteUser, setUserActive } from './actions'
+import { LargeTitle, Page } from '@/features/admin/ui/Page'
+import { ResponsiveSheet } from '@/features/admin/ui/ResponsiveSheet'
 
 const ROLE_LABEL: Record<Role, string> = { owner: 'Eier', picker: 'Plukker', seller: 'Selger' }
 
@@ -17,10 +19,9 @@ export default async function UsersPage() {
   const authById = new Map(authData?.users.map((u) => [u.id, u]))
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold">Brukere</h1>
-      <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-medium">Legg til bruker</h2>
+    <Page>
+      <LargeTitle>Brukere</LargeTitle>
+      <ResponsiveSheet title="Legg til bruker">
         <ActionForm action={inviteUser} submitLabel="Legg til bruker" resetOnSuccess
           successMessage="Brukeren er lagt til. Be dem logge inn på innloggingssiden med e-postadressen sin.">
           <Field label="E-post">
@@ -37,16 +38,16 @@ export default async function UsersPage() {
             </select>
           </Field>
         </ActionForm>
-      </section>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
+      </ResponsiveSheet>
+      <div className="a-table-wrap">
+        <table className="a-table">
           <thead>
-            <tr className="border-b border-zinc-300">
-              <th className="py-2 pr-3">Navn</th>
-              <th className="py-2 pr-3">E-post</th>
-              <th className="py-2 pr-3">Rolle</th>
-              <th className="py-2 pr-3">Status</th>
-              <th className="py-2" />
+            <tr>
+              <th>Navn</th>
+              <th>E-post</th>
+              <th>Rolle</th>
+              <th>Status</th>
+              <th />
             </tr>
           </thead>
           <tbody>
@@ -55,12 +56,12 @@ export default async function UsersPage() {
               const invited = u && !u.last_sign_in_at
               const status = !p.active ? 'Deaktivert' : invited ? 'Ikke logget inn ennå' : 'Aktiv'
               return (
-                <tr key={p.id} className="border-b border-zinc-200">
-                  <td className="py-2 pr-3">{p.full_name}</td>
-                  <td className="py-2 pr-3">{u?.email ?? '–'}</td>
-                  <td className="py-2 pr-3">{ROLE_LABEL[p.role as Role]}</td>
-                  <td className="py-2 pr-3">{status}</td>
-                  <td className="py-2">
+                <tr key={p.id}>
+                  <td>{p.full_name}</td>
+                  <td>{u?.email ?? '–'}</td>
+                  <td>{ROLE_LABEL[p.role as Role]}</td>
+                  <td>{status}</td>
+                  <td>
                     {p.id !== me.id && <UserActiveButton userId={p.id} active={p.active} action={setUserActive} />}
                   </td>
                 </tr>
@@ -69,6 +70,6 @@ export default async function UsersPage() {
           </tbody>
         </table>
       </div>
-    </div>
+    </Page>
   )
 }

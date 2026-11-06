@@ -2,11 +2,16 @@
 
 import { useState, useTransition } from 'react'
 import { callAction, type ActionResult } from '@/lib/action-result'
+import { useSheetClose } from '@/features/admin/ui/Sheet'
+import { useToast } from '@/features/admin/ui/Toast'
 
-export const inputClass = 'rounded border border-zinc-400 px-3 py-3 text-base'
-export const buttonClass = 'rounded bg-green-800 px-4 py-3 text-base font-medium text-white disabled:opacity-60'
+export const inputClass = 'a-input'
+export const buttonClass = 'a-btn a-btn-primary'
+
+export const SAVED_TOAST = 'Lagret ✓'
 
 // Plain form that runs a server action, keeps the user's input on errors and shows the result.
+// On success it also shows the "Lagret ✓" toast and closes the sheet it sits in (if any).
 export function ActionForm({
   action,
   children,
@@ -28,6 +33,8 @@ export function ActionForm({
 }) {
   const [result, setResult] = useState<ActionResult | null>(null)
   const [pending, startTransition] = useTransition()
+  const toast = useToast()
+  const closeSheet = useSheetClose()
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -37,20 +44,24 @@ export function ActionForm({
       const res = await callAction(() => action(data), `Ingen forbindelse – trykk ${submitLabel} igjen.`)
       setResult(res)
       onResult?.(res)
-      if (res.ok && resetOnSuccess) form.reset()
+      if (res.ok) {
+        toast.show(SAVED_TOAST)
+        if (resetOnSuccess) form.reset()
+        closeSheet?.()
+      }
     })
   }
 
   return (
-    <form onSubmit={onSubmit} data-testid={testId} className="flex flex-col gap-3">
+    <form onSubmit={onSubmit} data-testid={testId} className="a-form">
       {children}
       {result && !result.ok && (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="a-msg-error">
           {result.error}
         </p>
       )}
       {result?.ok && (
-        <p role="status" className="text-sm text-green-800">
+        <p role="status" className="a-msg-ok">
           {successMessage}
         </p>
       )}
@@ -63,7 +74,7 @@ export function ActionForm({
 
 export function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="flex flex-col gap-1 text-sm font-medium">
+    <label className="a-field">
       {label}
       {children}
     </label>
