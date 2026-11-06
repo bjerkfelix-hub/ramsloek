@@ -190,3 +190,23 @@ tests/e2e/public.spec.ts, market-admin.spec.ts, signup.spec.ts, redirects.spec.t
 - [ ] **Step 1:** README (Norwegian): new structure (`/` public, `/admin` internal), how to add market days, sign-up list/export, privacy notes, and the hosted deploy step: paste `20261106000005_public_site.sql` into the Supabase SQL editor and record version `20261106000005` in `supabase_migrations.schema_migrations`.
 - [ ] **Step 2:** `npm run db:reset && npm test && npm run test:db && npm run build && npm run test:e2e` → all green; also `npm run build` with Supabase env vars unset.
 - [ ] **Step 3:** Commit `docs: public site and admin structure`.
+
+---
+
+### Task 10: Admin redesign (Apple-style, dark mode, motion) — runs after Task 8, before Task 9
+
+Owner request (2026-11-06): make /admin simple, minimalistic and nice, Apple-style, with animations and dark mode that follows the device plus a System/Lys/Mørk switch.
+
+**Files:** `src/app/admin/layout.tsx`, `src/app/admin/(app)/layout.tsx`, admin styles (new `src/app/admin/admin.css` with tokens), `src/components/*` used by admin (ActionForm, buttons, inputs, badges), new `src/features/admin/ui/*` (AppShell, TabBar, Sidebar, LargeTitle, GroupedList/Row, Sheet, Toast, ThemeSwitch), every page under `src/app/admin/(app)/**` (markup/classes only), `tests/e2e/admin-ui.spec.ts`.
+
+**Interfaces:**
+- `type ThemePref = 'system' | 'light' | 'dark'`; cookie `theme` (1 year, path /admin); `<html data-theme>` set server-side from the cookie (no flash); `system` follows `prefers-color-scheme`.
+- `setTheme(pref: ThemePref)` server action (any signed-in role) + `ThemeSwitch` (segmented control: System / Lys / Mørk) on `/admin/settings` for the owner and in a "Mer" (more) sheet/menu for every role.
+- `Toast` API: `useToast().show(text)`; ActionForm shows "Lagret ✓" on success (role=status).
+- `Sheet`: used for create forms on phones (≤ 640px) — "Ny høsting", add market day, add product/area, pack, waste; inline cards on desktop.
+
+**Design rules (from the apple-design skill):** system-ui font stack (SF on Apple devices), size-specific tracking (large titles −0.02em, body 0), leading tight on titles / 1.5 on body; inset grouped lists with 10–12px radii; neutral gray backgrounds (light: #F2F2F7 / cards #FFF; dark: #000 / cards #1C1C1E, elevated #2C2C2E) with ramsløk green accent (light ≈ #2F7D4A, dark ≈ #4CC27A) — verify AA; translucent sticky top bar (`backdrop-filter: blur(20px) saturate(180%)`) with scroll-edge fade instead of a hard border; phone: bottom tab bar (Partier, Lager, Marked [owner], Mer) with safe-area insets; desktop ≥ 1024px: left sidebar. Feedback on pointer-down (`:active` scale .97, 100ms); springs critically damped (bounce 0, ~0.35s) via `motion` (motion/react) for sheet/toast; sheet drag-to-dismiss with 1:1 tracking, velocity handoff and projection (`project(v)=v/1000*0.998/(1-0.998)`), rubber-band above top; page cross-fade via View Transitions where supported; `prefers-reduced-motion` → opacity-only; `prefers-reduced-transparency` → solid bars; `prefers-contrast: more` → solid + borders. No behaviour changes: same routes, same actions, same validation and texts (except added "Lagret ✓").
+
+- [ ] **Step 1: Write failing e2e** (`admin-ui.spec.ts`): owner sets "Mørk" → `html[data-theme="dark"]` persists after reload; "System" with `colorScheme: 'dark'` emulation renders dark tokens (check computed background of body is #000); phone viewport (390×844) shows the bottom tab bar and opening "Ny høsting" shows a dialog sheet (`role=dialog`) that closes with Escape; saving a form shows "Lagret ✓"; `reducedMotion: 'reduce'` emulation still completes the flows; picker sees no "Marked" tab.
+- [ ] **Step 2:** run → FAIL. **Step 3:** implement. **Step 4:** full `npm test`, `npm run test:e2e` (all earlier specs must still pass — update selectors only where markup changed, never weaken assertions), `npm run build` (also without env). Screenshots light/dark × phone/desktop of /admin/batches to the SDD workspace.
+- [ ] **Step 5:** Commit `feat(admin): Apple-style redesign with dark mode and motion`.
