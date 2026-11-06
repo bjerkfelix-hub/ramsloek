@@ -1,5 +1,7 @@
-import { format, getDictionary, type Locale, type Recipe } from "@/content";
+import { CONTACT_EMAIL, format, getDictionary, SITE_NAME, type Locale, type Recipe } from "@/content";
 import type { MarketDay } from "@/lib/domain/season";
+import { ROUTES, contactHref } from "./routes";
+import { absoluteUrl } from "./site";
 
 const offsetFormat = new Intl.DateTimeFormat("en-US", {
   timeZone: "Europe/Oslo",
@@ -66,6 +68,20 @@ export function marketEventJsonLd(
       : "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     location: { "@type": "Place", name: day.placeName, address: day.address },
+    inLanguage: locale === "en" ? "en" : "nb",
+  };
+}
+
+/** LocalBusiness for the front pages: no street address, phone or opening hours are published. */
+export function localBusinessJsonLd(locale: Locale): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: SITE_NAME,
+    url: absoluteUrl(ROUTES[locale].home),
+    email: contactHref(CONTACT_EMAIL).replace(/^mailto:/, ""),
+    areaServed: "Oslo",
+    description: getDictionary(locale).pages.home.description,
     inLanguage: locale === "en" ? "en" : "nb",
   };
 }

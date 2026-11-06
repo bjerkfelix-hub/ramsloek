@@ -216,3 +216,131 @@ test("privacy page shows contact email and no unsubscribe-in-every-notice promis
   ).toHaveAttribute("href", "mailto:post@xn--ramslk-fya.no");
   await expect(page.getByRole("main")).not.toContainText("hver beskjed");
 });
+
+test.describe("metadata, sitemap and robots", () => {
+  for (const [path, locale, ogLocale] of [
+    ["/", "nb", "nb_NO"],
+    ["/en", "en", "en_GB"],
+  ] as const) {
+    test(`${path} has canonical, hreflang, og:image, twitter card and LocalBusiness JSON-LD`, async ({
+      page,
+    }) => {
+      await page.goto(path);
+      // Next omits the trailing slash of the root URL.
+      const url = path === "/" ? SITE : SITE + path;
+      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+        "href",
+        url,
+      );
+      await expect(
+        page.locator('link[rel="alternate"][hreflang="nb"]'),
+      ).toHaveAttribute("href", SITE);
+      await expect(
+        page.locator('link[rel="alternate"][hreflang="en"]'),
+      ).toHaveAttribute("href", SITE + "/en");
+      const ogImage = await page
+        .locator('meta[property="og:image"]')
+        .getAttribute("content");
+      // In production the host is SITE_URL; the dev server falls back to localhost for file-based images.
+      expect(new URL(ogImage!).pathname).toContain("opengraph-image");
+      await expect(page.locator('meta[property="og:locale"]')).toHaveAttribute(
+        "content",
+        ogLocale,
+      );
+      await expect(
+        page.locator('meta[property="og:site_name"]'),
+      ).toHaveAttribute("content", "Nesodden Ramsløk");
+      await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(
+        "content",
+        url,
+      );
+      await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute(
+        "content",
+        "summary_large_image",
+      );
+      const ld = await page
+        .locator('script[type="application/ld+json"]')
+        .allTextContents();
+      const biz = ld.map((t) => JSON.parse(t)).find((d) => d["@type"] === "LocalBusiness");
+      expect(biz).toMatchObject({ name: "Nesodden Ramsløk", areaServed: "Oslo", inLanguage: locale });
+    });
+  }
+
+  test("og:image URLs serve a 1200x630 PNG", async ({ page, request }) => {
+    for (const front of ["/", "/en"]) {
+      await page.goto(front);
+      const content = await page
+        .locator('meta[property="og:image"]')
+        .getAttribute("content");
+      const { pathname, search } = new URL(content!);
+      const res = await request.get(pathname + search);
+      expect(res.status()).toBe(200);
+      expect(res.headers()["content-type"]).toContain("image/png");
+      const buf = await res.body();
+      expect(buf.readUInt32BE(16)).toBe(1200);
+      expect(buf.readUInt32BE(20)).toBe(630);
+    }
+  });
+
+  test("recipe pages carry og tags too", async ({ page }) => {
+    await page.goto("/oppskrifter");
+    const href = await page
+      .locator('a[href^="/oppskrifter/"]')
+      .first()
+      .getAttribute("href");
+    await page.goto(href!);
+    await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(
+      "content",
+      SITE + href,
+    );
+    await expect(page.locator('meta[property="og:image"]')).toHaveCount(1);
+  });
+
+  test("/admin/login is noindex", async ({ page }) => {
+    await page.goto("/admin/login");
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+      "content",
+      /noindex/,
+    );
+  });
+
+  test("/sitemap.xml lists public pages and recipes in both languages", async ({
+    request,
+  }) => {
+    const res = await request.get("/sitemap.xml");
+    expect(res.status()).toBe(200);
+    expect(res.headers()["content-type"]).toContain("xml");
+    const xml = await res.text();
+    for (const p of [
+      "/",
+      "/historien",
+      "/oppskrifter",
+      "/marked",
+      "/personvern",
+      "/en",
+      "/en/story",
+      "/en/recipes",
+      "/en/markets",
+      "/en/privacy",
+      "/oppskrifter/ramslokpesto",
+      "/en/recipes/ramslokpesto",
+    ]) {
+      expect(xml).toContain(`<loc>${SITE}${p}</loc>`);
+    }
+    expect(xml).toContain("hreflang");
+    expect(xml).not.toMatch(/admin|avmelding|unsubscribe/);
+  });
+
+  test("/robots.txt disallows admin and links the sitemap", async ({
+    request,
+  }) => {
+    const res = await request.get("/robots.txt");
+    expect(res.status()).toBe(200);
+    expect(res.headers()["content-type"]).toContain("text/plain");
+    const txt = await res.text();
+    expect(txt).toContain("Disallow: /admin");
+    expect(txt).toContain("Disallow: /avmelding");
+    expect(txt).toContain("Disallow: /en/unsubscribe");
+    expect(txt).toContain(`Sitemap: ${SITE}/sitemap.xml`);
+  });
+});

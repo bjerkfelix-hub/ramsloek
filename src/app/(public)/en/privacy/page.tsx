@@ -1,8 +1,7 @@
-import type { Metadata } from "next";
 import { PrivacyPage } from "@/features/public/pages/privacy-page";
-import { pageMetadata } from "@/features/public/pages/metadata";
+import { pageMetadataFor } from "@/features/public/pages/metadata";
 
-export const metadata: Metadata = pageMetadata("en", "privacy");
+export const generateMetadata = pageMetadataFor("en", "privacy");
 
 export default function Page() {
   return <PrivacyPage locale="en" />;

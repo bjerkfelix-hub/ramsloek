@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { absoluteUrl, pageAlternates, SITE_URL } from "./site";
+import { absoluteUrl, pageAlternates, pageSocialMetadata, SITE_URL } from "./site";
 
 describe("absoluteUrl", () => {
   it("prefixes paths with the site origin", () => {
@@ -30,5 +30,37 @@ describe("pageAlternates", () => {
       en: "https://xn--ramslk-fya.no/en/markets",
       "x-default": "https://xn--ramslk-fya.no/marked",
     });
+  });
+});
+
+describe("pageSocialMetadata", () => {
+  it("builds Open Graph and Twitter metadata with the canonical url", () => {
+    const m = pageSocialMetadata({
+      title: "T",
+      description: "D",
+      path: "/en/story",
+    });
+    expect(m.title).toBe("T");
+    expect(m.description).toBe("D");
+    expect(m.alternates?.canonical).toBe("https://xn--ramslk-fya.no/en/story");
+    expect(m.openGraph).toMatchObject({
+      type: "website",
+      title: "T",
+      description: "D",
+      url: "https://xn--ramslk-fya.no/en/story",
+      siteName: "Nesodden Ramsløk",
+      locale: "en_GB",
+    });
+    expect(m.twitter).toMatchObject({
+      card: "summary_large_image",
+      title: "T",
+      description: "D",
+    });
+  });
+  it("uses nb_NO for Norwegian paths", () => {
+    expect(
+      pageSocialMetadata({ title: "T", description: "D", path: "/" })
+        .openGraph,
+    ).toMatchObject({ locale: "nb_NO", url: "https://xn--ramslk-fya.no/" });
   });
 });

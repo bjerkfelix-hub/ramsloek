@@ -4,6 +4,8 @@ import { getDictionary, type Locale } from '@/content'
 import { todayOslo } from '@/lib/domain/time'
 import { getUpcomingMarketDays } from '@/lib/public/market-days'
 import { ROUTES } from '@/lib/public/routes'
+import { localBusinessJsonLd } from '@/lib/public/structured-data'
+import { JsonLd } from './json-ld'
 import { LeafIllustration } from './leaf-illustration'
 import { MarketList } from './market-list'
 import { SeasonBanner } from './season-banner'
@@ -23,6 +25,7 @@ export async function FrontPage({ locale }: { locale: Locale }) {
 
   return (
     <div className="flex flex-col gap-12 pb-4 pt-8 sm:gap-14 sm:pt-12">
+      <JsonLd data={localBusinessJsonLd(locale)} />
       <section className="flex flex-col gap-6">
         <div className="flex items-end justify-between gap-4">
           <div>

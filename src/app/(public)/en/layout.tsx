@@ -1,10 +1,12 @@
 import type { Metadata } from 'next'
 import { getDictionary } from '@/content'
+import { SITE_URL } from '@/lib/public/site'
 import { PublicDocument } from '@/features/public/public-document'
 
 const { pages } = getDictionary('en')
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: pages.home.title,
   description: pages.home.description,
 }

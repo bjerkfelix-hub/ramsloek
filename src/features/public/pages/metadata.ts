@@ -1,16 +1,16 @@
-import type { Metadata } from "next";
+import type { Metadata, ResolvingMetadata } from "next";
 import { getDictionary, type Locale } from "@/content";
 import { ROUTES, type PageKey } from "@/lib/public/routes";
-import { pageAlternates } from "@/lib/public/site";
+import { pageSocialMetadata, withParentShareImage } from "@/lib/public/site";
 
-type SimplePage = Exclude<PageKey, "home">;
-
-/** Title, description and hreflang alternates for one of the plain pages. */
-export function pageMetadata(locale: Locale, key: SimplePage): Metadata {
+/** Title, description, hreflang alternates and share metadata for a public page (the front page included). */
+export function pageMetadata(locale: Locale, key: PageKey): Metadata {
   const { title, description } = getDictionary(locale).pages[key];
-  return {
-    title,
-    description,
-    alternates: pageAlternates(ROUTES[locale][key]),
-  };
+  return pageSocialMetadata({ title, description, path: ROUTES[locale][key] });
+}
+
+/** `generateMetadata` for a plain page: pageMetadata plus the share image inherited from the language root. */
+export function pageMetadataFor(locale: Locale, key: PageKey) {
+  return (_props: unknown, parent: ResolvingMetadata): Promise<Metadata> =>
+    withParentShareImage(pageMetadata(locale, key), parent);
 }

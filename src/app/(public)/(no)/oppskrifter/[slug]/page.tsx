@@ -1,9 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, ResolvingMetadata } from "next";
 import { notFound } from "next/navigation";
 import { recipes } from "@/content";
 import { RecipePage } from "@/features/public/pages/recipe-page";
 import { ROUTES } from "@/lib/public/routes";
-import { pageAlternates } from "@/lib/public/site";
+import { pageSocialMetadata, withParentShareImage } from "@/lib/public/site";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -11,15 +11,21 @@ export function generateStaticParams() {
   return recipes.map((r) => ({ slug: r.slug }));
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata(
+  { params }: Props,
+  parent: ResolvingMetadata,
+): Promise<Metadata> {
   const { slug } = await params;
   const recipe = recipes.find((r) => r.slug === slug);
   if (!recipe) return {};
-  return {
+  return withParentShareImage(
+    pageSocialMetadata({
     title: `${recipe.title.no} – Nesodden Ramsløk`,
     description: recipe.intro.no,
-    alternates: pageAlternates(`${ROUTES.no.recipes}/${recipe.slug}`),
-  };
+    path: `${ROUTES.no.recipes}/${recipe.slug}`,
+  }),
+    parent,
+  );
 }
 
 export default async function Page({ params }: Props) {

@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { recipes } from "@/content";
+import { getDictionary, recipes } from "@/content";
 import type { MarketDay } from "@/lib/domain/season";
 import {
   jsonLdString,
+  localBusinessJsonLd,
   marketEventJsonLd,
   osloIso,
   recipeJsonLd,
@@ -92,5 +93,25 @@ describe("marketEventJsonLd", () => {
       "eventStatus",
       "https://schema.org/EventCancelled",
     );
+  });
+});
+
+describe("localBusinessJsonLd", () => {
+  it("describes the business without invented address, phone or hours", () => {
+    const d = localBusinessJsonLd("en");
+    expect(d).toMatchObject({
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      name: "Nesodden Ramsløk",
+      url: "https://xn--ramslk-fya.no/en",
+      email: "post@xn--ramslk-fya.no",
+      areaServed: "Oslo",
+      inLanguage: "en",
+    });
+    expect(d.description).toBe(getDictionary("en").pages.home.description);
+    for (const k of ["address", "telephone", "openingHours", "openingHoursSpecification"]) {
+      expect(d).not.toHaveProperty(k);
+    }
+    expect(localBusinessJsonLd("no").url).toBe("https://xn--ramslk-fya.no/");
   });
 });
