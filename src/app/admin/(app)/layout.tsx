@@ -1,8 +1,10 @@
 import Link from 'next/link'
 import { requireRole, type Role } from '@/lib/auth'
+import { AdminNav } from '@/features/admin/nav'
 import { signOut } from '@/app/actions/auth'
 
 const NAV: { href: string; label: string; roles: Role[] }[] = [
+  { href: '/admin', label: 'Oversikt', roles: ['owner', 'picker', 'seller'] },
   { href: '/admin/batches', label: 'Partier', roles: ['owner', 'picker', 'seller'] },
   { href: '/admin/stock', label: 'Lager', roles: ['owner', 'picker', 'seller'] },
   { href: '/admin/products', label: 'Produkter', roles: ['owner'] },
@@ -17,35 +19,33 @@ const NAV: { href: string; label: string; roles: Role[] }[] = [
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireRole('owner', 'picker', 'seller')
   const links = NAV.filter((item) => item.roles.includes(user.role))
+  const roleLabel = { owner: 'Eier', picker: 'Plukker', seller: 'Selger' }[user.role]
   return (
-    <>
-      <header className="border-b border-zinc-300 bg-green-900 text-white">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3">
-          <Link href="/admin" className="text-lg font-semibold">
-            Ramsløk
-          </Link>
-          <div className="flex items-center gap-3">
-            <span className="truncate text-sm">{user.fullName}</span>
+    <div className="admin-shell">
+      <a href="#admin-content" className="admin-skip">Hopp til innhold</a>
+      <aside className="admin-sidebar">
+        <Link href="/admin" className="admin-wordmark">ramsløk<span aria-hidden="true">✳</span></Link>
+        <p className="admin-sidebar-caption">FRA SKOG TIL BORD</p>
+        <AdminNav links={links} />
+        <div className="admin-sidebar-bottom">
+          <span>Høstet med omtanke.</span>
+          <Link href="/">Se nettsiden ↗</Link>
+        </div>
+      </aside>
+      <div className="admin-workspace">
+        <header className="admin-topbar">
+          <span className="admin-topbar-label">Ramsløk / <strong>Arbeidsrom</strong></span>
+          <div className="admin-account">
+            <span className="admin-avatar" aria-hidden="true">{user.fullName.slice(0, 1)}</span>
+            <span className="admin-account-name">{user.fullName}<small>{roleLabel}</small></span>
             <form action={signOut}>
-              <button type="submit" className="rounded border border-white/60 px-3 py-1 text-sm hover:bg-green-800">
-                Logg ut
-              </button>
+              <button type="submit" className="admin-signout">Logg ut</button>
             </form>
           </div>
-        </div>
-        <nav aria-label="Hovedmeny" className="mx-auto max-w-3xl overflow-x-auto px-2">
-          <ul className="flex gap-1 pb-2">
-            {links.map((item) => (
-              <li key={item.href}>
-                <Link href={item.href} className="block whitespace-nowrap rounded px-3 py-2 text-sm hover:bg-green-800">
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </header>
-      <div className="mx-auto w-full max-w-3xl flex-1 p-4">{children}</div>
-    </>
+        </header>
+        <main id="admin-content" tabIndex={-1} className="admin-content">{children}</main>
+        <footer className="admin-footer">Ramsløk <span>Høsting · Pakking · Lager</span></footer>
+      </div>
+    </div>
   )
 }

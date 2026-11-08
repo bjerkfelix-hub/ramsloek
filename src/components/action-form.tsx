@@ -42,7 +42,7 @@ export function ActionForm({
   }
 
   return (
-    <form onSubmit={onSubmit} data-testid={testId} className="flex flex-col gap-3">
+    <form onSubmit={onSubmit} data-testid={testId} className="admin-action-form flex flex-col gap-3">
       {children}
       {result && !result.ok && (
         <p role="alert" className="text-sm text-red-700">
