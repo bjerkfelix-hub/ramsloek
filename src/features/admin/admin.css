@@ -90,3 +90,34 @@
 }
 @media (max-width: 380px) { .admin-topbar-label { display: none; } .admin-account { width: 100%; justify-content: space-between; } .admin-shortcuts { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .admin-root * { transition: none !important; } }
+
+/* Concentric surfaces: inner radius = outer radius - border - inset.
+   Form controls are spaced independently and are not concentric panel edges. */
+.admin-root {
+  --admin-control-radius: 5px;
+  --admin-surface-radius: 8px;
+}
+.admin-root :is(.admin-nav a, .admin-signout, input:not([type="checkbox"]):not([type="hidden"]), select, textarea, button.bg-green-800, a.bg-green-800) {
+  border-radius: var(--admin-control-radius);
+}
+.admin-content :is(.admin-shortcut, .admin-action-form, a.border-zinc-300, li.border-zinc-300) {
+  border-radius: var(--admin-surface-radius);
+}
+.admin-content .overflow-x-auto {
+  --admin-table-border: 1px;
+  --admin-table-inset: 0px;
+  --admin-table-inner-radius: max(0px, calc(var(--admin-surface-radius) - var(--admin-table-border) - var(--admin-table-inset)));
+  border-width: var(--admin-table-border);
+  border-radius: var(--admin-surface-radius);
+  padding: var(--admin-table-inset);
+}
+/* Separate borders let corner cells follow the enclosing surface precisely. */
+.admin-content table { border-collapse: separate; border-spacing: 0; }
+.admin-content :is(th, td) { border-bottom: 1px solid #e1e4d8; }
+.admin-content tbody tr:last-child td { border-bottom: 0; }
+.admin-content thead tr:first-child th:first-child { border-top-left-radius: var(--admin-table-inner-radius); }
+.admin-content thead tr:first-child th:last-child { border-top-right-radius: var(--admin-table-inner-radius); }
+.admin-content tbody tr:last-child td:first-child { border-bottom-left-radius: var(--admin-table-inner-radius); }
+.admin-content tbody tr:last-child td:last-child { border-bottom-right-radius: var(--admin-table-inner-radius); }
+.admin-content tbody tr:hover { background: transparent; }
+.admin-content tbody tr:hover td { background: #f5f7ee; }

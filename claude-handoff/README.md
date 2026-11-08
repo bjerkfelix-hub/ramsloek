@@ -1,3 +1,9 @@
+# Nested corner radii — 8 November 2026
+
+Admin table surfaces now calculate their inner corner radius as `max(0px, outer radius - border width - inset)`: currently 8px - 1px - 0px = 7px. Header and final-row cells follow that curve, including hover backgrounds. Separate table borders preserve row dividers. Shared controls use a 5px token and cards use an 8px token. Independently spaced form controls remain independent, because they do not trace the enclosing panel corners. The formula accounts for border width in addition to padding/inset.
+
+---
+
 # Latest update — 8 November 2026
 
 User requested an employee-focused admin without promotional copy and contact email felix@dontpanic.no. Removed the welcome banner and botanical illustration, slogans, decorative footer, and marketing text on login. Dashboard now starts with Oversikt and practical shortcuts. Cards are more compact. Contact email and its existing assertion are updated centrally for both public languages and privacy/contact links. Existing screenshots below are historical and show the earlier design, not this simplified version.
