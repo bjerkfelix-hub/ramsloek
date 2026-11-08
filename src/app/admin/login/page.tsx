@@ -43,9 +43,8 @@ function LoginForm() {
   return (
     <main className="admin-login">
       <a href="/" className="admin-wordmark">ramsløk<span aria-hidden="true">✳</span></a>
-      <p className="admin-eyebrow">VELKOMMEN TIL ARBEIDSROMMET</p>
       <h1 className="text-2xl font-semibold">Logg inn</h1>
-      <p className="admin-login-intro">Alt fra høsting til lager, samlet på ett sted. Vi sender deg en sikker lenke på e-post.</p>
+      <p className="admin-login-intro">Skriv inn e-postadressen din for å få en innloggingslenke.</p>
       {status === 'sent' ? (
         <div role="status" className="flex flex-col gap-2">
           <p>Sjekk e-posten din. Vi har sendt deg en innloggingslenke.</p>

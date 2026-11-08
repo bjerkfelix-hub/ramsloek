@@ -33,22 +33,16 @@
 .admin-eyebrow { font-size: 10px; font-weight: 600; letter-spacing: 2px; color: #56694f; }
 .admin-page-heading h1 { margin: 10px 0 12px; }
 .admin-page-heading > p:last-child { font-size: 13px; color: #657165; line-height: 1.7; }
-.admin-welcome { position: relative; overflow: hidden; background: #e5eadc; border: 1px solid #d9e0ce; padding: 32px 36px; margin-top: 30px; border-radius: 8px; min-height: 250px; }
-.admin-welcome h2 { font-family: Georgia, serif; font-size: 39px; font-weight: 400; line-height: 1.1; letter-spacing: -1px; margin: 14px 0; }
-.admin-welcome > div > p:last-child { font-size: 12px; color: #52634e; line-height: 1.8; }
-.admin-botanical { position: absolute; width: 240px; height: 230px; right: 45px; bottom: 0; color: #64815a; }
 .admin-section-heading { display: flex; justify-content: space-between; align-items: center; margin: 32px 0 16px; }
 .admin-section-heading h2 { font-size: 15px; font-weight: 600; }
 .admin-section-heading > span { font-size: 11px; color: #657165; }
 .admin-shortcuts { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
-.admin-shortcut { height: 100%; min-height: 160px; background: #fffef9; border: 1px solid #dddfd3; border-radius: 7px; display: flex; flex-direction: column; padding: 20px; transition: border-color .15s, background .15s; }
+.admin-shortcut { height: 100%; min-height: 130px; background: #fffef9; border: 1px solid #dddfd3; border-radius: 7px; display: flex; flex-direction: column; padding: 20px; transition: border-color .15s, background .15s; }
 .admin-shortcut:hover { border-color: #708765; background: #f0f3e8; }
-.admin-shortcut-top { display: flex; justify-content: space-between; color: #63795b; font-size: 11px; margin-bottom: 24px; }
+.admin-shortcut-top { display: flex; justify-content: space-between; color: #63795b; font-size: 11px; margin-bottom: 16px; }
 .admin-shortcut-top > span:last-child { font-size: 18px; line-height: 1; }
 .admin-shortcut-title { font-size: 15px; font-weight: 600; }
 .admin-shortcut-description { font-size: 11px; color: #657165; margin-top: 7px; line-height: 1.6; }
-.admin-dashboard-note { font-family: Georgia, serif; font-style: italic; color: #657165; text-align: center; font-size: 13px; margin-top: 35px; }
-.admin-footer { margin: 0 44px; padding: 20px 0; border-top: 1px solid #dddfd3; display: flex; justify-content: space-between; gap: 10px; font-size: 10px; color: #657165; }
 /* Existing pages keep their field names, actions, and status semantics. */
 .admin-content .admin-action-form { background: #fffef9; border: 1px solid #dddfd3; border-radius: 8px; padding: 26px; max-width: 720px; gap: 18px; }
 .admin-root :is(input:not([type="checkbox"]):not([type="hidden"]), select, textarea) { background: #fffefb; color: #263b30; border: 1px solid #b9c3b2; border-radius: 5px; min-height: 46px; width: 100%; padding: 11px 13px; font-size: 16px; }
@@ -73,7 +67,7 @@
 .admin-skip { position: fixed; top: -100px; left: 20px; z-index: 100; padding: 14px 20px; background: #fffef9; border: 2px solid #193d30; }
 .admin-skip:focus { top: 15px; }
 @media (min-width: 1500px) { .admin-content { padding-top: 56px; } }
-@media (max-width: 1100px) { .admin-sidebar { width: 210px; } .admin-topbar { padding-inline: 28px; } .admin-content { padding: 32px 28px 44px; } .admin-botanical { right: 12px; width: 190px; opacity: .75; } .admin-welcome { padding: 28px; } .admin-welcome > div { position: relative; z-index: 1; max-width: 65%; } .admin-shortcuts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 1100px) { .admin-sidebar { width: 210px; } .admin-topbar { padding-inline: 28px; } .admin-content { padding: 32px 28px 44px; } .admin-shortcuts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 760px) {
   .admin-shell { flex-direction: column; }
   .admin-sidebar { position: static; width: 100%; height: auto; padding: 20px 20px 12px; }
@@ -89,14 +83,9 @@
   .admin-account-name { max-width: 120px; }
   .admin-avatar { display: none; }
   .admin-content { padding: 28px 20px 40px; }
-  .admin-welcome { padding: 25px; min-height: 250px; margin-top: 24px; }
-  .admin-welcome h2 { font-size: 35px; }
-  .admin-welcome > div { max-width: 80%; }
-  .admin-botanical { right: -60px; opacity: .4; }
   .admin-shortcuts { gap: 10px; }
-  .admin-shortcut { padding: 16px; min-height: 165px; }
+  .admin-shortcut { padding: 16px; min-height: 130px; }
   .admin-shortcut-description { font-size: 11px; }
-  .admin-footer { margin-inline: 20px; }
   .admin-content .admin-action-form { padding: 20px; }
 }
 @media (max-width: 380px) { .admin-topbar-label { display: none; } .admin-account { width: 100%; justify-content: space-between; } .admin-shortcuts { grid-template-columns: 1fr; } }

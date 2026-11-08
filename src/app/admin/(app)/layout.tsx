@@ -25,10 +25,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <a href="#admin-content" className="admin-skip">Hopp til innhold</a>
       <aside className="admin-sidebar">
         <Link href="/admin" className="admin-wordmark">ramsløk<span aria-hidden="true">✳</span></Link>
-        <p className="admin-sidebar-caption">FRA SKOG TIL BORD</p>
+        <p className="admin-sidebar-caption">ADMINISTRASJON</p>
         <AdminNav links={links} />
         <div className="admin-sidebar-bottom">
-          <span>Høstet med omtanke.</span>
           <Link href="/">Se nettsiden ↗</Link>
         </div>
       </aside>
@@ -44,7 +43,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </div>
         </header>
         <main id="admin-content" tabIndex={-1} className="admin-content">{children}</main>
-        <footer className="admin-footer">Ramsløk <span>Høsting · Pakking · Lager</span></footer>
       </div>
     </div>
   )

@@ -1,3 +1,11 @@
+# Latest update — 8 November 2026
+
+User requested an employee-focused admin without promotional copy and contact email felix@dontpanic.no. Removed the welcome banner and botanical illustration, slogans, decorative footer, and marketing text on login. Dashboard now starts with Oversikt and practical shortcuts. Cards are more compact. Contact email and its existing assertion are updated centrally for both public languages and privacy/contact links. Existing screenshots below are historical and show the earlier design, not this simplified version.
+
+The original redesign was deployed successfully on Railway from main (50bbc96). This follow-up is intended for the same production service. Auth and business actions are unchanged.
+
+---
+
 # Claude handoff: Ramsløk admin redesign
 
 Date: 8 November 2026
