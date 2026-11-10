@@ -32,8 +32,12 @@ export async function GET(_request: Request, ctx: { params: Promise<{ id: string
       'Content-Disposition': `inline; filename="${fallback}"; filename*=UTF-8''${encoded}`,
       'Cache-Control': 'private, no-store',
       'X-Content-Type-Options': 'nosniff',
-      // Defence in depth: a receipt can never run script or load anything as a page.
-      'Content-Security-Policy': "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox",
+      // Defence in depth for images: never run script or load anything as a page. Not for PDFs:
+      // browsers' built-in PDF viewers refuse to render sandboxed documents, and the bytes were
+      // verified to be a real PDF (magic bytes) at upload.
+      ...(receipt.mime_type === 'application/pdf'
+        ? {}
+        : { 'Content-Security-Policy': "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox" }),
     },
   })
 }

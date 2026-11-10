@@ -19,12 +19,15 @@ export function ReceiptInput({ name = 'file', onChange }: { name?: string; onCha
     <div className="a-field" aria-busy={busy}>
       <label htmlFor={id}>Ta bilde</label>
       <input id={id} name={name} className="a-input" type="file" accept="image/*,application/pdf" capture="environment"
-        disabled={busy} aria-describedby={`${id}-status`}
+        aria-describedby={`${id}-status`}
         onChange={async (event) => {
           const input = event.currentTarget
           const selected = input.files?.[0]
           setBusy(true)
           setError('')
+          // While the photo is being prepared the form must not submit (it would save without the
+          // receipt). A custom validity message makes native validation block every form using this.
+          input.setCustomValidity('Vent til bildet er klart.')
           try {
             const prepared = selected ? await prepareReceiptFile(selected) : null
             // Native FormData and the callback must receive the same prepared bytes.
@@ -43,6 +46,7 @@ export function ReceiptInput({ name = 'file', onChange }: { name?: string; onCha
             onChange?.(null)
             setError('Kunne ikke klargjøre bildet. Prøv igjen.')
           } finally {
+            input.setCustomValidity('')
             setBusy(false)
           }
         }} />

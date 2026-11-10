@@ -1,5 +1,6 @@
 import 'server-only'
 import { createClient } from '@/lib/supabase/server'
+import { fetchAll } from './fetch-all'
 import type { LedgerKind, PaymentMethod } from '@/lib/domain/ledger'
 import type { Period } from '@/lib/domain/periods'
 
@@ -54,11 +55,12 @@ const COLUMNS =
 
 export async function receiptCoverage(): Promise<{ entries: Set<string>; takings: Set<string> }> {
   const supabase = await createClient()
-  const { data, error } = await supabase.from('ledger_receipts').select('entry_id, takings_id')
-  if (error) throw error
+  const rows = await fetchAll<{ entry_id: string | null; takings_id: string | null }>((from, to) =>
+    supabase.from('ledger_receipts').select('entry_id, takings_id').order('id').range(from, to),
+  )
   const entries = new Set<string>()
   const takings = new Set<string>()
-  for (const r of data ?? []) {
+  for (const r of rows) {
     if (r.entry_id) entries.add(r.entry_id)
     if (r.takings_id) takings.add(r.takings_id)
   }
@@ -89,22 +91,24 @@ export function toRow(e: RawEntry, coverage: { entries: Set<string>; takings: Se
 /** Owner list of entries for a period with filters. Newest first. */
 export async function listEntries(filter: EntryFilter): Promise<EntryRow[]> {
   const supabase = await createClient()
-  let q = supabase
-    .from('ledger_entries')
-    .select(COLUMNS)
-    .gte('entry_date', filter.period.from)
-    .lte('entry_date', filter.period.to)
-    .order('entry_date', { ascending: false })
-    .order('number', { ascending: false })
-    .limit(1000)
-  if (filter.kind) q = q.eq('kind', filter.kind)
-  if (filter.categoryId) q = q.eq('category_id', filter.categoryId)
-  if (!filter.showVoided) q = q.is('voided_at', null)
-  if (filter.flag === 'unpaid') q = q.eq('payment_method', 'unpaid').is('settled_at', null)
-  if (filter.flag === 'private') q = q.eq('payment_method', 'private').is('settled_at', null)
-  const [{ data, error }, coverage] = await Promise.all([q, receiptCoverage()])
-  if (error) throw error
-  const rows = ((data ?? []) as unknown as RawEntry[]).map((e) => toRow(e, coverage))
+  const query = (from: number, to: number) => {
+    let q = supabase
+      .from('ledger_entries')
+      .select(COLUMNS)
+      .gte('entry_date', filter.period.from)
+      .lte('entry_date', filter.period.to)
+    if (filter.kind) q = q.eq('kind', filter.kind)
+    if (filter.categoryId) q = q.eq('category_id', filter.categoryId)
+    if (!filter.showVoided) q = q.is('voided_at', null)
+    if (filter.flag === 'unpaid') q = q.eq('payment_method', 'unpaid').is('settled_at', null)
+    if (filter.flag === 'private') q = q.eq('payment_method', 'private').is('settled_at', null)
+    return q
+      .order('entry_date', { ascending: false })
+      .order('number', { ascending: false })
+      .range(from, to) as unknown as PromiseLike<{ data: RawEntry[] | null; error: unknown }>
+  }
+  const [data, coverage] = await Promise.all([fetchAll<RawEntry>(query), receiptCoverage()])
+  const rows = data.map((e) => toRow(e, coverage))
   return filter.flag === 'missing-receipt' ? rows.filter((r) => !r.hasReceipt && !r.voided) : rows
 }
 

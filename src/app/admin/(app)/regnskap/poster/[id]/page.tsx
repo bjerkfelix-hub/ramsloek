@@ -13,6 +13,20 @@ import { AddReceiptForm, EditEntryForm, SettleButton, VoidForm } from '@/feature
 import { describeHistory, type AuditRow } from '@/features/regnskap/history'
 import '@/features/regnskap/regnskap.css'
 
+/**
+ * Active categories plus the entry's own category when it has been switched off, so correcting other
+ * fields never silently moves the entry to a different category.
+ */
+function editCategories(
+  active: { id: string; name: string; accountNo: string }[],
+  all: { id: string; name: string; account_no: string; active: boolean }[],
+  currentId: string | undefined,
+) {
+  if (!currentId || active.some((c) => c.id === currentId)) return active
+  const current = all.find((c) => c.id === currentId)
+  return current ? [{ id: current.id, name: `${current.name} (ikke i bruk)`, accountNo: current.account_no }, ...active] : active
+}
+
 type Receipt = { id: string; file_name: string; mime_type: string; uploaded_at: string }
 
 export default async function EntryPage({
@@ -41,7 +55,7 @@ export default async function EntryPage({
       .eq('table_name', 'ledger_entries')
       .eq('row_id', id)
       .order('id'),
-    supabase.from('ledger_categories').select('id, name'),
+    supabase.from('ledger_categories').select('id, name, account_no, active'),
     entry.takingsId
       ? supabase.from('ledger_entries').select('id, number, payment_method, amount_ore').eq('takings_id', entry.takingsId).order('number')
       : Promise.resolve({ data: [] as { id: string; number: string; payment_method: string; amount_ore: number }[] }),
@@ -95,7 +109,7 @@ export default async function EntryPage({
               paymentMethod: entry.paymentMethod,
               dueDate: entry.dueDate,
             }}
-            categories={await activeCategories(entry.kind)}
+            categories={editCategories(await activeCategories(entry.kind), categoriesRes.data ?? [], raw.data?.category_id)}
             maxDate={addDays(todayOslo(), 1)}
           />
         </section>

@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { putReceipt, removeOrphanReceipt } from '@/lib/storage/receipts'
 import { uploadReceipt } from './receipt-actions'
 
+vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }))
 vi.mock('@/lib/auth', () => ({ requireRole: vi.fn() }))
 vi.mock('@/lib/supabase/server', () => ({ createClient: vi.fn() }))
 vi.mock('@/lib/storage/receipts', () => ({ putReceipt: vi.fn(), removeOrphanReceipt: vi.fn() }))
@@ -86,9 +87,36 @@ describe('uploadReceipt', () => {
   )
 
   it('removes the same stored key and maps a database error', async () => {
-    insertResult.mockResolvedValue({ data: null, error: { message: 'RECEIPT_PARENT_INVALID' } })
+    insertResult.mockResolvedValue({ data: null, error: { code: 'P0001', message: 'RECEIPT_PARENT_INVALID' } })
     expect(await uploadReceipt(form())).toEqual({ ok: false, error: 'Du kan bare legge kvittering på dine egne poster.' })
     expect(removeOrphanReceipt).toHaveBeenCalledWith(vi.mocked(putReceipt).mock.calls[0][0])
+  })
+
+  it('keeps the bytes and reports success when a lost response hid a committed row', async () => {
+    insertResult.mockResolvedValue({ data: null, error: { code: '', message: 'TypeError: fetch failed' } })
+    parentResult
+      .mockResolvedValueOnce({ data: { id: PARENT, created_by: USER, voided_at: null }, error: null }) // parent check
+      .mockResolvedValueOnce({ data: { id: RECEIPT }, error: null }) // lookup by storage_key
+    expect(await uploadReceipt(form())).toEqual({ ok: true, receiptId: RECEIPT })
+    expect(removeOrphanReceipt).not.toHaveBeenCalled()
+  })
+
+  it('removes the bytes after a lost response only when the row is confirmed absent', async () => {
+    insertResult.mockRejectedValue(new Error('socket hang up'))
+    parentResult
+      .mockResolvedValueOnce({ data: { id: PARENT, created_by: USER, voided_at: null }, error: null })
+      .mockResolvedValueOnce({ data: null, error: null })
+    expect((await uploadReceipt(form())).ok).toBe(false)
+    expect(removeOrphanReceipt).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps the bytes when it cannot tell whether the row was saved', async () => {
+    insertResult.mockRejectedValue(new Error('socket hang up'))
+    parentResult
+      .mockResolvedValueOnce({ data: { id: PARENT, created_by: USER, voided_at: null }, error: null })
+      .mockResolvedValueOnce({ data: null, error: { message: 'fetch failed' } })
+    expect((await uploadReceipt(form())).ok).toBe(false)
+    expect(removeOrphanReceipt).not.toHaveBeenCalled()
   })
 
   it('returns a storage failure without inserting metadata', async () => {

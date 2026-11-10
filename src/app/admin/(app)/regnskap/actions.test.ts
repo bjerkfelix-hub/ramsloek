@@ -40,7 +40,11 @@ beforeEach(() => {
   const from = vi.fn(() => ({
     insert,
     select: () => ({
-      eq: () => ({ maybeSingle: lookup, order: () => Promise.resolve({ data: [{ number: 'R-2027-001' }] }) }),
+      eq: () => ({
+        maybeSingle: lookup,
+        is: () => ({ maybeSingle: lookup }),
+        order: () => Promise.resolve({ data: [{ number: 'R-2027-001' }] }),
+      }),
     }),
   }))
   vi.mocked(createClient).mockResolvedValue({ from } as unknown as Awaited<ReturnType<typeof createClient>>)
@@ -120,5 +124,17 @@ describe('saveTakings', () => {
       ok: false,
       error: 'Dagsoppgjør for denne markedsdagen er allerede registrert.',
     })
+  })
+
+  it('treats a retry of the same takings after a lost response as saved', async () => {
+    insertSingle.mockResolvedValue({ data: null, error: { code: '23505', message: 'duplicate key' } })
+    lookup.mockResolvedValue({ data: { id: 't1', vipps_ore: 435000, card_ore: 210050, cash_ore: 0 }, error: null })
+    expect(await saveTakings(takings())).toMatchObject({ ok: true, takingsId: 't1', numbers: ['R-2027-001'] })
+  })
+
+  it('accepts a typed zero in a field', async () => {
+    insertSingle.mockResolvedValue({ data: { id: 't1' }, error: null })
+    expect((await saveTakings(takings({ cash: '0' }))).ok).toBe(true)
+    expect(insert).toHaveBeenCalledWith(expect.objectContaining({ cash_ore: 0 }))
   })
 })

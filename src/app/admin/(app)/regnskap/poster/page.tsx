@@ -11,6 +11,8 @@ import { activeCategories } from '@/features/regnskap/form-data'
 import { UUID } from '@/features/regnskap/entry-input'
 import '@/features/regnskap/regnskap.css'
 
+const ALL_DATES = { from: '2000-01-01', to: '2099-12-31' }
+
 type Search = { from?: string; to?: string; kind?: string; category?: string; flag?: string; voided?: string }
 
 const FLAGS: { value: EntryFlag; label: string }[] = [
@@ -22,10 +24,15 @@ const FLAGS: { value: EntryFlag; label: string }[] = [
 export default async function EntriesPage({ searchParams }: { searchParams: Promise<Search> }) {
   await requireRole('owner')
   const sp = await searchParams
-  const period = parsePeriod(sp.from ?? null, sp.to ?? null) ?? presetPeriod('this-year', todayOslo())
   const kind = sp.kind === 'income' || sp.kind === 'expense' ? (sp.kind as LedgerKind) : null
   const categoryId = sp.category && UUID.test(sp.category) ? sp.category : null
   const flag = FLAGS.some((f) => f.value === sp.flag) ? (sp.flag as EntryFlag) : null
+  // The overview's follow-up counts (missing receipt, unpaid, owed back) cover all dates, so its links
+  // (a flag and no period) list all dates too; otherwise the default period is this year.
+  const allDates = flag !== null && !sp.from && !sp.to
+  const period = allDates
+    ? ALL_DATES
+    : (parsePeriod(sp.from ?? null, sp.to ?? null) ?? presetPeriod('this-year', todayOslo()))
   const showVoided = sp.voided === '1'
 
   const [rows, income, expense] = await Promise.all([
@@ -40,11 +47,11 @@ export default async function EntriesPage({ searchParams }: { searchParams: Prom
       <form method="get" className="a-card r-filters" aria-label="Filter">
         <label className="a-field">
           Fra
-          <input type="date" name="from" defaultValue={period.from} className="a-input" />
+          <input type="date" name="from" defaultValue={allDates ? '' : period.from} className="a-input" />
         </label>
         <label className="a-field">
           Til
-          <input type="date" name="to" defaultValue={period.to} className="a-input" />
+          <input type="date" name="to" defaultValue={allDates ? '' : period.to} className="a-input" />
         </label>
         <label className="a-field">
           Type
@@ -86,7 +93,7 @@ export default async function EntriesPage({ searchParams }: { searchParams: Prom
       </form>
 
       <p className="a-sub px-1" data-testid="entries-count">
-        {rows.length} {rows.length === 1 ? 'post' : 'poster'}, {formatDate(period.from)} – {formatDate(period.to)}
+        {rows.length} {rows.length === 1 ? 'post' : 'poster'}, {allDates ? 'alle datoer' : `${formatDate(period.from)} – ${formatDate(period.to)}`}
       </p>
       {rows.length > 0 && (
         <ul className="a-list">

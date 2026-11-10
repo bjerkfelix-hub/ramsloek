@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { receiptFileName, uniqueNames, type ExportEntry, type LedgerKind, type PaymentMethod } from '@/lib/domain/ledger'
 import { MIME_EXT, type ReceiptMime } from '@/lib/domain/file-sniff'
 import type { Period } from '@/lib/domain/periods'
+import { fetchAll } from './fetch-all'
 
 export type ExportFile = { name: string; key: string }
 export type ExportData = { entries: ExportEntry[]; files: ExportFile[] }
@@ -16,6 +17,7 @@ type RawEntry = {
   description: string
   amount_ore: number
   payment_method: string
+  settled_at: string | null
   voided_at: string | null
   void_reason: string | null
   takings_id: string | null
@@ -30,15 +32,16 @@ type RawReceipt = { entry_id: string | null; takings_id: string | null; storage_
  */
 export async function loadExport(period: Period): Promise<ExportData> {
   const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('ledger_entries')
-    .select('id, number, entry_date, kind, counterparty, description, amount_ore, payment_method, voided_at, void_reason, takings_id, ledger_categories(name, account_no)')
-    .gte('entry_date', period.from)
-    .lte('entry_date', period.to)
-    .order('entry_date')
-    .order('number')
-  if (error) throw error
-  const raw = (data ?? []) as unknown as RawEntry[]
+  const raw = await fetchAll<RawEntry>((from, to) =>
+    supabase
+      .from('ledger_entries')
+      .select('id, number, entry_date, kind, counterparty, description, amount_ore, payment_method, settled_at, voided_at, void_reason, takings_id, ledger_categories(name, account_no)')
+      .gte('entry_date', period.from)
+      .lte('entry_date', period.to)
+      .order('entry_date')
+      .order('number')
+      .range(from, to) as unknown as PromiseLike<{ data: RawEntry[] | null; error: unknown }>,
+  )
 
   const entryIds = raw.map((e) => e.id)
   const takingsIds = [...new Set(raw.map((e) => e.takings_id).filter((t): t is string => !!t))]
@@ -46,13 +49,16 @@ export async function loadExport(period: Period): Promise<ExportData> {
   // Chunk the id lists to keep request URLs short.
   for (const [column, ids] of [['entry_id', entryIds], ['takings_id', takingsIds]] as const) {
     for (let i = 0; i < ids.length; i += 150) {
-      const { data: rows, error: rErr } = await supabase
-        .from('ledger_receipts')
-        .select('entry_id, takings_id, storage_key, mime_type, uploaded_at')
-        .in(column, ids.slice(i, i + 150))
-        .order('uploaded_at')
-      if (rErr) throw rErr
-      receipts.push(...((rows ?? []) as RawReceipt[]))
+      const rows = await fetchAll<RawReceipt>((from, to) =>
+        supabase
+          .from('ledger_receipts')
+          .select('entry_id, takings_id, storage_key, mime_type, uploaded_at')
+          .in(column, ids.slice(i, i + 150))
+          .order('uploaded_at')
+          .order('id')
+          .range(from, to) as unknown as PromiseLike<{ data: RawReceipt[] | null; error: unknown }>,
+      )
+      receipts.push(...rows)
     }
   }
 
@@ -94,6 +100,7 @@ export async function loadExport(period: Period): Promise<ExportData> {
     description: e.description,
     paymentMethod: e.payment_method as PaymentMethod,
     amountOre: e.amount_ore,
+    settledAt: e.settled_at,
     voided: e.voided_at !== null,
     voidReason: e.void_reason,
     receiptNames: namesByEntry.get(e.id) ?? [],

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Field, inputClass } from '@/components/action-form'
-import { formatKr, parseKr } from '@/lib/domain/money'
+import { formatKr, parseKrOrZero } from '@/lib/domain/money'
 import { saveTakings } from '@/app/admin/(app)/regnskap/actions'
 import { LedgerForm } from './LedgerForm'
 import { ReceiptInput } from './ReceiptInput'
@@ -18,8 +18,7 @@ const FIELDS = [
 function sum(values: Record<string, string>): number | null {
   let total = 0
   for (const v of Object.values(values)) {
-    if (v.trim() === '') continue
-    const ore = parseKr(v)
+    const ore = parseKrOrZero(v)
     if (ore === null) return null
     total += ore
   }

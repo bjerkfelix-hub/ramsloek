@@ -30,6 +30,8 @@ export type ExportEntry = {
   description: string
   paymentMethod: PaymentMethod
   amountOre: number
+  /** When an unpaid bill was paid or a private outlay repaid (ISO timestamp). */
+  settledAt?: string | null
   voided: boolean
   voidReason: string | null
   receiptNames: string[]

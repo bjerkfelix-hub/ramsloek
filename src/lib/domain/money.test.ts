@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatKr, oreToKrNumber, parseKr } from './money'
+import { formatKr, oreToKrNumber, parseKr, parseKrOrZero } from './money'
 
 describe('parseKr', () => {
   it.each([
@@ -33,4 +33,12 @@ describe('oreToKrNumber', () => {
     expect(oreToKrNumber(1)).toBe(0.01)
     expect(oreToKrNumber(0)).toBe(0)
   })
+})
+
+describe('parseKrOrZero', () => {
+  it.each([['', 0], ['  ', 0], ['0', 0], ['0,00', 0], ['0.0', 0], ['kr 0', 0], ['0,-', 0], ['4350', 435000], ['2100,50', 210050]])(
+    '%j -> %j',
+    (input, expected) => expect(parseKrOrZero(input)).toBe(expected),
+  )
+  it.each(['-5', 'abc', '12,345', '1.234,50'])('%j is invalid', (input) => expect(parseKrOrZero(input)).toBeNull())
 })

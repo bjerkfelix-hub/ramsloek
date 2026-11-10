@@ -6,6 +6,11 @@ import type { Period } from '@/lib/domain/periods'
 
 const MONEY = '#,##0.00'
 
+/** Oslo calendar date (YYYY-MM-DD) of an ISO timestamp. */
+function osloDate(iso: string): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Oslo' }).format(new Date(iso))
+}
+
 function sheet(wb: ExcelJS.Workbook, name: string, title: string, columns: { header: string; key: string; width: number; money?: boolean }[]) {
   const ws = wb.addWorksheet(name, { views: [{ state: 'frozen', ySplit: 2 }] })
   ws.getRow(1).getCell(1).value = title
@@ -40,6 +45,7 @@ export async function buildWorkbook(entries: ExportEntry[], period: Period): Pro
     { header: 'Kvitteringer', key: 'receipts', width: 40 },
     { header: 'Annullert', key: 'voided', width: 10 },
     { header: 'Grunn', key: 'reason', width: 24 },
+    { header: 'Oppgjort', key: 'settled', width: 12 },
   ])
   for (const e of entries) {
     poster.addRow([
@@ -55,6 +61,7 @@ export async function buildWorkbook(entries: ExportEntry[], period: Period): Pro
       e.receiptNames.join(', '),
       e.voided ? 'Ja' : '',
       e.voidReason ?? '',
+      e.settledAt ? osloDate(e.settledAt) : '',
     ])
   }
 

@@ -2,6 +2,8 @@ import 'server-only'
 import { createClient } from '@/lib/supabase/server'
 import { meterLevel, type MeterLevel, type LedgerKind, type PaymentMethod } from '@/lib/domain/ledger'
 import { presetPeriod, type Period } from '@/lib/domain/periods'
+import { receiptCoverage } from './entries'
+import { fetchAll } from './fetch-all'
 
 export type Totals = { incomeOre: number; expenseOre: number; profitOre: number }
 
@@ -39,19 +41,6 @@ async function totals(supabase: Supabase, period: Period): Promise<Totals> {
   }
 }
 
-/** Receipt coverage: ids of entries and takings that have at least one receipt (as visible to the caller). */
-async function receiptParents(supabase: Supabase): Promise<{ entries: Set<string>; takings: Set<string> }> {
-  const { data, error } = await supabase.from('ledger_receipts').select('entry_id, takings_id')
-  if (error) throw error
-  const entries = new Set<string>()
-  const takings = new Set<string>()
-  for (const r of data ?? []) {
-    if (r.entry_id) entries.add(r.entry_id)
-    if (r.takings_id) takings.add(r.takings_id)
-  }
-  return { entries, takings }
-}
-
 function hasReceipt(e: { id: string; takings_id: string | null }, r: { entries: Set<string>; takings: Set<string> }) {
   return r.entries.has(e.id) || (e.takings_id !== null && r.takings.has(e.takings_id))
 }
@@ -63,16 +52,20 @@ export async function getOwnerOverview(today: string): Promise<OwnerOverview> {
     totals(supabase, presetPeriod('this-month', today)),
     totals(supabase, presetPeriod('this-year', today)),
     supabase.rpc('mva_meter'),
-    supabase
-      .from('ledger_entries')
-      .select('id, takings_id, payment_method, settled_at, amount_ore, created_by')
-      .is('voided_at', null),
-    receiptParents(supabase),
+    fetchAll<{ id: string; takings_id: string | null; payment_method: string; settled_at: string | null; amount_ore: number; created_by: string }>(
+      (from, to) =>
+        supabase
+          .from('ledger_entries')
+          .select('id, takings_id, payment_method, settled_at, amount_ore, created_by')
+          .is('voided_at', null)
+          .order('id')
+          .range(from, to),
+    ),
+    receiptCoverage(),
   ])
   if (meterRes.error) throw meterRes.error
-  if (openRes.error) throw openRes.error
 
-  const rows = openRes.data ?? []
+  const rows = openRes
   const missingReceipts = rows.filter((e) => !hasReceipt(e, receipts)).length
 
   const unpaidRows = rows.filter((e) => e.payment_method === 'unpaid' && !e.settled_at)
@@ -112,7 +105,7 @@ export async function getMyRecent(userId: string): Promise<MyEntry[]> {
       .eq('created_by', userId)
       .order('created_at', { ascending: false })
       .limit(100),
-    receiptParents(supabase),
+    receiptCoverage(),
   ])
   if (entriesRes.error) throw entriesRes.error
   return (entriesRes.data ?? []).map((e) => ({

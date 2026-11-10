@@ -16,7 +16,7 @@ const base: Omit<ExportEntry, 'number' | 'kind' | 'amountOre' | 'voided'> = {
 
 const entries: ExportEntry[] = [
   { ...base, number: 'R-2027-001', kind: 'income', category: 'Salg marked', accountNo: '3000', amountOre: 650050, voided: false, receiptNames: ['R-2027-001-rapport Salg marked.jpg'] },
-  { ...base, number: 'R-2027-002', kind: 'expense', amountOre: 25050, voided: false },
+  { ...base, number: 'R-2027-002', kind: 'expense', amountOre: 25050, voided: false, paymentMethod: 'unpaid', settledAt: '2027-04-30T22:30:00Z' },
   { ...base, number: 'R-2027-003', kind: 'expense', entryDate: '2027-05-02', amountOre: 99900, voided: true, voidReason: 'Feil' },
 ]
 
@@ -38,6 +38,9 @@ describe('buildWorkbook', () => {
     expect(typeof poster.getRow(4).getCell(9).value).toBe('number')
     expect(poster.getRow(3).getCell(10).value).toBe('R-2027-001-rapport Salg marked.jpg')
     expect(poster.getRow(5).getCell(11).value).toBe('Ja')
+    // Paid at 00:30 Oslo time on 1 May (22:30 UTC the day before).
+    expect(poster.getRow(4).getCell(13).value).toBe('2027-05-01')
+    expect(poster.getRow(3).getCell(13).value).toBe('')
 
     const { totals } = summarize(entries)
     const cat = wb.getWorksheet('Per kategori')!
