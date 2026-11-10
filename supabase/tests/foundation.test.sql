@@ -9,12 +9,12 @@ select is(public.next_number('lot', 2027), 2, 'next_number: second call returns 
 select is(public.next_number('lot', 2028), 1, 'next_number: a new year restarts at 1');
 
 -- auth.users trigger creates profile
-insert into auth.users (id, aud, role, email, raw_user_meta_data)
+insert into auth.users (id, aud, role, email, raw_app_meta_data, raw_user_meta_data)
 values ('00000000-0000-0000-0000-0000000000aa', 'authenticated', 'authenticated',
-        'kari@example.test', '{"role":"seller","full_name":"Kari"}');
+        'kari@example.test', '{"role":"seller"}', '{"full_name":"Kari"}');
 select is(
   (select role::text from public.profiles where id = '00000000-0000-0000-0000-0000000000aa'),
-  'seller', 'auth.users insert creates a profile with the metadata role');
+  'seller', 'auth.users insert creates a profile with the app_metadata role');
 
 -- picker
 select tests.login_as('picker') as picker_id \gset

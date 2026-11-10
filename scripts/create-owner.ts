@@ -21,7 +21,8 @@ async function main() {
   const { data, error } = await admin.auth.admin.createUser({
     email,
     email_confirm: true,
-    user_metadata: { role: 'owner', full_name: fullName },
+    app_metadata: { role: 'owner' },
+    user_metadata: { full_name: fullName },
   })
   if (error) {
     console.error(`Could not create owner: ${error.message}`)

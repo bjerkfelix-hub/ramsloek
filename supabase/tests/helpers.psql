@@ -20,10 +20,11 @@ declare
   v_id uuid := gen_random_uuid();
 begin
   reset role;
-  insert into auth.users (id, aud, role, email, raw_user_meta_data)
+  insert into auth.users (id, aud, role, email, raw_app_meta_data, raw_user_meta_data)
   values (v_id, 'authenticated', 'authenticated',
           v_id || '@example.test',
-          jsonb_build_object('role', p_role, 'full_name', 'Test ' || p_role));
+          jsonb_build_object('role', p_role),
+          jsonb_build_object('full_name', 'Test ' || p_role));
   perform tests.login_as_user(v_id);
   return v_id;
 end $$;

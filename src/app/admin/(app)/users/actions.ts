@@ -21,7 +21,9 @@ export async function inviteUser(form: FormData): Promise<ActionResult> {
   const { error } = await createAdminClient().auth.admin.createUser({
     email,
     email_confirm: true,
-    user_metadata: { role, full_name: fullName },
+    // Role lives in app_metadata (only the service role can set it); handle_new_user reads it from there.
+    app_metadata: { role },
+    user_metadata: { full_name: fullName },
   })
   if (error) {
     const duplicate = error.code === 'email_exists' || /already|registered/i.test(error.message)

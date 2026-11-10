@@ -6,14 +6,14 @@ insert into auth.users (
   confirmation_token, recovery_token, email_change_token_new, email_change
 ) values
   ('00000000-0000-0000-0000-000000000000', 'a0000000-0000-0000-0000-000000000001', 'authenticated', 'authenticated',
-   'eier@test.local', '', now(), '{"provider":"email","providers":["email"]}',
-   '{"role":"owner","full_name":"Eva Eier"}', now(), now(), '', '', '', ''),
+   'eier@test.local', '', now(), '{"provider":"email","providers":["email"],"role":"owner"}',
+   '{"full_name":"Eva Eier"}', now(), now(), '', '', '', ''),
   ('00000000-0000-0000-0000-000000000000', 'a0000000-0000-0000-0000-000000000002', 'authenticated', 'authenticated',
-   'plukker@test.local', '', now(), '{"provider":"email","providers":["email"]}',
-   '{"role":"picker","full_name":"Per Plukker"}', now(), now(), '', '', '', ''),
+   'plukker@test.local', '', now(), '{"provider":"email","providers":["email"],"role":"picker"}',
+   '{"full_name":"Per Plukker"}', now(), now(), '', '', '', ''),
   ('00000000-0000-0000-0000-000000000000', 'a0000000-0000-0000-0000-000000000003', 'authenticated', 'authenticated',
-   'selger@test.local', '', now(), '{"provider":"email","providers":["email"]}',
-   '{"role":"seller","full_name":"Sara Selger"}', now(), now(), '', '', '', '');
+   'selger@test.local', '', now(), '{"provider":"email","providers":["email"],"role":"seller"}',
+   '{"full_name":"Sara Selger"}', now(), now(), '', '', '', '');
 
 insert into auth.identities (id, user_id, provider_id, provider, identity_data, last_sign_in_at, created_at, updated_at)
 select gen_random_uuid(), u.id, u.id::text, 'email',

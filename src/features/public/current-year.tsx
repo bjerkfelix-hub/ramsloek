@@ -1,16 +1,16 @@
 'use client'
 
-import { useSyncExternalStore } from 'react'
+import { useEffect, useState } from 'react'
 
-const subscribe = () => () => {}
-
-/** The current year, taken in the visitor's browser so statically rendered pages never show a stale year. */
+/**
+ * The current year, set in the visitor's browser after mount. Nothing year-specific is rendered
+ * on the server, so a prerendered (static) page can never keep the build year.
+ */
 export function CurrentYear() {
-  // The server snapshot is empty-safe: it renders the build-time year, the client then corrects it.
-  const year = useSyncExternalStore(
-    subscribe,
-    () => String(new Date().getFullYear()),
-    () => String(new Date().getFullYear()),
-  )
-  return <span suppressHydrationWarning>{year}</span>
+  const [year, setYear] = useState<number | null>(null)
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentionally client-only after mount
+    setYear(new Date().getFullYear())
+  }, [])
+  return <span>{year ?? ''}</span>
 }

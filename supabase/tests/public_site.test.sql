@@ -38,7 +38,7 @@ select throws_ok(
     values (current_date, '10:00', '14:00', 'x', 'y')$$,
   '42501', null, 'picker cannot insert market_days');
 select ok(not exists(select 1 from public.market_days where id = '00000000-0000-0000-0000-00000000c003'), 'picker does not see past days');
-select throws_ok($$select 1 from public.season_signups$$, '42501', null, 'picker cannot select season_signups');
+select is((select count(*) from public.season_signups), 0::bigint, 'picker sees no season_signups rows (RLS)');
 select throws_ok($$select public.purge_unsubscribed_signups()$$, '42501', null, 'picker cannot purge');
 
 -- owner
@@ -60,7 +60,7 @@ select throws_ok(
     values (current_date, '14:00', '14:00', 'x', 'y')$$,
   '23514', null, 'ends_at <= starts_at is refused');
 select throws_ok($$delete from public.market_days where id = '00000000-0000-0000-0000-00000000c006'$$, '42501', null, 'owner cannot delete market_days');
-select throws_ok($$select 1 from public.season_signups$$, '42501', null, 'owner cannot select season_signups directly');
+select lives_ok($$select email from public.season_signups$$, 'owner can select season_signups (owner-only RLS policy)');
 
 -- purge, and service_role access (as postgres for fixtures)
 select tests.logout();

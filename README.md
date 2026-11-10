@@ -144,6 +144,8 @@ Ferdig anvendt og registrert: migrasjon 1–5, sist `20261106000005_public_site`
 
 Skal anvendes: `20261106000006_privacy_hardening` (daglig sletting av avmeldte via pg_cron, og kolonnebegrenset lesetilgang for `anon` på `market_days`). Kjør hele filen i SQL Editor og registrer versjonen som beskrevet over.
 
+Skal anvendes: `20261110000007_security_hardening` (eieren leser `season_signups` via RLS; nye brukeres rolle hentes fra `app_metadata` i stedet for `user_metadata`). **Kjør den før koden deployes:** ellers får påmeldingssiden/CSV-eksporten tilgangsfeil, og nye brukere lagt til fra Brukere-siden blir plukkere uansett valgt rolle.
+
 **Auth-innstillinger** (Authentication i dashboardet):
 
 - Site URL: `https://ramsløk.no` (punycode: `https://xn--ramslk-fya.no`)
