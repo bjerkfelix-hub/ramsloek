@@ -25,7 +25,7 @@ language sql security invoker set search_path = '' as $$
 $$;
 revoke all on function tests.add_ledger_entry(jsonb) from public, anon, authenticated;
 grant execute on function tests.add_ledger_entry(jsonb) to authenticated;
-select plan(80);
+select plan(82);
 
 select tests.login_as('owner') as owner_id \gset
 select is((select count(*) from public.ledger_categories where kind = 'income'), 3::bigint, 'three seeded income categories');
@@ -155,5 +155,11 @@ insert into public.number_series (series, year, last) values ('ledger', 2003, 99
 select tests.login_as_user(:'owner_id');
 select tests.add_ledger_entry('{"id":"00000000-0000-0000-0000-0000000000e5","entry_date":"2003-01-01"}');
 select is((select number from public.ledger_entries where id = '00000000-0000-0000-0000-0000000000e5'), 'R-2003-1000', 'numbers beyond 999 are not truncated');
+-- System categories (used by daily takings) can never be deactivated.
+select tests.login_as('owner') as owner_sys \gset
+select throws_ok($$update public.ledger_categories set active = false where system_key = 'market_sales'$$,
+  'P0001', 'LEDGER_CATEGORY_SYSTEM', 'market_sales cannot be deactivated');
+select lives_ok($$update public.ledger_categories set name = 'Salg på marked' where system_key = 'market_sales'$$,
+  'market_sales can be renamed');
 select * from finish();
 rollback;

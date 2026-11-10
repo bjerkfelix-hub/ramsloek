@@ -13,6 +13,7 @@ export function dbErrorToMessage(err: { code?: string; message?: string }): stri
   if (message.includes('LEDGER_CATEGORY_INACTIVE')) return 'Kategorien er ikke i bruk lenger.'
   if (message.includes('LEDGER_INCOME_VIA_TAKINGS')) return 'Inntekt fra marked registreres som dagsoppgjør.'
   if (message.includes('LEDGER_VOID_REASON')) return 'Skriv en grunn for annulleringen.'
+  if (message.includes('LEDGER_CATEGORY_SYSTEM')) return 'Denne kategorien brukes av dagsoppgjør og kan ikke skrus av.'
   if (message.includes('LEDGER_SETTLE_INVALID')) return 'Bare ubetalte regninger og utlegg kan markeres som oppgjort.'
   if (message.includes('SORTING_CHECK_MISSING')) return 'Partiet må sorteringskontrolleres før pakking.'
   if (message.includes('NOT_ENOUGH_LEFT')) return 'Det er ikke nok igjen av partiet.'

@@ -6,24 +6,11 @@ import { createClient } from '@/lib/supabase/server'
 import { text, textOrNull, type ActionResult } from '@/lib/action-result'
 import { dbErrorToMessage } from '@/lib/errors'
 import { parseKr } from '@/lib/domain/money'
-import type { LedgerKind, PaymentMethod } from '@/lib/domain/ledger'
-
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-const DATE = /^\d{4}-\d{2}-\d{2}$/
-
-// 'use server' modules may only export async functions.
-const AMOUNT_ERROR = 'Skriv beløpet i kroner, for eksempel 1250,50.'
-const EXPENSE_METHODS: PaymentMethod[] = ['card', 'vipps', 'cash', 'bank', 'private', 'unpaid']
-const INCOME_METHODS: PaymentMethod[] = ['vipps', 'card', 'cash', 'bank']
+import type { LedgerKind } from '@/lib/domain/ledger'
+import { AMOUNT_ERROR, parseEntryFields, UUID, type EntryFields } from '@/features/regnskap/entry-input'
 
 type EntryResult = ActionResult & { entryId?: string; number?: string }
 type TakingsResult = ActionResult & { takingsId?: string; numbers?: string[] }
-
-function isRealDate(s: string): boolean {
-  if (!DATE.test(s)) return false
-  const d = new Date(`${s}T00:00:00Z`)
-  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s
-}
 
 /** Kroner text → øre; empty means 0 (only for takings fields). */
 function optionalKr(raw: string): number | null {
@@ -61,53 +48,11 @@ export async function saveTakings(form: FormData): Promise<TakingsResult> {
   return { ok: true, takingsId: data.id, numbers: (entries ?? []).map((e) => e.number) }
 }
 
-type ParsedEntry = {
-  client_key: string
-  entry_date: string
-  amount_ore: number
-  category_id: string
-  counterparty: string | null
-  description: string
-  payment_method: PaymentMethod
-  due_date: string | null
-}
-
-function parseEntry(form: FormData, methods: PaymentMethod[]): ParsedEntry | string {
-  const clientKey = text(form, 'client_key')
-  if (!UUID.test(clientKey)) return 'Last siden på nytt og prøv igjen.'
-  const date = text(form, 'entry_date')
-  if (!isRealDate(date)) return 'Velg en gyldig dato.'
-  const amount = parseKr(text(form, 'amount'))
-  if (amount === null) return AMOUNT_ERROR
-  const category = text(form, 'category_id')
-  if (!UUID.test(category)) return 'Velg kategori.'
-  const description = text(form, 'description')
-  if (!description) return 'Skriv hva posten gjelder.'
-  if (description.length > 200) return 'Beskrivelsen er for lang (maks 200 tegn).'
-  const counterparty = textOrNull(form, 'counterparty')
-  if (counterparty && counterparty.length > 120) return 'Navnet er for langt (maks 120 tegn).'
-  const method = text(form, 'payment_method') as PaymentMethod
-  if (!methods.includes(method)) return 'Velg betaling.'
-  const due = textOrNull(form, 'due_date')
-  if (method === 'unpaid' && !due) return 'Velg forfallsdato.'
-  if (due && !isRealDate(due)) return 'Velg en gyldig forfallsdato.'
-  return {
-    client_key: clientKey,
-    entry_date: date,
-    amount_ore: amount,
-    category_id: category,
-    counterparty,
-    description,
-    payment_method: method,
-    due_date: method === 'unpaid' ? due : null,
-  }
-}
-
-async function insertEntry(kind: LedgerKind, entry: ParsedEntry): Promise<EntryResult> {
+async function insertEntry(kind: LedgerKind, clientKey: string, entry: EntryFields): Promise<EntryResult> {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('ledger_entries')
-    .insert({ kind, ...entry })
+    .insert({ kind, client_key: clientKey, ...entry })
     .select('id, number')
     .single()
   if (error || !data) {
@@ -116,7 +61,7 @@ async function insertEntry(kind: LedgerKind, entry: ParsedEntry): Promise<EntryR
       const { data: existing } = await supabase
         .from('ledger_entries')
         .select('id, number')
-        .eq('client_key', entry.client_key)
+        .eq('client_key', clientKey)
         .maybeSingle()
       if (existing) return { ok: true, entryId: existing.id, number: existing.number }
     }
@@ -126,20 +71,20 @@ async function insertEntry(kind: LedgerKind, entry: ParsedEntry): Promise<EntryR
   return { ok: true, entryId: data.id, number: data.number }
 }
 
+async function saveEntry(kind: LedgerKind, form: FormData): Promise<EntryResult> {
+  const clientKey = text(form, 'client_key')
+  if (!UUID.test(clientKey)) return { ok: false, error: 'Last siden på nytt og prøv igjen.' }
+  const parsed = parseEntryFields(form, kind)
+  if (typeof parsed === 'string') return { ok: false, error: parsed }
+  return insertEntry(kind, clientKey, parsed)
+}
+
 export async function saveExpense(form: FormData): Promise<EntryResult> {
   await requireRole('owner', 'seller')
-  const parsed = parseEntry(form, EXPENSE_METHODS)
-  if (typeof parsed === 'string') {
-    return { ok: false, error: parsed === 'Skriv hva posten gjelder.' ? 'Skriv hva utgiften gjelder.' : parsed }
-  }
-  return insertEntry('expense', parsed)
+  return saveEntry('expense', form)
 }
 
 export async function saveIncome(form: FormData): Promise<EntryResult> {
   await requireRole('owner')
-  const parsed = parseEntry(form, INCOME_METHODS)
-  if (typeof parsed === 'string') {
-    return { ok: false, error: parsed === 'Skriv hva posten gjelder.' ? 'Skriv hva inntekten gjelder.' : parsed }
-  }
-  return insertEntry('income', parsed)
+  return saveEntry('income', form)
 }

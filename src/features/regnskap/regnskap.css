@@ -81,3 +81,55 @@
     transition: none;
   }
 }
+
+.r-filters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.r-filters-submit {
+  grid-column: 1 / -1;
+}
+@media (min-width: 900px) {
+  .r-filters {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.r-entry {
+  align-items: center;
+  gap: 12px;
+}
+.r-amount {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.r-income {
+  color: var(--a-accent-text);
+}
+
+.r-facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 8px 16px;
+}
+.r-facts dt {
+  color: var(--a-label-2);
+}
+.r-facts dd {
+  overflow-wrap: anywhere;
+}
+
+.r-receipts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.r-receipts img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 10px;
+  background: var(--a-fill);
+}

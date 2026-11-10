@@ -15,6 +15,7 @@ describe('dbErrorToMessage', () => {
     ['LEDGER_CATEGORY_INACTIVE', 'Kategorien er ikke i bruk lenger.'],
     ['LEDGER_INCOME_VIA_TAKINGS', 'Inntekt fra marked registreres som dagsoppgjør.'],
     ['LEDGER_VOID_REASON', 'Skriv en grunn for annulleringen.'],
+    ['LEDGER_CATEGORY_SYSTEM', 'Denne kategorien brukes av dagsoppgjør og kan ikke skrus av.'],
     ['LEDGER_SETTLE_INVALID', 'Bare ubetalte regninger og utlegg kan markeres som oppgjort.'],
   ])('maps %s', (message, expected) => {
     expect(dbErrorToMessage({ code: 'P0001', message })).toBe(expected)
