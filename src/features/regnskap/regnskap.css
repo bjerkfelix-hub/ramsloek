@@ -90,6 +90,14 @@
 .r-filters-submit {
   grid-column: 1 / -1;
 }
+/* Grid items default to min-width: auto; date inputs and selects would then overflow on phones. */
+.r-filters > *,
+.r-filters .a-input {
+  min-width: 0;
+}
+.r-filters .a-input {
+  width: 100%;
+}
 @media (min-width: 900px) {
   .r-filters {
     grid-template-columns: repeat(3, 1fr);

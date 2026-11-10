@@ -98,6 +98,20 @@ Folk melder seg på sesongvarsel på det offentlige nettstedet. Listen finner du
 
 Velg System, Lys eller Mørk under **Mer / Innstillinger** (mobil) eller med bryteren i sidemenyen (skrivebord).
 
+### Regnskap
+
+Et underregnskap for ramsløk (en avdeling i DONTPANIC AS). Hovedboken til AS-et føres et annet sted; herfra eksporteres tall og kvitteringer.
+
+- **Dagsoppgjør** (eier og selgere): velg markedsdag, skriv totalene for Vipps, kort og kontant, ta bilde av dagsrapporten. Ett dagsoppgjør per markedsdag; det lager inntektsposter automatisk.
+- **Ny utgift** (eier og selgere): beløp, kategori, leverandør, betaling og bilde av kvitteringen. «Lagt ut privat» vises under «Skyldes tilbake» til eieren markerer det som tilbakebetalt; «Ubetalt regning» vises til den er markert betalt.
+- **Annen inntekt** (eier): for eksempel en restaurant som betaler med bankoverføring.
+- **Oversikt** (eier): inntekt, kostnader og resultat for måneden og året, poster som mangler kvittering, ubetalte regninger, utlegg som skal tilbakebetales, og en måler mot MVA-grensen (kr 50 000 siste 12 måneder; grensen gjelder hele AS-et).
+- **Poster** (eier): filtrer, åpne en post, rett den, legg til kvittering eller annuller. Alle endringer vises i historikken med gammel og ny verdi.
+- **Kategorier** (eier): hver kategori har et kontonummer (NS 4102) som følger med i eksporten. «Salg marked» brukes av dagsoppgjør og kan ikke skrus av.
+- **Eksport** (eier): Excel med alle poster, summer per kategori og per måned, og en zip med kvitteringene navngitt etter postnummer (f.eks. `R-2027-014 Emballasje Bunnpris.jpg`).
+
+**Ingenting slettes.** Poster og kvitteringer kan ikke slettes, heller ikke av eieren; feil rettes eller annulleres med en grunn. Selgere ser bare sine egne registreringer de siste 30 dagene. Plukkere har ikke tilgang til regnskapet. Reglene håndheves i databasen.
+
 ## Tekster og oppskrifter
 
 Alt innhold på det offentlige nettstedet ligger i `src/content`:
