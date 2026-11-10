@@ -58,6 +58,7 @@ test('login page explains a failed callback and the same-browser rule', async ({
 test('home page shows role-specific shortcuts', async ({ page }) => {
   const shortcuts = page.getByTestId('shortcut')
   await loginAs(page, 'picker')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Oversikt')
   await expect(shortcuts).toHaveText(['Ny høsting', 'Partier', 'Lager'])
   await loginAs(page, 'seller')
   await expect(shortcuts).toHaveText(['Partier', 'Lager'])

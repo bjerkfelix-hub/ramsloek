@@ -19,7 +19,7 @@ export default async function HomePage() {
   const links = SHORTCUTS.filter((s) => s.roles.includes(user.role))
   return (
     <Page>
-      <LargeTitle>Hei, {user.fullName}</LargeTitle>
+      <LargeTitle>Oversikt</LargeTitle>
       <ul className="a-list" aria-label="Snarveier">
         {links.map((s) => (
           <li key={s.href}>

@@ -212,8 +212,8 @@ test("privacy page shows contact email and no unsubscribe-in-every-notice promis
 }) => {
   await page.goto("/personvern");
   await expect(
-    page.getByRole("main").getByRole("link", { name: "post@ramsløk.no" }).last(),
-  ).toHaveAttribute("href", "mailto:post@xn--ramslk-fya.no");
+    page.getByRole("main").getByRole("link", { name: "felix@dontpanic.no" }).last(),
+  ).toHaveAttribute("href", "mailto:felix@dontpanic.no");
   const controller = page.getByTestId("data-controller");
   await expect(controller).toContainText("Behandlingsansvarlig");
   await expect(controller).toContainText("Nesodden Ramsløk AS");

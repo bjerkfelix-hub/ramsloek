@@ -56,7 +56,7 @@ describe('dictionaries', () => {
     expect(no.markets.loadFailed).toBe('Markedsdagene kunne ikke lastes akkurat nå')
     expect(en.markets.loadFailed).toBe('Market days could not be loaded right now')
     expect(no.season.offSeason).toBe('Sesongen starter til våren')
-    expect(CONTACT_EMAIL).toBe('post@ramsløk.no')
+    expect(CONTACT_EMAIL).toBe('felix@dontpanic.no')
     expect(no.home.intro[0]).toBe('Nesodden Ramsløk selger ramsløk fra en privat eiendom på Nesodden. Hvert blad plukkes for hånd.')
     expect(en.home.intro[0]).toBe(
       'Nesodden Ramsløk sells wild garlic (ramsløk) from a private estate on Nesodden. Every leaf is picked by hand.',

@@ -104,7 +104,7 @@ describe("localBusinessJsonLd", () => {
       "@type": "LocalBusiness",
       name: "Nesodden Ramsløk",
       url: "https://xn--ramslk-fya.no/en",
-      email: "post@xn--ramslk-fya.no",
+      email: "felix@dontpanic.no",
       areaServed: "Oslo",
       inLanguage: "en",
     });

@@ -104,7 +104,7 @@ Alt innhold på det offentlige nettstedet ligger i `src/content`:
 
 - `no.ts` og `en.ts`: tekstene på norsk og engelsk
 - `recipes.ts`: oppskriftene
-- `site.ts`: sidenavn, `CONTACT_EMAIL` og `COMPANY` (firmanavn, org.nr., adresse). Kontaktadressen (`post@ramsløk.no`) og firmaopplysningene er foreløpig plassholdere som eieren må bekrefte før lansering. De vises i bunnteksten og på personvernsiden.
+- `site.ts`: sidenavn, `CONTACT_EMAIL` og `COMPANY` (firmanavn, org.nr., adresse). Kontaktadressen er `felix@dontpanic.no`. Firmaopplysningene er foreløpig plassholdere som eieren må bekrefte før lansering. De vises i bunnteksten og på personvernsiden.
 
 Endring i disse filene krever en ny deploy.
 

@@ -53,9 +53,9 @@ test('signed-out front page shows the wordmark, season banner and upcoming marke
   )
   await expect(page.getByRole('listitem').filter({ hasText: cancelledPlace })).toContainText('Avlyst')
   await expect(page.getByRole('link', { name: 'Se alle markedsdager' })).toHaveAttribute('href', '/marked')
-  await expect(page.getByRole('contentinfo').getByRole('link', { name: 'post@ramsløk.no' })).toHaveAttribute(
+  await expect(page.getByRole('contentinfo').getByRole('link', { name: 'felix@dontpanic.no' })).toHaveAttribute(
     'href',
-    'mailto:post@xn--ramslk-fya.no',
+    'mailto:felix@dontpanic.no',
   )
 })
 
