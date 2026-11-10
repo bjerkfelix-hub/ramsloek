@@ -1,6 +1,15 @@
 // Maps database/PostgREST errors to Norwegian, user-facing messages.
 export function dbErrorToMessage(err: { code?: string; message?: string }): string {
   const message = err.message ?? ''
+  if (message.includes('LEDGER_NO_DELETE')) return 'Poster og kvitteringer kan ikke slettes. Annuller i stedet.'
+  if (message.includes('LEDGER_IMMUTABLE')) return 'Dette feltet kan ikke endres.'
+  if (message.includes('LEDGER_VOIDED')) return 'Posten er annullert og kan ikke endres.'
+  if (message.includes('LEDGER_FUTURE_DATE')) return 'Datoen kan ikke være i fremtiden.'
+  if (message.includes('LEDGER_CATEGORY_MISMATCH')) return 'Kategorien passer ikke til typen post.'
+  if (message.includes('LEDGER_CATEGORY_INACTIVE')) return 'Kategorien er ikke i bruk lenger.'
+  if (message.includes('LEDGER_INCOME_VIA_TAKINGS')) return 'Inntekt fra marked registreres som dagsoppgjør.'
+  if (message.includes('LEDGER_VOID_REASON')) return 'Skriv en grunn for annulleringen.'
+  if (message.includes('LEDGER_SETTLE_INVALID')) return 'Bare ubetalte regninger og utlegg kan markeres som oppgjort.'
   if (message.includes('SORTING_CHECK_MISSING')) return 'Partiet må sorteringskontrolleres før pakking.'
   if (message.includes('NOT_ENOUGH_LEFT')) return 'Det er ikke nok igjen av partiet.'
   if (message.includes('STOCK_NEGATIVE')) return 'Det er ikke nok på lager.'

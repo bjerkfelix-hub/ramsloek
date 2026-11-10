@@ -2,6 +2,19 @@ import { describe, expect, it } from 'vitest'
 import { dbErrorToMessage } from './errors'
 
 describe('dbErrorToMessage', () => {
+  it.each([
+    ['LEDGER_NO_DELETE', 'Poster og kvitteringer kan ikke slettes. Annuller i stedet.'],
+    ['LEDGER_IMMUTABLE', 'Dette feltet kan ikke endres.'],
+    ['LEDGER_VOIDED', 'Posten er annullert og kan ikke endres.'],
+    ['LEDGER_FUTURE_DATE', 'Datoen kan ikke være i fremtiden.'],
+    ['LEDGER_CATEGORY_MISMATCH', 'Kategorien passer ikke til typen post.'],
+    ['LEDGER_CATEGORY_INACTIVE', 'Kategorien er ikke i bruk lenger.'],
+    ['LEDGER_INCOME_VIA_TAKINGS', 'Inntekt fra marked registreres som dagsoppgjør.'],
+    ['LEDGER_VOID_REASON', 'Skriv en grunn for annulleringen.'],
+    ['LEDGER_SETTLE_INVALID', 'Bare ubetalte regninger og utlegg kan markeres som oppgjort.'],
+  ])('maps %s', (message, expected) => {
+    expect(dbErrorToMessage({ code: 'P0001', message })).toBe(expected)
+  })
   it('maps sorting check missing', () => {
     expect(dbErrorToMessage({ message: 'SORTING_CHECK_MISSING' })).toBe('Partiet må sorteringskontrolleres før pakking.')
   })
