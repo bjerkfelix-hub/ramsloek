@@ -1,0 +1,17 @@
+import { describe, expect, it } from 'vitest'
+import { navFor } from './nav-items'
+
+const hrefs = (role: Parameters<typeof navFor>[0]) => navFor(role).map((i) => i.href)
+
+describe('navFor', () => {
+  it('gives owners and sellers the Regnskap tab', () => {
+    for (const role of ['owner', 'seller'] as const) {
+      const item = navFor(role).find((i) => i.href === '/admin/regnskap')
+      expect(item).toMatchObject({ label: 'Regnskap', icon: 'coins', tab: true })
+    }
+  })
+
+  it('hides Regnskap from pickers', () => {
+    expect(hrefs('picker')).not.toContain('/admin/regnskap')
+  })
+})

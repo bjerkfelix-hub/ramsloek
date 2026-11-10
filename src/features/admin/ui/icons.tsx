@@ -1,7 +1,15 @@
 // Small stroke icons for navigation. Decorative: the link text carries the name.
-export type IconName = 'leaf' | 'box' | 'calendar' | 'tag' | 'pin' | 'mail' | 'people' | 'sliders' | 'more'
+export type IconName = 'leaf' | 'box' | 'calendar' | 'tag' | 'pin' | 'mail' | 'people' | 'sliders' | 'more' | 'coins'
 
 const PATHS: Record<IconName, React.ReactNode> = {
+  coins: (
+    <>
+      <ellipse cx="9" cy="7" rx="5.5" ry="2.5" />
+      <path d="M3.5 7v4c0 1.4 2.5 2.5 5.5 2.5M3.5 11v4c0 1.4 2.5 2.5 5.5 2.5" />
+      <ellipse cx="15" cy="13" rx="5.5" ry="2.5" />
+      <path d="M9.5 13v4c0 1.4 2.5 2.5 5.5 2.5s5.5-1.1 5.5-2.5v-4" />
+    </>
+  ),
   leaf: (
     <>
       <path d="M5 19C5 10.7 10.8 5 19 5c0 8.2-5.7 14-14 14Z" />

@@ -17,7 +17,7 @@ export async function GET(_request: Request, ctx: { params: Promise<{ id: string
 
   const supabase = await createClient()
   const { data: receipt, error } = await supabase.from('ledger_receipts')
-    .select('storage_key, file_name').eq('id', id).maybeSingle()
+    .select('storage_key, file_name, mime_type').eq('id', id).maybeSingle()
   if (error || !receipt) return missing()
   // Fetch privileged bytes only after the session query has authorized the row through RLS.
   const stored = await getReceipt(receipt.storage_key)
@@ -27,10 +27,13 @@ export async function GET(_request: Request, ctx: { params: Promise<{ id: string
   const encoded = encodeURIComponent(filename).replace(/['()*]/g, (c) => `%${c.charCodeAt(0).toString(16)}`)
   return new Response(stored.body, {
     headers: {
-      'Content-Type': stored.mime,
+      // Type comes from the sniffed value recorded at upload, never from the storage backend.
+      'Content-Type': receipt.mime_type,
       'Content-Disposition': `inline; filename="${fallback}"; filename*=UTF-8''${encoded}`,
       'Cache-Control': 'private, no-store',
       'X-Content-Type-Options': 'nosniff',
+      // Defence in depth: a receipt can never run script or load anything as a page.
+      'Content-Security-Policy': "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox",
     },
   })
 }

@@ -12,6 +12,7 @@ const NAV: (NavItem & { roles: Role[] })[] = [
   { href: '/admin/products', label: 'Produkter', icon: 'tag', roles: ['owner'] },
   { href: '/admin/areas', label: 'Områder', icon: 'pin', roles: ['owner'] },
   { href: '/admin/marked', label: 'Marked', icon: 'calendar', roles: ['owner'], tab: true },
+  { href: '/admin/regnskap', label: 'Regnskap', icon: 'coins', roles: ['owner', 'seller'], tab: true },
   { href: '/admin/pameldinger', label: 'Påmeldinger', icon: 'mail', roles: ['owner'] },
   { href: '/admin/users', label: 'Brukere', icon: 'people', roles: ['owner'] },
   { href: '/admin/settings', label: 'Innstillinger', icon: 'sliders', roles: ['owner'] },

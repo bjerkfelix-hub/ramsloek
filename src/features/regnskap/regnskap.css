@@ -1,0 +1,83 @@
+/* Regnskap (bookkeeping) screens. Builds on the admin tokens in src/app/admin/admin.css. */
+
+.r-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.r-action {
+  min-height: 64px;
+  font-size: 1.125rem;
+}
+
+.r-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+@media (min-width: 641px) {
+  .r-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.r-totals dl {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+.r-totals dl > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.r-totals dt {
+  color: var(--a-label-2);
+}
+.r-totals dd {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+.r-totals-result {
+  padding-top: 8px;
+  border-top: 1px solid var(--a-separator);
+}
+.r-totals-result dt,
+.r-totals-result dd {
+  color: var(--a-label);
+  font-weight: 700;
+}
+.r-negative {
+  color: var(--a-danger) !important;
+}
+
+.r-meter {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.r-meter-track {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--a-fill);
+  overflow: hidden;
+}
+.r-meter-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--a-accent);
+  transition: width 400ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+.r-meter-warn .r-meter-fill {
+  background: #d98a00;
+}
+.r-meter-over .r-meter-fill {
+  background: var(--a-danger);
+}
+@media (prefers-reduced-motion: reduce) {
+  .r-meter-fill {
+    transition: none;
+  }
+}
