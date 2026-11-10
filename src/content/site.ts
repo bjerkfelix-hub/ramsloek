@@ -1,9 +1,9 @@
 export const CONTACT_EMAIL = 'felix@dontpanic.no'
 export const SITE_NAME = 'Nesodden Ramsløk'
 
-// TODO(owner): replace the placeholder values with the real company details before launch.
+// Legal entity behind Nesodden Ramsløk (Brønnøysundregistrene, org.nr 937 308 493).
 export const COMPANY = {
-  legalName: 'Nesodden Ramsløk AS',
-  orgNr: '000 000 000',
-  address: 'Nesodden',
+  legalName: 'DONTPANIC AS',
+  orgNr: '937 308 493',
+  address: 'Aagots vei 18, 0687 Oslo',
 } as const

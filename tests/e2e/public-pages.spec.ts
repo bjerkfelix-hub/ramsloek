@@ -216,9 +216,9 @@ test("privacy page shows contact email and no unsubscribe-in-every-notice promis
   ).toHaveAttribute("href", "mailto:felix@dontpanic.no");
   const controller = page.getByTestId("data-controller");
   await expect(controller).toContainText("Behandlingsansvarlig");
-  await expect(controller).toContainText("Nesodden Ramsløk AS");
+  await expect(controller).toContainText("DONTPANIC AS");
   await expect(controller).toContainText("Org.nr.");
-  await expect(page.getByTestId("footer-company")).toContainText("Nesodden Ramsløk AS");
+  await expect(page.getByTestId("footer-company")).toContainText("DONTPANIC AS");
   await expect(page.getByRole("main")).not.toContainText("hver beskjed");
 });
 
