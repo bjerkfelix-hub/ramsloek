@@ -25,7 +25,7 @@ language sql security invoker set search_path = '' as $$
 $$;
 revoke all on function tests.add_ledger_entry(jsonb) from public, anon, authenticated;
 grant execute on function tests.add_ledger_entry(jsonb) to authenticated;
-select plan(79);
+select plan(80);
 
 select tests.login_as('owner') as owner_id \gset
 select is((select count(*) from public.ledger_categories where kind = 'income'), 3::bigint, 'three seeded income categories');
@@ -91,6 +91,7 @@ select is((select data->'old'->>'amount_ore' from public.audit_log where row_id 
 select is((select data->'new'->>'amount_ore' from public.audit_log where row_id = '00000000-0000-0000-0000-0000000000e1' and action = 'UPDATE' order by id desc limit 1), '15000', 'audit records new amount');
 select is((select actor from public.audit_log where row_id = '00000000-0000-0000-0000-0000000000e1' and action = 'UPDATE' order by id desc limit 1), :'owner_id'::uuid, 'audit records session actor');
 select is((select data->'new'->>'amount_ore' from public.audit_log where row_id = '00000000-0000-0000-0000-0000000000e1' and action = 'INSERT'), '12345', 'insert audit wraps row in new');
+select throws_ok($$update public.ledger_entries set entry_date = entry_date - interval '1 year' where id = '00000000-0000-0000-0000-0000000000e1'$$, 'P0001', 'LEDGER_IMMUTABLE', 'entry year immutable because number includes year');
 select throws_ok($$update public.ledger_entries set number = 'R-2000-999' where id = '00000000-0000-0000-0000-0000000000e1'$$, 'P0001', 'LEDGER_IMMUTABLE', 'number immutable');
 select throws_ok($$update public.ledger_entries set created_by = auth.uid() where id = '00000000-0000-0000-0000-0000000000e1'$$, 'P0001', 'LEDGER_IMMUTABLE', 'creator immutable');
 select throws_ok($$update public.ledger_entries set kind = 'income' where id = '00000000-0000-0000-0000-0000000000e1'$$, 'P0001', 'LEDGER_IMMUTABLE', 'kind immutable');

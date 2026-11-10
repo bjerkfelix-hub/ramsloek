@@ -3,6 +3,10 @@ import { dbErrorToMessage } from './errors'
 
 describe('dbErrorToMessage', () => {
   it.each([
+    ['TAKINGS_FUTURE_DAY', 'Markedsdagen har ikke vært ennå.'],
+    ['TAKINGS_CANCELLED_DAY', 'Markedsdagen er avlyst.'],
+    ['TAKINGS_EMPTY', 'Fyll inn minst ett beløp.'],
+    ['RECEIPT_PARENT_INVALID', 'Du kan bare legge kvittering på dine egne poster.'],
     ['LEDGER_NO_DELETE', 'Poster og kvitteringer kan ikke slettes. Annuller i stedet.'],
     ['LEDGER_IMMUTABLE', 'Dette feltet kan ikke endres.'],
     ['LEDGER_VOIDED', 'Posten er annullert og kan ikke endres.'],

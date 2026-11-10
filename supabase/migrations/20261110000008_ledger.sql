@@ -122,7 +122,8 @@ begin
     if old.voided_at is not null then raise exception 'LEDGER_VOIDED'; end if;
     if new.number is distinct from old.number or new.kind is distinct from old.kind
       or new.created_by is distinct from old.created_by or new.created_at is distinct from old.created_at
-      or new.takings_id is distinct from old.takings_id or new.client_key is distinct from old.client_key then
+      or new.takings_id is distinct from old.takings_id or new.client_key is distinct from old.client_key
+      or extract(year from new.entry_date) is distinct from extract(year from old.entry_date) then
       raise exception 'LEDGER_IMMUTABLE';
     end if;
     -- All takings business fields stay fixed; only void metadata may change.

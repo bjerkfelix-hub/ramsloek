@@ -1,6 +1,10 @@
 // Maps database/PostgREST errors to Norwegian, user-facing messages.
 export function dbErrorToMessage(err: { code?: string; message?: string }): string {
   const message = err.message ?? ''
+  if (message.includes('TAKINGS_FUTURE_DAY')) return 'Markedsdagen har ikke vært ennå.'
+  if (message.includes('TAKINGS_CANCELLED_DAY')) return 'Markedsdagen er avlyst.'
+  if (message.includes('TAKINGS_EMPTY')) return 'Fyll inn minst ett beløp.'
+  if (message.includes('RECEIPT_PARENT_INVALID')) return 'Du kan bare legge kvittering på dine egne poster.'
   if (message.includes('LEDGER_NO_DELETE')) return 'Poster og kvitteringer kan ikke slettes. Annuller i stedet.'
   if (message.includes('LEDGER_IMMUTABLE')) return 'Dette feltet kan ikke endres.'
   if (message.includes('LEDGER_VOIDED')) return 'Posten er annullert og kan ikke endres.'
