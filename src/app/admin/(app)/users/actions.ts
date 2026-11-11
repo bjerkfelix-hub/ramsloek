@@ -6,6 +6,7 @@ import { dbErrorToMessage } from '@/lib/errors'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { text, type ActionResult } from '@/lib/action-result'
+import { parseHourlyRate } from '@/lib/domain/planning'
 
 const ROLES = ['owner', 'picker', 'seller']
 
@@ -41,5 +42,18 @@ export async function setUserActive(userId: string, active: boolean): Promise<Ac
   if (error) return { ok: false, error: dbErrorToMessage(error) }
   if (!data?.length) return { ok: false, error: 'Fant ikke brukeren.' }
   revalidatePath('/admin/users')
+  return { ok: true }
+}
+
+export async function setHourlyRate(form: FormData): Promise<ActionResult> {
+  await requireRole('owner')
+  const profileId = text(form, 'profile_id')
+  if (!/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(profileId)) return { ok: false, error: 'Fant ikke registreringen.' }
+  const rate = parseHourlyRate(text(form, 'rate'))
+  if (rate === null) return { ok: false, error: dbErrorToMessage({ message: 'RATE_INVALID' }) }
+  const client = await createClient()
+  const { error } = await client.from('work_rates').upsert({ profile_id: profileId, hourly_rate_ore: rate }, { onConflict: 'profile_id' })
+  if (error) return { ok: false, error: dbErrorToMessage(error) }
+  for (const path of ['/admin/users', '/admin/vaktplan', '/admin/timer']) revalidatePath(path)
   return { ok: true }
 }

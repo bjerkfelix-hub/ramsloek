@@ -15,3 +15,9 @@ describe('navFor', () => {
     expect(hrefs('picker')).not.toContain('/admin/regnskap')
   })
 })
+
+it('gives every role Vaktplan under Mer without adding a tab', () => {
+  for (const role of ['owner', 'picker', 'seller'] as const) {
+    expect(navFor(role).find(i => i.href === '/admin/vaktplan')).toMatchObject({ label: 'Vaktplan', icon: 'calendar', tab: false })
+  }
+})

@@ -6,6 +6,9 @@ import { UserActiveButton } from '@/components/user-active-button'
 import { inviteUser, setUserActive } from './actions'
 import { LargeTitle, Page } from '@/features/admin/ui/Page'
 import { ResponsiveSheet } from '@/features/admin/ui/ResponsiveSheet'
+import { getCurrentRates } from '@/features/planlegging/queries'
+import { RateSheet } from '@/features/planlegging/RateSheet'
+import { formatKr } from '@/lib/domain/money'
 
 const ROLE_LABEL: Record<Role, string> = { owner: 'Eier', picker: 'Plukker', seller: 'Selger' }
 
@@ -16,6 +19,7 @@ export default async function UsersPage() {
     supabase.from('profiles').select('id, full_name, role, active').order('full_name'),
     createAdminClient().auth.admin.listUsers({ perPage: 1000 }),
   ])
+  const rates = new Map((await getCurrentRates()).map(r => [r.profile_id, r.hourly_rate_ore]))
   const authById = new Map(authData?.users.map((u) => [u.id, u]))
 
   return (
@@ -39,6 +43,7 @@ export default async function UsersPage() {
           </Field>
         </ActionForm>
       </ResponsiveSheet>
+      <p className="a-muted">Endringen gjelder nye innstemplinger. Tidligere timer beholder satsen de ble registrert med.</p>
       <div className="a-table-wrap">
         <table className="a-table">
           <thead>
@@ -47,12 +52,14 @@ export default async function UsersPage() {
               <th>E-post</th>
               <th>Rolle</th>
               <th>Status</th>
+              <th>Timesats (kr/time)</th>
               <th />
             </tr>
           </thead>
           <tbody>
             {profiles?.map((p) => {
               const u = authById.get(p.id)
+              const rate = rates.get(p.id) ?? null
               const invited = u && !u.last_sign_in_at
               const status = !p.active ? 'Deaktivert' : invited ? 'Ikke logget inn ennå' : 'Aktiv'
               return (
@@ -61,6 +68,9 @@ export default async function UsersPage() {
                   <td>{u?.email ?? '–'}</td>
                   <td>{ROLE_LABEL[p.role as Role]}</td>
                   <td>{status}</td>
+                  <td>{rate === null ? 'Ikke satt' : formatKr(rate)}
+                    <RateSheet profileId={p.id} rate={rate} />
+                  </td>
                   <td>
                     {p.id !== me.id && <UserActiveButton userId={p.id} active={p.active} action={setUserActive} />}
                   </td>
