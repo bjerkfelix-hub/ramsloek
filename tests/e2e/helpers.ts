@@ -12,6 +12,12 @@ const EMAIL: Record<Role, string> = {
 
 const LOCAL_HOSTS = new Set(['127.0.0.1', 'localhost', '[::1]'])
 
+// Bound setup/cleanup requests too: these execute outside Playwright's browser timeouts.
+export const localFetch: typeof fetch = (input, init) => fetch(input, {
+  ...init,
+  signal: init?.signal ? AbortSignal.any([init.signal, AbortSignal.timeout(10000)]) : AbortSignal.timeout(10000),
+})
+
 // Service-role client for test setup (bypasses RLS). Refuses anything but a local Supabase, since
 // the tests generate login links and delete rows with it.
 export function adminClient() {
@@ -23,7 +29,7 @@ export function adminClient() {
   if (!LOCAL_HOSTS.has(host)) {
     throw new Error(`e2e tests only run against a local Supabase (127.0.0.1, localhost or [::1]); got host "${host}"`)
   }
-  return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } })
+  return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: localFetch } })
 }
 
 // Place names of market days created by e2e tests start with this, so they can be cleaned up.

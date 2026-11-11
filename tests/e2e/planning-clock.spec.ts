@@ -1,5 +1,5 @@
-import { test, expect, type Request } from '@playwright/test'
-import { planningUser, planningConnection, loginPlanning, closePlanningClock, checked } from './planning-helpers'
+import { expect, type Request } from '@playwright/test'
+import { test, planningUser, planningConnection, loginPlanning, closePlanningClock, checked } from './planning-helpers'
 import { shiftInterval } from '../../src/lib/domain/planning'
 test.use({ viewport: { width: 390, height: 844 } })
 

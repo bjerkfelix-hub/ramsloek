@@ -1,5 +1,5 @@
-import { test, expect, type Request } from '@playwright/test'
-import { planningUser, loginPlanning, checked } from './planning-helpers'
+import { expect, type Request } from '@playwright/test'
+import { test, submitPlanning, planningUser, loginPlanning, checked } from './planning-helpers'
 import { weekPeriod, nextWeekMonday, shiftInterval } from '../../src/lib/domain/planning'
 import { todayOslo } from '../../src/lib/domain/time'
 test.use({ viewport: { width: 390, height: 844 } })
@@ -17,10 +17,8 @@ test('owner rates, phone create/edit/history/cancel and private worker weeks', a
     await row.getByRole('button', { name: 'Endre timesats' }).click()
     const dialog = page.getByRole('dialog')
     await dialog.getByLabel('Timesats (kr/time)').fill(rate)
-    const request = page.waitForRequest(req => req.method() === 'POST' && !!req.headers()['next-action'])
-    await dialog.getByRole('button', { name: 'Lagre' }).click()
-    if (person.id === picker.id) rateRequest = await request
-    else await request
+    const request = await submitPlanning(dialog.getByRole('button', { name: 'Lagre' }))
+    if (person.id === picker.id) rateRequest = request
     await expect(dialog).not.toBeVisible()
   }
   await page.goto(`/admin/vaktplan?week=${monday}`)
@@ -32,7 +30,7 @@ test('owner rates, phone create/edit/history/cancel and private worker weeks', a
   await dialog.getByLabel('Slutt', { exact: true }).fill('12:00')
   const note = `E2E UI ${crypto.randomUUID()}`
   await dialog.getByLabel('Notat').fill(note)
-  await dialog.getByRole('button', { name: 'Lagre' }).click()
+  await submitPlanning(dialog.getByRole('button', { name: 'Lagre' }))
   await expect(dialog).not.toBeVisible()
   for (const [i, kind] of ['packing', 'market', 'other'].entries()) {
     const interval = shiftInterval(next, i === 2 ? '23:00' : `${14+i}:00`, i === 2 ? '01:00' : `${15+i}:00`, i === 2)!
@@ -46,7 +44,7 @@ test('owner rates, phone create/edit/history/cancel and private worker weeks', a
   dialog = page.getByRole('dialog')
   await expect(dialog).toBeVisible()
   await dialog.getByLabel('Notat').fill(`${note} endret`)
-  await dialog.getByRole('button', { name: 'Lagre', exact: true }).click()
+  await submitPlanning(dialog.getByRole('button', { name: 'Lagre', exact: true }))
   await expect(dialog).not.toBeVisible()
   await page.getByRole('button', { name: new RegExp(note) }).click()
   dialog = page.getByRole('dialog')
@@ -56,7 +54,7 @@ test('owner rates, phone create/edit/history/cancel and private worker weeks', a
   await expect(dialog).toBeVisible()
   await expect(dialog.getByLabel('Grunn for avlysning')).toHaveValue('')
   await dialog.getByLabel('Grunn for avlysning').fill('Feil vakt')
-  await dialog.getByRole('button', { name: 'Avlys vakt', exact: true }).click()
+  await submitPlanning(dialog.getByRole('button', { name: 'Avlys vakt', exact: true }))
   await expect(dialog).not.toBeVisible()
   await loginPlanning(page, picker.email)
   await page.goto('/admin/vaktplan')
@@ -91,13 +89,13 @@ test('copy previews weeks, navigates, retries and rolls back conflicts', async (
   await loginPlanning(page, owner.email)
   await page.goto(`/admin/vaktplan?week=${monday}`)
   await expect(page.getByText(`${monday} → ${next}`, { exact: false }).first()).toBeVisible()
-  await page.getByRole('button', { name: 'Kopier til neste uke', exact: true }).click()
+  await submitPlanning(page.getByRole('button', { name: 'Kopier til neste uke', exact: true }))
   await page.waitForURL(`**/admin/vaktplan?week=${next}`)
   expect(checked(await owner.client.rpc('copy_work_week', { p_monday: monday })).data).toBe(0)
   const interval = shiftInterval(nextWeekMonday(next), '08:00', '10:00', false)!
   checked(await owner.client.from('work_shifts').insert({ id: crypto.randomUUID(), profile_id: person.id, starts_at: interval.startsAt, ends_at: interval.endsAt, kind: 'other', note: 'E2E conflict' }))
   const before = checked(await owner.client.from('work_shifts').select('id').eq('copied_week', nextWeekMonday(next))).data
-  await page.getByRole('button', { name: 'Kopier til neste uke', exact: true }).click()
+  await submitPlanning(page.getByRole('button', { name: 'Kopier til neste uke', exact: true }))
   await expect(page.getByRole('alert').filter({ hasText: 'Ingen vakter ble kopiert.' })).toContainText('Ingen vakter ble kopiert.')
   expect(checked(await owner.client.from('work_shifts').select('id').eq('copied_week', nextWeekMonday(next))).data).toEqual(before)
 })
@@ -116,9 +114,10 @@ test('existing users invite and active controls remain usable', async ({ page })
   const name = `E2E invite ${crypto.randomUUID()}`
   await dialog.getByLabel('E-post').fill(`${crypto.randomUUID()}@planning.test.local`)
   await dialog.getByLabel('Navn', { exact: true }).fill(name)
-  await dialog.getByRole('button', { name: 'Legg til bruker', exact: true }).click()
+  await submitPlanning(dialog.getByRole('button', { name: 'Legg til bruker', exact: true }))
   await expect(dialog).not.toBeVisible()
   await expect(page.getByRole('row').filter({ hasText: name })).toBeVisible()
+  checked(await owner.client.from('profiles').update({ active: false }).eq('full_name', name))
 })
 
 test('overnight week boundary is clipped and inactive scheduled people remain in owner grid', async ({ page }) => {
@@ -154,7 +153,7 @@ test('overnight week boundary is clipped and inactive scheduled people remain in
     await form.getByLabel('Slutt', { exact: true }).fill(end)
     const note = `E2E desktop ${crypto.randomUUID()}`
     await form.getByLabel('Notat').fill(note)
-    await form.getByRole('button', { name: 'Lagre', exact: true }).click()
+    await submitPlanning(form.getByRole('button', { name: 'Lagre', exact: true }))
     await expect(page.getByRole('button', { name: new RegExp(note) })).toBeVisible()
     await expect(form.getByLabel('Notat')).toHaveValue('')
   }

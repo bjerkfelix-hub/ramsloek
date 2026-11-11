@@ -50,7 +50,7 @@ test('auth callback answers with relative Location headers', async ({ request })
 
 test('login page explains a failed callback and points to the code', async ({ page }) => {
   await page.goto('/admin/login?error=callback')
-  await expect(page.getByRole('alert')).toHaveText(
+  await expect(page.getByRole('main').getByRole('alert')).toHaveText(
     'Innloggingslenken er ugyldig eller utløpt. Be om en ny, eller bruk koden fra e-posten.',
   )
 })
