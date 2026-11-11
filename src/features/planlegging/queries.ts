@@ -1,7 +1,9 @@
 import 'server-only'
 import { requireRole } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
-import { nextWeekMonday, splitAtOsloMidnight, type ShiftKind } from '@/lib/domain/planning'
+import { isForgotten, summarizePlanning, nextWeekMonday, splitAtOsloMidnight, type PlanningSegment, type ShiftKind } from '@/lib/domain/planning'
+import { fetchAll } from '@/features/regnskap/fetch-all'
+import { parsePeriod } from '@/lib/domain/periods'
 import { osloLocalToIso } from '@/lib/domain/time'
 
 export type VisibleRate = { profile_id: string; hourly_rate_ore: number }
@@ -112,4 +114,50 @@ export async function getForgottenEntries(): Promise<{ id: string; personName: s
   ])
   if (entries.error || people.error) throw Error('Kunne ikke hente åpne registreringer. Prøv igjen.')
   return (entries.data ?? []).map(e => ({ id: e.id, started_at: e.started_at, personName: people.data?.find(p => p.id === e.profile_id)?.full_name ?? 'Ukjent' }))
+}
+
+export type HoursSummary = ReturnType<typeof summarizePlanning>
+export type HoursOpenEntry = { id: string; profileId: string; personName: string; started_at: string; forgotten: boolean }
+export type HoursData = {
+  period: { from: string; to: string }; segments: PlanningSegment[]; summary: HoursSummary
+  people: (SchedulePerson & { summary: HoursSummary })[]; openEntries: HoursOpenEntry[]
+  rates: VisibleRate[]; entries: { id: string; started_at: string; ended_at: string; shift_id: string | null }[]
+}
+
+// PostgREST may encode bigint as strings. Never round an unsafe JSON number or truncate a fraction.
+function reportInteger(value: unknown): number {
+  if (typeof value !== 'number' && (typeof value !== 'string' || !/^\d+$/.test(value))) throw Error('Ugyldig tall i timerapporten.')
+  const number = Number(value)
+  if (!Number.isSafeInteger(number) || number < 0) throw Error('Ugyldig tall i timerapporten.')
+  return number
+}
+type DailyRow = { profile_id: string; work_date: string; source_kind: string; source_id: string; duration_ms: unknown; hourly_rate_ore: unknown; amount_ore: unknown }
+export async function getHours(period: { from: string; to: string }): Promise<HoursData> {
+  const me = await requireRole('owner', 'picker', 'seller')
+  if (!parsePeriod(period.from, period.to) || Date.parse(period.to) - Date.parse(period.from) > 365 * 86400000) throw Error('Velg en gyldig periode.')
+  const client = await createClient()
+  const [daily, open, rates, profiles, entries] = await Promise.all([
+    fetchAll<DailyRow>((from, to) => client.rpc('planning_daily', { p_from: period.from, p_to: period.to }).order('profile_id').order('work_date').order('source_kind').order('source_id').range(from, to)),
+    fetchAll<{ id: string; profile_id: string; started_at: string }>((from, to) => {
+      let query = client.from('time_entries').select('id, profile_id, started_at').is('ended_at', null).order('id')
+      if (me.role !== 'owner') query = query.eq('profile_id', me.id)
+      return query.range(from, to)
+    }),
+    fetchAll<VisibleRate>((from, to) => client.from('work_rates').select('profile_id, hourly_rate_ore').order('profile_id').range(from, to)),
+    me.role === 'owner' ? fetchAll<SchedulePerson>((from, to) => client.from('profiles').select('id, full_name, active').order('id').range(from, to)) : Promise.resolve([{ id: me.id, full_name: me.fullName, active: true }]),
+    fetchAll<HoursData['entries'][number]>((from, to) => client.from('time_entries').select('id, started_at, ended_at, shift_id').not('ended_at', 'is', null).lt('started_at', osloLocalToIso(`${dayAfter(period.to)}T00:00`)!).gte('ended_at', osloLocalToIso(`${period.from}T00:00`)!).order('id').range(from, to)),
+  ])
+  const segments: PlanningSegment[] = daily.map(row => {
+    if (row.source_kind !== 'shift' && row.source_kind !== 'time') throw Error('Ugyldig rad i timerapporten.')
+    const rateOre = row.hourly_rate_ore === null ? null : reportInteger(row.hourly_rate_ore)
+    if (rateOre !== null && rateOre > 1000000) throw Error('Ugyldig timesats.')
+    return { profileId: row.profile_id, date: row.work_date, sourceKind: row.source_kind, sourceId: row.source_id, durationMs: reportInteger(row.duration_ms), rateOre, amountOre: row.amount_ore === null ? null : reportInteger(row.amount_ore) }
+  })
+  const people = profiles.filter(p => p.active || segments.some(s => s.profileId === p.id) || open.some(e => e.profile_id === p.id)).map(p => ({ ...p, summary: summarizePlanning(segments.filter(s => s.profileId === p.id)) })).sort((a,b) => a.full_name.localeCompare(b.full_name, 'nb') || a.id.localeCompare(b.id))
+  const now = Date.now()
+  return { period, segments, summary: summarizePlanning(segments), people, rates, entries,
+    openEntries: open.map(e => ({ id: e.id, profileId: e.profile_id, personName: profiles.find(p => p.id === e.profile_id)?.full_name ?? 'Ukjent', started_at: e.started_at, forgotten: isForgotten(e.started_at, null, now) })) }
+}
+function dayAfter(date: string): string {
+  const day = new Date(`${date}T00:00:00Z`); day.setUTCDate(day.getUTCDate() + 1); return day.toISOString().slice(0,10)
 }

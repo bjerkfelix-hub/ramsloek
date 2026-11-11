@@ -38,3 +38,8 @@ export async function closePlanningClock(person: Awaited<ReturnType<typeof plann
   const rows = checked(await person.client.from('time_entries').select('id').eq('profile_id', person.id).is('ended_at', null)).data ?? []
   for (const row of rows) checked(await person.client.rpc('clock_out', { p_entry_id: row.id }))
 }
+
+export async function planningClosedEntry(owner: Awaited<ReturnType<typeof planningUser>>, person: Awaited<ReturnType<typeof planningUser>>, start: string, end: string) {
+  const entry = checked(await person.client.rpc('clock_in', { p_start_key: crypto.randomUUID() })).data!
+  return checked(await owner.client.rpc('correct_time_entry', { p_id: entry.id, p_started_at: start, p_ended_at: end, p_reason: 'E2E hours fixture', p_expected_version: entry.version })).data!
+}
