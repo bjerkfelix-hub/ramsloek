@@ -246,6 +246,13 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
+# Login e-mail: a 6-digit code plus a link to /admin/login/lenke (sign-in needs a button click there,
+# so e-mail scanners cannot use the link up). Paste the same subject and HTML into the hosted project:
+# Authentication -> Emails -> Magic Link.
+[auth.email.template.magic_link]
+subject = "Logg inn på Ramsløk"
+content_path = "./supabase/templates/magic-link.html"
+
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]
 # enabled = true

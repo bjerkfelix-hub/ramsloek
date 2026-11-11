@@ -48,10 +48,10 @@ test('auth callback answers with relative Location headers', async ({ request })
   expect(ok.headersArray().some((h) => h.name.toLowerCase() === 'set-cookie' && h.value.startsWith('sb-'))).toBe(true)
 })
 
-test('login page explains a failed callback and the same-browser rule', async ({ page }) => {
+test('login page explains a failed callback and points to the code', async ({ page }) => {
   await page.goto('/admin/login?error=callback')
   await expect(page.getByRole('alert')).toHaveText(
-    'Innloggingslenken er ugyldig eller utløpt. Be om en ny, og åpne den på samme enhet og i samme nettleser.',
+    'Innloggingslenken er ugyldig eller utløpt. Be om en ny, eller bruk koden fra e-posten.',
   )
 })
 

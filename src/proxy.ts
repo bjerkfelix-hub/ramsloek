@@ -28,7 +28,9 @@ export async function proxy(request: NextRequest) {
   const { data } = await supabase.auth.getClaims()
   const { pathname } = request.nextUrl
   // The label route answers 401 itself instead of redirecting to the login page.
-  const isPublic = pathname === '/admin/login' || pathname.startsWith('/api/labels/')
+  // /admin/login/lenke is where the login e-mail's link lands (signed out by definition).
+  const isPublic =
+    pathname === '/admin/login' || pathname === '/admin/login/lenke' || pathname.startsWith('/api/labels/')
 
   if (!data?.claims && !isPublic) {
     const redirectUrl = request.nextUrl.clone()
