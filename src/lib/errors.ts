@@ -1,6 +1,8 @@
 // Maps database/PostgREST errors to Norwegian, user-facing messages.
 export function dbErrorToMessage(err: { code?: string; message?: string }): string {
   const message = err.message ?? ''
+  if (message.includes('TASK_ARCHIVED')) return 'Oppgaven er arkivert og kan ikke endres.'
+  if (message.includes('TASK_COMPLETION_ONLY')) return 'Du kan bare markere dine egne oppgaver som ferdige.'
   if (message.includes('PLANNING_NO_DELETE')) return 'Registreringer kan ikke slettes. Avlys vakten eller arkiver oppgaven.'
   if (message.includes('PLANNING_IMMUTABLE')) return 'Dette feltet kan ikke endres.'
   if (message.includes('PLANNING_NOT_FOUND')) return 'Fant ikke registreringen.'

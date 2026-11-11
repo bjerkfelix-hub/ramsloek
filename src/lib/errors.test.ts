@@ -3,6 +3,8 @@ import { dbErrorToMessage } from './errors'
 
 describe('dbErrorToMessage', () => {
   it.each([
+    ['TASK_ARCHIVED', 'Oppgaven er arkivert og kan ikke endres.'],
+    ['TASK_COMPLETION_ONLY', 'Du kan bare markere dine egne oppgaver som ferdige.'],
     ['PLANNING_NO_DELETE', 'Registreringer kan ikke slettes. Avlys vakten eller arkiver oppgaven.'],
     ['PLANNING_IMMUTABLE', 'Dette feltet kan ikke endres.'],
     ['PLANNING_NOT_FOUND', 'Fant ikke registreringen.'],
