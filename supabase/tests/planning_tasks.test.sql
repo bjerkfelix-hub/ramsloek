@@ -252,7 +252,7 @@ select is((select (to_jsonb(t) - array['archived_at','archived_by','updated_at']
 select count(*) as archive_audits from public.audit_log where row_id = :'archived' \gset
 select public.archive_work_task(:'archived');
 select is((select count(*) from public.audit_log where row_id = :'archived'), :'archive_audits'::bigint, 'repeat archive no audit update');
-select throws_ok(format('update public.work_tasks set archived_at = null, archived_by = null where id = %L', :'archived'), 'P0001', 'TASK_ARCHIVED', 'cannot restore archive');
+select throws_ok(format('update public.work_tasks set archived_at = null, archived_by = null, title = ''Changed'' where id = %L', :'archived'), 'P0001', 'TASK_ARCHIVED', 'cannot restore archive with other edits');
 select throws_ok(format('update public.work_tasks set title = %L where id = %L', 'Edit', :'archived'), 'P0001', 'TASK_ARCHIVED', 'cannot edit archive');
 select throws_ok($$select public.archive_work_task('00000000-0000-0000-0000-000000000099')$$, 'P0001', 'PLANNING_NOT_FOUND', 'missing archive safe error');
 select tests.task(:'seller_b') as forged_archive \gset

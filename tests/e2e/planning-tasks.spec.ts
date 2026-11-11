@@ -4,7 +4,7 @@ import { todayOslo } from '../../src/lib/domain/time'
 test.use({ viewport: { width:390, height:844 } })
 const yesterday = () => new Date(Date.parse(`${todayOslo()}T12:00:00Z`)-86400000).toISOString().slice(0,10)
 
-test('owner creates, assigns, moves, edits, reopens and archives with keyboard controls', async({page})=>{
+test('owner creates, assigns, moves, edits, reopens, archives and restores with keyboard controls', async({page})=>{
   test.setTimeout(90000)
   const owner=await planningUser('owner'), picker=await planningUser('picker')
   const title=`E2E task ${crypto.randomUUID()}`
@@ -41,11 +41,31 @@ test('owner creates, assigns, moves, edits, reopens and archives with keyboard c
   await expect(card).toContainText('Endret arbeid'); await expect(card.getByText('Forfalt')).toHaveCount(0)
   await submitPlanning(card.getByRole('button',{name:'Arkiver',exact:true})); await expect(card).toHaveCount(0)
   await page.getByRole('link',{name:'Vis arkiverte'}).click()
-  await expect(card).toContainText('Arkivert'); await expect(card.getByRole('button')).toHaveCount(0)
+  const archive=page.getByRole('region',{name:'Arkiverte oppgaver',exact:true})
+  const archivedCard=archive.getByRole('article').filter({hasText:title})
+  await expect(archivedCard).toContainText('Arkivert')
+  await expect(archivedCard).toContainText(picker.label)
+  await expect(archivedCard.getByText('Å gjøre',{exact:true})).toBeVisible()
+  for(const status of ['Å gjøre','Pågår','Ferdig']) await expect(page.getByRole('region',{name:status,exact:true}).getByRole('article').filter({hasText:title})).toHaveCount(0)
+  for(const width of [390,1280]) {
+    await page.setViewportSize({width,height:844})
+    for(const theme of ['light','dark'] as const) {
+      await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'})
+      await archivedCard.scrollIntoViewIfNeeded()
+      expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
+      await page.screenshot({path:`shots/planning-task-archive-${width}-${theme}.png`})
+    }
+  }
   await loginPlanning(page,picker.email); await page.goto('/admin/oppgaver?archived=1')
   await expect(card).toHaveCount(0); await expect(page.getByRole('link',{name:'Vis arkiverte'})).toHaveCount(0)
   const stale=await page.request.post('/admin/oppgaver',{headers:{'next-action':completeRequest.headers()['next-action'],'content-type':completeRequest.headers()['content-type']},data:completeRequest.postDataBuffer()!})
   expect(stale.status()).toBe(200); expect(await stale.text()).toContain('Fant ikke registreringen.')
+  await loginPlanning(page,owner.email); await page.goto('/admin/oppgaver?archived=1')
+  await submitPlanning(archivedCard.getByRole('button',{name:'Gjenopprett',exact:true}))
+  await expect(archivedCard).toHaveCount(0)
+  await expect(page.getByRole('region',{name:'Å gjøre',exact:true}).getByRole('article').filter({hasText:title})).toBeVisible()
+  await loginPlanning(page,picker.email); await page.goto('/admin/oppgaver')
+  await expect(card).toBeVisible()
 })
 
 for(const role of ['picker','seller'] as const) test(`${role} private tasks, forged updates and stale reassignment`,async({page})=>{

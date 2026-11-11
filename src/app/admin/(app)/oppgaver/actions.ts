@@ -81,3 +81,12 @@ export async function archiveTask(id: string): Promise<ActionResult> {
   if (error) return { ok: false, error: dbErrorToMessage(error) }
   refresh(); return { ok: true }
 }
+
+export async function restoreTask(id: string): Promise<ActionResult> {
+  await requireRole('owner')
+  if (!UUID.test(id)) return failure('PLANNING_NOT_FOUND')
+  const client = await createClient()
+  const { error } = await client.rpc('restore_work_task', { p_id: id })
+  if (error) return { ok: false, error: dbErrorToMessage(error) }
+  refresh(); return { ok: true }
+}

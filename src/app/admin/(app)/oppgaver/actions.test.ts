@@ -1,5 +1,6 @@
 import { beforeEach, expect, it, vi } from 'vitest'
-import { saveTask, setTaskStatus, completeTask, archiveTask } from './actions'
+import { saveTask, setTaskStatus, completeTask, archiveTask, restoreTask } from './actions'
+import { revalidatePath } from 'next/cache'
 import { requireRole } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 vi.mock('@/lib/auth', () => ({ requireRole: vi.fn() }))
@@ -23,11 +24,24 @@ it('owner status controls send status alone and reject invalid status',async()=>
 it('completion sends status only and permits all roles',async()=>{expect((await completeTask(id)).ok).toBe(true); expect(requireRole).toHaveBeenCalledWith('owner','picker','seller'); expect(update).toHaveBeenCalledWith({status:'done'})})
 it('re-reads a trigger-skipped completion; hidden, archived and reassigned rows fail',async()=>{changed.mockResolvedValue({data:[],error:null}); lookup.mockResolvedValue({data:{status:'done',assigned_to:id,archived_at:null},error:null}); expect((await completeTask(id)).ok).toBe(true); for(const data of [null,{status:'done',assigned_to:'other',archived_at:null},{status:'done',assigned_to:id,archived_at:'2026-01-01'}]) {lookup.mockResolvedValue({data,error:null}); expect(await completeTask(id)).toEqual({ok:false,error:'Fant ikke registreringen.'})}})
 it('archives only with the DB-time RPC',async()=>{expect((await archiveTask(id)).ok).toBe(true); expect(rpc).toHaveBeenCalledWith('archive_work_task',{p_id:id}); expect(from).not.toHaveBeenCalled()})
-it.each(['picker','seller'])('denies %s owner mutations before client access',async()=>{vi.mocked(requireRole).mockRejectedValue(Error('404')); for(const run of [()=>saveTask(form()),()=>setTaskStatus(id,'todo'),()=>archiveTask(id)]) await expect(run()).rejects.toThrow('404'); expect(createClient).not.toHaveBeenCalled()})
+it.each(['picker','seller'])('denies %s owner mutations before client access',async()=>{vi.mocked(requireRole).mockRejectedValue(Error('404')); for(const run of [()=>saveTask(form()),()=>setTaskStatus(id,'todo'),()=>archiveTask(id),()=>restoreTask(id)]) await expect(run()).rejects.toThrow('404'); expect(createClient).not.toHaveBeenCalled()})
 it('reports database failures and missing update rows',async()=>{changed.mockResolvedValue({data:[],error:null}); expect((await setTaskStatus(id,'todo')).ok).toBe(false); insert.mockResolvedValue({error:{message:'TASK_ARCHIVED'}}); expect((await saveTask(form())).ok).toBe(false); rpc.mockResolvedValue({error:{message:'TASK_ARCHIVED'}}); expect((await archiveTask(id)).ok).toBe(false)})
-it('rejects invalid identifiers for every mutation',async()=>{for(const run of [()=>completeTask('bad'),()=>setTaskStatus('bad','done'),()=>archiveTask('bad')]) expect((await run()).ok).toBe(false); expect(createClient).not.toHaveBeenCalled()})
+it('rejects invalid identifiers for every mutation',async()=>{for(const run of [()=>completeTask('bad'),()=>setTaskStatus('bad','done'),()=>archiveTask('bad'),()=>restoreTask('bad')]) expect((await run()).ok).toBe(false); expect(createClient).not.toHaveBeenCalled()})
 it('accepts an unchanged edit of a completed task when the guard skips the update',async()=>{
   lookup.mockResolvedValue({data:{...payload,archived_at:null},error:null})
   changed.mockResolvedValue({data:[],error:null})
   expect(await saveTask(form({intent:'edit'}))).toEqual({ok:true,id})
+})
+
+it('restores through the owner-only RPC and revalidates the board', async()=>{
+  expect(await restoreTask(id)).toEqual({ok:true})
+  expect(requireRole).toHaveBeenCalledWith('owner')
+  expect(rpc).toHaveBeenCalledWith('restore_work_task',{p_id:id})
+  expect(from).not.toHaveBeenCalled()
+  expect(revalidatePath).toHaveBeenCalledWith('/admin/oppgaver')
+})
+it.each(['PLANNING_NOT_FOUND','TASK_ARCHIVED'])('maps restore failure %s without revalidating',async message=>{
+  rpc.mockResolvedValue({error:{message}})
+  expect(await restoreTask(id)).toEqual({ok:false,error:message==='PLANNING_NOT_FOUND'?'Fant ikke registreringen.':'Oppgaven er arkivert og kan ikke endres.'})
+  expect(revalidatePath).not.toHaveBeenCalled()
 })
