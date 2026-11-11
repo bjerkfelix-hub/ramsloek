@@ -6,6 +6,8 @@ describe('dbErrorToMessage', () => {
     ['PLANNING_NO_DELETE', 'Registreringer kan ikke slettes. Avlys vakten eller arkiver oppgaven.'],
     ['PLANNING_IMMUTABLE', 'Dette feltet kan ikke endres.'],
     ['PLANNING_NOT_FOUND', 'Fant ikke registreringen.'],
+    ['PLANNING_STALE', 'Registreringen er endret. Last inn på nytt og kontroller tidspunktene.'],
+    ['PLANNING_PERIOD', 'Velg en gyldig periode på høyst 366 dager.'],
     ['PLANNING_INACTIVE_PERSON', 'Velg en aktiv person.'],
     ['PLANNING_LOCAL_TIME', 'Tidspunktet er ugyldig eller tvetydig ved overgang til sommer- eller vintertid. Velg et annet tidspunkt.'],
     ['PLANNING_WEEK', 'Velg en mandag som ukestart.'],
@@ -13,6 +15,12 @@ describe('dbErrorToMessage', () => {
     ['SHIFT_OVERLAP', 'Personen har allerede en vakt i dette tidsrommet.'],
     ['SHIFT_CANCEL_REASON', 'Skriv en grunn for avlysningen (minst 3 tegn).'],
     ['SHIFT_CANCELLED', 'Vakten er avlyst og kan ikke endres.'],
+    ['SHIFT_HAS_TIME', 'Vakten har registrerte timer. Avlys den og opprett en ny for å bytte person.'],
+    ['TIME_ALREADY_OPEN', 'Du er allerede stemplet inn.'],
+    ['TIME_OVERLAP', 'Tidsrommet overlapper andre registrerte timer.'],
+    ['TIME_INTERVAL', 'Slutt må være lik eller etter start, og tidspunktene kan ikke være i fremtiden.'],
+    ['TIME_REASON', 'Skriv en grunn for korrigeringen (minst 3 tegn).'],
+    ['TIME_RATE', 'Bare en manglende timesats kan fylles inn. Sett gjeldende sats på Brukere først.'],
     ['RATE_INVALID', 'Skriv timesatsen i kroner, fra 0 til 10 000, med høyst to desimaler.'],
     ['TAKINGS_FUTURE_DAY', 'Markedsdagen har ikke vært ennå.'],
     ['TAKINGS_CANCELLED_DAY', 'Markedsdagen er avlyst.'],
@@ -30,6 +38,15 @@ describe('dbErrorToMessage', () => {
     ['LEDGER_SETTLE_INVALID', 'Bare ubetalte regninger og utlegg kan markeres som oppgjort.'],
   ])('maps %s', (message, expected) => {
     expect(dbErrorToMessage({ code: 'P0001', message })).toBe(expected)
+  })
+  it.each([
+    ['23505', 'time_entries_one_open', 'Du er allerede stemplet inn.'],
+    ['23P01', 'time_entries_no_overlap', 'Tidsrommet overlapper andre registrerte timer.'],
+    ['23505', 'time_entries_start_key_unique', 'Dette finnes allerede.'],
+    ['23505', 'time_entries_one_open_other', 'Dette finnes allerede.'],
+    ['23P01', 'time_entries_no_overlap_other', 'Noe gikk galt. Prøv igjen.'],
+  ])('maps %s constraint %s contextually', (code, constraint, expected) => {
+    expect(dbErrorToMessage({ code, message: `violates constraint "${constraint}"` })).toBe(expected)
   })
   it('maps only the named shift exclusion constraint', () => {
     expect(dbErrorToMessage({
