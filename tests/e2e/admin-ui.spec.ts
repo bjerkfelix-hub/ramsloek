@@ -92,7 +92,11 @@ test.describe('phone', () => {
     await expect(nav.getByRole('link', { name: 'Marked' })).toHaveCount(0)
     await nav.getByRole('button', { name: 'Mer' }).click()
     const sheet = page.getByRole('dialog', { name: 'Mer' })
-    await expect(sheet.getByRole('link')).toHaveCount(0)
+    // Pickers get the shared planning pages under Mer, but never owner-only pages.
+    await expect(sheet.getByRole('link', { name: 'Vaktplan' })).toBeVisible()
+    for (const name of ['Produkter', 'Områder', 'Marked', 'Påmeldinger', 'Brukere', 'Innstillinger', 'Regnskap']) {
+      await expect(sheet.getByRole('link', { name })).toHaveCount(0)
+    }
     await expect(sheet.getByRole('button', { name: 'Logg ut' })).toBeVisible()
   })
 
