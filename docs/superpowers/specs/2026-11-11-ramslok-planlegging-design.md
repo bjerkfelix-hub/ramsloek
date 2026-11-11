@@ -340,6 +340,13 @@ for all three roles: **Vaktplan** (`/admin/vaktplan`, calendar), **Stemple**
 (`/admin/oppgaver`, new checklist icon). These live under existing phone **Mer**; keep
 the current tab count. Links on Mine vakter and Timer lead directly to Stemple.
 
+**One-tap clock on the home page (owner decision 2026-11-11):** the admin home page
+(`/admin`, "Oversikt", where every role lands after login) shows a **Stemple** card at the
+top with the same Start/Stopp button, current state and elapsed time as `/admin/stemple`
+(one shared component and the same server actions). Clocking in or out from a phone is
+therefore one tap after opening the app, without going through **Mer**. Playwright covers
+start and stop from the home page for a picker.
+
 ### 4.1 `/admin/vaktplan`
 
 - Everyone: **Mine vakter**, this week and next, each with planned hours, day/time/type,

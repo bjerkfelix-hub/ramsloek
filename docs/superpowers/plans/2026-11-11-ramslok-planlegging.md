@@ -426,7 +426,8 @@ with identical payload returns success, different payload is a conflict, not an 
 - Create: `src/features/planlegging/ClockPanel.tsx`, `TimeCorrectionSheet.tsx`, `TimeHistory.tsx`
 - Modify: `src/features/planlegging/queries.ts`, `MyShifts.tsx`
 - Modify: `src/features/admin/ui/nav-items.ts`, `icons.tsx`, `nav-items.test.ts`
-- Create: `tests/e2e/planning-clock.spec.ts`
+- Modify: `src/app/admin/(app)/page.tsx` — render `ClockPanel` at the top of the home page (Oversikt) for every role (spec §4, one-tap clock); keep existing shortcuts and update `tests/e2e/auth.spec.ts` only if its expectations change
+- Create: `tests/e2e/planning-clock.spec.ts` — must include: picker starts and stops the clock from `/admin` (home page) with one tap each
 - Modify: `tests/e2e/planning-helpers.ts`
 
 **Interfaces:**
