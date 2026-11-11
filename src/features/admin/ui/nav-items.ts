@@ -14,6 +14,7 @@ const NAV: (NavItem & { roles: Role[] })[] = [
   { href: '/admin/marked', label: 'Marked', icon: 'calendar', roles: ['owner'], tab: true },
   { href: '/admin/regnskap', label: 'Regnskap', icon: 'coins', roles: ['owner', 'seller'], tab: true },
   { href: '/admin/vaktplan', label: 'Vaktplan', icon: 'calendar', roles: ALL, tab: false },
+  { href: '/admin/stemple', label: 'Stemple', icon: 'clock', roles: ALL, tab: false },
   { href: '/admin/pameldinger', label: 'Påmeldinger', icon: 'mail', roles: ['owner'] },
   { href: '/admin/users', label: 'Brukere', icon: 'people', roles: ['owner'] },
   { href: '/admin/settings', label: 'Innstillinger', icon: 'sliders', roles: ['owner'] },

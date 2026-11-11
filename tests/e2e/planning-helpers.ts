@@ -25,3 +25,16 @@ export async function loginPlanning(page: Page, email: string) {
   await page.waitForURL(u => u.pathname === '/admin')
 }
 export function checked<T extends { error: unknown }>(result: T): T { if (result.error) throw result.error; return result }
+
+// A second independently authenticated connection for concurrency tests.
+export async function planningConnection(email: string) {
+  const admin = adminClient()
+  const link = checked(await admin.auth.admin.generateLink({ type: 'magiclink', email }))
+  const client = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { auth: { persistSession: false, autoRefreshToken: false } })
+  checked(await client.auth.verifyOtp({ token_hash: link.data.properties!.hashed_token, type: 'magiclink' }))
+  return client
+}
+export async function closePlanningClock(person: Awaited<ReturnType<typeof planningUser>>) {
+  const rows = checked(await person.client.from('time_entries').select('id').eq('profile_id', person.id).is('ended_at', null)).data ?? []
+  for (const row of rows) checked(await person.client.rpc('clock_out', { p_entry_id: row.id }))
+}

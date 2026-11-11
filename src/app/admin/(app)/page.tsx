@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import { ClockPanel } from '@/features/planlegging/ClockPanel'
+import { getMyOpenEntry } from '@/features/planlegging/queries'
 import { requireRole, type Role } from '@/lib/auth'
 import { Chevron } from '@/features/admin/ui/icons'
 import { LargeTitle, Page } from '@/features/admin/ui/Page'
@@ -17,10 +19,12 @@ const SHORTCUTS: { href: string; label: string; roles: Role[] }[] = [
 
 export default async function HomePage() {
   const user = await requireRole('owner', 'picker', 'seller')
+  const entry = await getMyOpenEntry()
   const links = SHORTCUTS.filter((s) => s.roles.includes(user.role))
   return (
     <Page>
       <LargeTitle>Oversikt</LargeTitle>
+      <ClockPanel entry={entry} profileId={user.id} />
       <ul className="a-list" aria-label="Snarveier">
         {links.map((s) => (
           <li key={s.href}>

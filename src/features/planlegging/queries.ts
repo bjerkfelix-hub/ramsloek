@@ -61,3 +61,55 @@ export async function getWeekSchedule(monday: string): Promise<WeekScheduleData>
   return { monday, people, shifts, plannedMs: plannedMilliseconds(shifts, monday), history,
     copyCount: shifts.filter(s => !s.cancelled_at && Date.parse(s.starts_at) >= Date.parse(osloLocalToIso(`${monday}T00:00`)!) && Date.parse(s.starts_at) < Date.parse(osloLocalToIso(`${end}T00:00`)!)).length }
 }
+
+export type ClockEntry = {
+  id: string; version: number; started_at: string; ended_at: string | null
+  shift_id: string | null; hourly_rate_ore: number | null; start_key: string
+}
+export type TimeAudit = {
+  id: number; at: string; actorName: string
+  data: { old?: Partial<TimeEntryDetail>; new?: Partial<TimeEntryDetail> }
+}
+export type TimeEntryDetail = ClockEntry & {
+  profile_id: string; personName: string; correction_reason: string | null
+  corrected_at: string | null; corrected_by: string | null; history: TimeAudit[]
+}
+const CLOCK_FIELDS = 'id, version, started_at, ended_at, shift_id, hourly_rate_ore, start_key'
+export async function getMyOpenEntry(): Promise<ClockEntry | null> {
+  const me = await requireRole('owner', 'picker', 'seller')
+  const client = await createClient()
+  const { data, error } = await client.from('time_entries').select(CLOCK_FIELDS).eq('profile_id', me.id).is('ended_at', null).maybeSingle()
+  if (error) throw Error('Kunne ikke hente stemplingen. Prøv igjen.')
+  return data as ClockEntry | null
+}
+export async function getTimeEntry(id: string): Promise<TimeEntryDetail | null> {
+  const me = await requireRole('owner', 'picker', 'seller')
+  if (!/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id)) return null
+  const client = await createClient()
+  const { data, error } = await client.from('time_entries').select(`${CLOCK_FIELDS}, profile_id, correction_reason, corrected_at, corrected_by`).eq('id', id).maybeSingle()
+  if (error) throw Error('Kunne ikke hente timeregistreringen. Prøv igjen.')
+  if (!data) return null
+  let personName = me.fullName
+  const history: TimeAudit[] = []
+  if (me.role === 'owner') {
+    const [people, audit] = await Promise.all([
+      client.from('profiles').select('id, full_name'),
+      client.from('audit_log').select('id, at, actor, data').eq('table_name', 'time_entries').eq('row_id', id).order('id'),
+    ])
+    if (people.error || audit.error) throw Error('Kunne ikke hente historikken. Prøv igjen.')
+    const name = (id: string) => people.data?.find(p => p.id === id)?.full_name ?? 'Ukjent'
+    personName = name(data.profile_id)
+    for (const row of audit.data ?? []) history.push({ id: row.id, at: row.at, actorName: name(row.actor), data: row.data })
+  }
+  return { ...data, personName, history } as TimeEntryDetail
+}
+export async function getForgottenEntries(): Promise<{ id: string; personName: string; started_at: string }[]> {
+  await requireRole('owner')
+  const client = await createClient()
+  const [entries, people] = await Promise.all([
+    client.from('time_entries').select('id, profile_id, started_at').is('ended_at', null).lt('started_at', new Date(Date.now() - 14 * 3600000).toISOString()).order('started_at'),
+    client.from('profiles').select('id, full_name'),
+  ])
+  if (entries.error || people.error) throw Error('Kunne ikke hente åpne registreringer. Prøv igjen.')
+  return (entries.data ?? []).map(e => ({ id: e.id, started_at: e.started_at, personName: people.data?.find(p => p.id === e.profile_id)?.full_name ?? 'Ukjent' }))
+}
