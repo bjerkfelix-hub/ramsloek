@@ -3,6 +3,17 @@ import { dbErrorToMessage } from './errors'
 
 describe('dbErrorToMessage', () => {
   it.each([
+    ['PLANNING_NO_DELETE', 'Registreringer kan ikke slettes. Avlys vakten eller arkiver oppgaven.'],
+    ['PLANNING_IMMUTABLE', 'Dette feltet kan ikke endres.'],
+    ['PLANNING_NOT_FOUND', 'Fant ikke registreringen.'],
+    ['PLANNING_INACTIVE_PERSON', 'Velg en aktiv person.'],
+    ['PLANNING_LOCAL_TIME', 'Tidspunktet er ugyldig eller tvetydig ved overgang til sommer- eller vintertid. Velg et annet tidspunkt.'],
+    ['PLANNING_WEEK', 'Velg en mandag som ukestart.'],
+    ['SHIFT_INTERVAL', 'Vakten må slutte etter start, senest neste dag og innen 26 timer.'],
+    ['SHIFT_OVERLAP', 'Personen har allerede en vakt i dette tidsrommet.'],
+    ['SHIFT_CANCEL_REASON', 'Skriv en grunn for avlysningen (minst 3 tegn).'],
+    ['SHIFT_CANCELLED', 'Vakten er avlyst og kan ikke endres.'],
+    ['RATE_INVALID', 'Skriv timesatsen i kroner, fra 0 til 10 000, med høyst to desimaler.'],
     ['TAKINGS_FUTURE_DAY', 'Markedsdagen har ikke vært ennå.'],
     ['TAKINGS_CANCELLED_DAY', 'Markedsdagen er avlyst.'],
     ['TAKINGS_EMPTY', 'Fyll inn minst ett beløp.'],
@@ -19,6 +30,24 @@ describe('dbErrorToMessage', () => {
     ['LEDGER_SETTLE_INVALID', 'Bare ubetalte regninger og utlegg kan markeres som oppgjort.'],
   ])('maps %s', (message, expected) => {
     expect(dbErrorToMessage({ code: 'P0001', message })).toBe(expected)
+  })
+  it('maps only the named shift exclusion constraint', () => {
+    expect(dbErrorToMessage({
+      code: '23P01',
+      message: 'conflicting key value violates exclusion constraint "work_shifts_no_overlap"',
+    })).toBe('Personen har allerede en vakt i dette tidsrommet.')
+  })
+  it('does not map an unrelated exclusion constraint to a shift error', () => {
+    expect(dbErrorToMessage({
+      code: '23P01',
+      message: 'conflicting key value violates exclusion constraint "other_no_overlap"',
+    })).toBe('Noe gikk galt. Prøv igjen.')
+  })
+  it('requires the exact shift constraint name', () => {
+    expect(dbErrorToMessage({
+      code: '23P01',
+      message: 'conflicting key value violates exclusion constraint "work_shifts_no_overlap_other"',
+    })).toBe('Noe gikk galt. Prøv igjen.')
   })
   it('maps sorting check missing', () => {
     expect(dbErrorToMessage({ message: 'SORTING_CHECK_MISSING' })).toBe('Partiet må sorteringskontrolleres før pakking.')

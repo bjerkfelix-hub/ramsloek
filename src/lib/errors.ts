@@ -1,6 +1,17 @@
 // Maps database/PostgREST errors to Norwegian, user-facing messages.
 export function dbErrorToMessage(err: { code?: string; message?: string }): string {
   const message = err.message ?? ''
+  if (message.includes('PLANNING_NO_DELETE')) return 'Registreringer kan ikke slettes. Avlys vakten eller arkiver oppgaven.'
+  if (message.includes('PLANNING_IMMUTABLE')) return 'Dette feltet kan ikke endres.'
+  if (message.includes('PLANNING_NOT_FOUND')) return 'Fant ikke registreringen.'
+  if (message.includes('PLANNING_INACTIVE_PERSON')) return 'Velg en aktiv person.'
+  if (message.includes('PLANNING_LOCAL_TIME')) return 'Tidspunktet er ugyldig eller tvetydig ved overgang til sommer- eller vintertid. Velg et annet tidspunkt.'
+  if (message.includes('PLANNING_WEEK')) return 'Velg en mandag som ukestart.'
+  if (message.includes('SHIFT_INTERVAL')) return 'Vakten må slutte etter start, senest neste dag og innen 26 timer.'
+  if (message.includes('SHIFT_OVERLAP') || (err.code === '23P01' && message.includes('"work_shifts_no_overlap"'))) return 'Personen har allerede en vakt i dette tidsrommet.'
+  if (message.includes('SHIFT_CANCEL_REASON')) return 'Skriv en grunn for avlysningen (minst 3 tegn).'
+  if (message.includes('SHIFT_CANCELLED')) return 'Vakten er avlyst og kan ikke endres.'
+  if (message.includes('RATE_INVALID')) return 'Skriv timesatsen i kroner, fra 0 til 10 000, med høyst to desimaler.'
   if (message.includes('TAKINGS_FUTURE_DAY')) return 'Markedsdagen har ikke vært ennå.'
   if (message.includes('TAKINGS_CANCELLED_DAY')) return 'Markedsdagen er avlyst.'
   if (message.includes('TAKINGS_EMPTY')) return 'Fyll inn minst ett beløp.'
