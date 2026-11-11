@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { adminClient, loginAs } from './helpers'
+import { submitPlanning } from './planning-helpers'
 
 const stamp = Date.now()
 
@@ -94,12 +95,14 @@ test('deactivating the seller locks them out', async ({ page, browser }) => {
     await loginAs(page, 'owner')
     await page.goto('/admin/users')
     const row = page.getByRole('row', { name: /selger@test\.local/ })
-    await row.getByRole('button', { name: 'Deaktiver' }).click()
+    await submitPlanning(row.getByRole('button', { name: 'Deaktiver' }))
     await expect(row).toContainText('Deaktivert')
     await sellerPage.goto('/admin')
     await expect(sellerPage).toHaveURL(/\/admin\/login$/)
     // The owner cannot deactivate themselves.
-    await expect(page.getByRole('row', { name: /eier@test\.local/ }).getByRole('button')).toHaveCount(0)
+    const ownerRow = page.getByRole('row', { name: /eier@test\.local/ })
+    await expect(ownerRow.getByRole('button', { name: /^(Deaktiver|Aktiver)$/ })).toHaveCount(0)
+    await expect(ownerRow.getByRole('button', { name: 'Endre timesats' })).toBeVisible()
   } finally {
     await admin.from('profiles').update({ active: true }).eq('id', 'a0000000-0000-0000-0000-000000000003')
   }

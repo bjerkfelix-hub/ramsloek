@@ -112,6 +112,45 @@ Et underregnskap for ramsløk (en avdeling i DONTPANIC AS). Hovedboken til AS-et
 
 **Ingenting slettes.** Poster og kvitteringer kan ikke slettes, heller ikke av eieren; feil rettes eller annulleres med en grunn. Selgere ser bare sine egne registreringer de siste 30 dagene. Plukkere har ikke tilgang til regnskapet. Reglene håndheves i databasen.
 
+### Planlegging: Vaktplan, Stemple, Timer og Oppgaver
+
+Alle aktive roller finner sidene under **Mer** på mobil og i sidemenyen på datamaskin.
+**Start/Stopp** finnes også øverst på Oversikt, slik at egen tid kan stemples med ett trykk.
+Plukkere og selgere har samme planleggingsrettigheter: egne vakter, timer og timesats,
+og tildelte oppgaver. De kan bare markere egne oppgaver som ferdige. Ferdige oppgaver
+blir stående til eieren arkiverer dem. Eieren planlegger for alle aktive roller, kopierer
+uker, setter timesatser på Brukere og administrerer oppgavebrettet Å gjøre / Pågår / Ferdig.
+Viktige oppgaver sorteres først, deretter frist (uten frist sist). Forfalte oppgaver merkes.
+Arkiverte oppgaver er skrivebeskyttet og bare synlige for eier.
+
+- **Private satser:** satsene ligger adskilt fra delte profiler. En sats på 0 er tillatt;
+  manglende sats er ukjent. Ved Start lagres et øyeblikksbilde av gjeldende sats.
+  Senere satsendringer gjelder nye innstemplinger og endrer aldri tidligere beløp.
+- **Tid og beløp:** uker går mandag–søndag i Europe/Oslo. Faktisk medgåtte millisekunder
+  brukes, også ved sommertid/vintertid, uten automatiske pauser eller overtidsregler.
+  Intervaller deles ved Oslo-midnatt; beløpet avrundes til nærmeste øre per registrering
+  per dag (halve øre opp), før summering. Visning av timer med to desimaler brukes ikke
+  til å beregne beløpet. Planlagt beløp er et anslag med dagens sats.
+- **Korrigering:** bare eier kan rette start/slutt, med obligatorisk grunn. Historikken
+  viser gammel og ny verdi, aktør og tidspunkt. Endrede registreringer må leses og
+  kontrolleres på nytt før en utdatert rettelse kan lagres. En manglende historisk sats
+  kan fylles én gang fra gjeldende sats med grunn; en eksisterende sats kan ikke prises om.
+- **Ufullstendige tall:** åpne registreringer vises separat og inngår ikke i arbeidede
+  timer eller beløp. Etter mer enn 14 timer vises en advarsel; ingenting stoppes automatisk.
+  Manglende sats gir «Foreløpig beløp» for kjent delsum, aldri en skjult nullsats.
+- **Excel:** eier velger måned og kontrollerer åpne timer/manglende satser før nedlasting.
+  Timer-arket har én lukket registrering per dag i valgt Oslo-måned, også for deaktiverte
+  personer. Kontroll-arket viser kjente beløp og mangler. Et ufullstendig eller tomt
+  grunnlag kan lastes ned. Dette er lønnsgrunnlag, uten skattetrekk, feriepenger eller
+  andre lønnstillegg; det kjører ikke lønn og bokfører ingenting i Regnskap.
+- **Ingen sletting:** vakter avlyses med grunn, oppgaver arkiveres og tidsregistreringer
+  beholdes (også rettelser til null varighet). Avlysning og arkivering er endelige.
+  Databasen håndhever tilgang, historikk og sletteforbud. Deaktiver personer fremfor å slette dem.
+
+Testoppsettet for planlegging i e2e oppretter Auth-identiteter med lokal adminklient, men skriver
+planleggingsdata gjennom innloggede eier-/personøkter. Historikken beholdes; testvakter
+avlyses, åpne testtimer lukkes og testoppgaver arkiveres.
+
 ## Tekster og oppskrifter
 
 Alt innhold på det offentlige nettstedet ligger i `src/content`:
@@ -159,6 +198,30 @@ Ferdig anvendt og registrert: migrasjon 1–5, sist `20261106000005_public_site`
 Skal anvendes: `20261106000006_privacy_hardening` (daglig sletting av avmeldte via pg_cron, og kolonnebegrenset lesetilgang for `anon` på `market_days`). Kjør hele filen i SQL Editor og registrer versjonen som beskrevet over.
 
 Skal anvendes: `20261110000007_security_hardening` (eieren leser `season_signups` via RLS; nye brukeres rolle hentes fra `app_metadata` i stedet for `user_metadata`). **Kjør den før koden deployes:** ellers får påmeldingssiden/CSV-eksporten tilgangsfeil, og nye brukere lagt til fra Brukere-siden blir plukkere uansett valgt rolle.
+
+**Planlegging – migrasjoner 13–15 før appen.** Den kombinerte SQL Editor-filen
+`deploy-sql/2026-11-11-planlegging-hosted.sql` er en lokal, git-ignorert overlevering.
+Den inneholder i rekkefølge `20261111000013_planning_shifts_rates`,
+`20261111000014_planning_time` og `20261111000015_planning_tasks`. Hver DDL-del og
+innsettingen av tilsvarende `(version, name)` i `supabase_migrations.schema_migrations`
+ligger i samme transaksjon, fulgt av en sluttkontroll. SQL-en er ren tekst og skal ikke
+HTML-enkodes før innliming.
+
+Påkrevd eierkontroll før kjøring: ta vanlig sikkerhetskopi, kontroller faktisk hostet
+historikktabell (kolonnene `version` og `name` må kunne brukes), bekreft at forutgående
+migrasjoner til og med 12 er anvendt, og at 13–15 ikke allerede er registrert eller delvis
+anvendt. Hostet historikk er ikke lest eller verifisert i denne implementeringen.
+Ikke kjør anvendt DDL på nytt. Filens kommenterte forhåndsspørringer hjelper med kontrollen.
+Eieren kjører SQL-en manuelt; det er ikke gjort noen hostet mutasjon, Railway-endring
+eller push i denne overleveringen. Appen deployes først etter vellykket skjemakontroll.
+Ingen nye miljøvariabler trengs. Ved appfeil rulles appversjonen tilbake mens skjema og
+registrerte data beholdes; skjema rettes eventuelt med en ny fremovermigrasjon.
+
+Røyktest etter utrulling: eier setter sats, oppretter/kopierer/avlyser vakt, korrigerer tid
+med grunn og laster ned valgt måned til Excel. Kontroller at UI og fil har samme øresum
+og synlige mangler. Både plukker og selger skal kunne Start/Stopp fra Oversikt, se bare
+egne vakter/timer/sats og tildelte oppgaver, og fullføre en oppgave med aktør og tidspunkt fra databasen synlig for eier. Sjekk også direkte tilgang til en annens data og eksport
+(avvist), samt eksisterende brukere, høsting, lager, marked og regnskap.
 
 **Auth-innstillinger** (Authentication i dashboardet):
 

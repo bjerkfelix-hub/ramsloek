@@ -16,6 +16,8 @@ export const test = base.extend<{ planningFixtures: void }>({
         for (const person of people) await closePlanningClock(person)
         const shifts = checked(await owner.from('work_shifts').select('id').in('profile_id', people.map(p => p.id)).is('cancelled_at', null)).data ?? []
         for (const shift of shifts) checked(await owner.rpc('cancel_work_shift', { p_id: shift.id, p_reason: 'E2E fixture retired' }))
+        const tasks = checked(await owner.from('work_tasks').select('id').in('created_by', people.map(p => p.id)).is('archived_at', null)).data ?? []
+        for (const task of tasks) checked(await owner.rpc('archive_work_task', { p_id: task.id }))
         checked(await owner.from('profiles').update({ active: false }).in('id', people.map(p => p.id)))
       }
     }

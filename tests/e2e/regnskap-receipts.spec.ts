@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto'
 import { expect, test } from '@playwright/test'
 import { todayOslo } from '../../src/lib/domain/time'
-import { adminClient, loginAs } from './helpers'
+import { adminClient, authUserId, loginAs } from './helpers'
 
 // A tiny JPEG kept inline so this task does not add fixtures for the later forms task.
 const JPEG = Buffer.from(
@@ -18,10 +18,8 @@ let objectStored = false
 test.describe.serial('protected ledger receipts', () => {
   test.beforeAll(async () => {
     const admin = adminClient() // Refuses nonlocal Supabase URLs before any setup.
-    const { data: users, error: userError } = await admin.auth.admin.listUsers()
-    if (userError) throw userError
-    sellerId = users.users.find((user) => user.email === 'selger@test.local')!.id
-    ownerId = users.users.find((user) => user.email === 'eier@test.local')!.id
+    sellerId = await authUserId('seller')
+    ownerId = await authUserId('owner')
     const { data: category, error: categoryError } = await admin.from('ledger_categories')
       .select('id').eq('kind', 'expense').eq('name', 'Emballasje').single()
     if (categoryError) throw categoryError

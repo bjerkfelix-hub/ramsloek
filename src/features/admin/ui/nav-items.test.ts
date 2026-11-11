@@ -27,3 +27,10 @@ it('gives all roles Stemple under Mer and Timer under Mer', () => {
     expect(navFor(role).find(i => i.href === '/admin/timer')).toMatchObject({ label: 'Timer', icon: 'clock', tab: false })
   }
 })
+it('gives all roles Oppgaver and preserves tab counts', () => {
+  for (const [role, tabs] of [['owner',4],['picker',2],['seller',3]] as const) {
+    expect(navFor(role).find(i => i.href === '/admin/oppgaver')).toMatchObject({label:'Oppgaver',icon:'checklist',tab:false})
+    expect(navFor(role).filter(i => i.tab)).toHaveLength(tabs)
+    expect(navFor(role).filter(i => i.tab === false).map(i => i.label)).toEqual(['Vaktplan','Stemple','Timer','Oppgaver'])
+  }
+})

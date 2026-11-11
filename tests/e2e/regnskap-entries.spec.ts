@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { todayOslo } from '../../src/lib/domain/time'
-import { adminClient, E2E_PLACE_PREFIX, isoInDays, loginAs } from './helpers'
+import { adminClient, authUserId, E2E_PLACE_PREFIX, isoInDays, loginAs } from './helpers'
 
 const stamp = Date.now()
 let ownerId: string
@@ -30,9 +30,8 @@ async function monthExpense(page: Page): Promise<number> {
 test.describe.serial('regnskap entries and categories', () => {
   test.beforeAll(async () => {
     const admin = adminClient()
-    const { data: users } = await admin.auth.admin.listUsers()
-    ownerId = users!.users.find((u) => u.email === 'eier@test.local')!.id
-    sellerId = users!.users.find((u) => u.email === 'selger@test.local')!.id
+    ownerId = await authUserId('owner')
+    sellerId = await authUserId('seller')
     const packaging = await categoryId('Emballasje')
     const stand = await categoryId('Standleie')
 

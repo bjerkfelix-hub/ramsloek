@@ -1,0 +1,41 @@
+'use client'
+import { useState } from 'react'
+import Link from 'next/link'
+import { ActionForm, Field, inputClass } from '@/components/action-form'
+import { archiveTask, setTaskStatus } from '@/app/admin/(app)/oppgaver/actions'
+import { TASK_STATUS_LABEL, type TaskStatus } from '@/lib/domain/planning'
+import { ResponsiveSheet } from '@/features/admin/ui/ResponsiveSheet'
+import { Sheet } from '@/features/admin/ui/Sheet'
+import { TaskDescription } from './MyTasks'
+import { TaskForm } from './TaskForm'
+import type { WorkTask, SchedulePerson } from './queries'
+export function TaskBoard({ tasks, people, today, includeArchived, me }: { tasks: WorkTask[]; people: SchedulePerson[]; today: string; includeArchived: boolean; me: string }) {
+  const [selected, setSelected] = useState<string | null>(null)
+  const [onlyMine, setOnlyMine] = useState(false)
+  const task = tasks.find(t => t.id === selected)
+  const visible = onlyMine ? tasks.filter(t => t.assigned_to === me) : tasks
+  return <section className="space-y-4 min-w-0">
+    <div className="flex flex-wrap gap-4 items-center"><Link className="a-btn a-btn-tinted" href={includeArchived ? '/admin/oppgaver' : '/admin/oppgaver?archived=1'}>{includeArchived ? 'Skjul arkiverte' : 'Vis arkiverte'}</Link>
+      <label><input type="checkbox" checked={onlyMine} onChange={e => setOnlyMine(e.target.checked)} /> Bare mine oppgaver</label>
+    </div>
+    <ResponsiveSheet title="Ny oppgave"><TaskForm people={people} /></ResponsiveSheet>
+    {!visible.length && <p>Du har ingen oppgaver.</p>}
+    <div className="grid gap-4 min-w-0 lg:grid-cols-3">
+      {(Object.keys(TASK_STATUS_LABEL) as TaskStatus[]).map(status => <section key={status} aria-label={TASK_STATUS_LABEL[status]} className="space-y-3 min-w-0"><h2 className="a-h2">{TASK_STATUS_LABEL[status]}</h2>
+        {visible.filter(t => t.status === status).map(t => <article key={t.id} className="a-card a-section space-y-3 min-w-0 [overflow-wrap:anywhere]">
+          <TaskDescription task={t} today={today} />
+          {!t.archived_at && <>
+            <button className="a-btn a-btn-tinted" onClick={() => setSelected(t.id)}>Rediger</button>
+            <ActionForm action={form => setTaskStatus(t.id, String(form.get('status')) as TaskStatus)} submitLabel="Endre status">
+              <Field label="Status"><select key={t.status} name="status" defaultValue={t.status} className={inputClass}>{(Object.keys(TASK_STATUS_LABEL) as TaskStatus[]).map(s => <option key={s} value={s}>{TASK_STATUS_LABEL[s]}</option>)}</select></Field>
+            </ActionForm>
+            <ActionForm action={() => archiveTask(t.id)} submitLabel="Arkiver">{null}</ActionForm>
+          </>}
+        </article>)}
+      </section>)}
+    </div>
+    <Sheet open={!!task && !task.archived_at} onClose={() => setSelected(null)} title="Rediger oppgave">
+      {task && !task.archived_at && <TaskForm key={task.id} people={people} task={task} />}
+    </Sheet>
+  </section>
+}

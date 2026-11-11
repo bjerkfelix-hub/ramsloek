@@ -32,13 +32,48 @@ export function adminClient() {
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: localFetch } })
 }
 
+// Planning fixtures retain Auth identities for their audit foreign keys. Seeded users can
+// therefore move beyond Auth's first page; look them up without assuming a page size.
+export async function authUserId(role: Role): Promise<string> {
+  const admin = adminClient()
+  for (let page = 1; ; page++) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 })
+    if (error) throw error
+    const user = data.users.find(user => user.email === EMAIL[role])
+    if (user) return user.id
+    if (data.users.length < 1000) throw Error(`Missing local seeded ${role}`)
+  }
+}
+
 // Place names of market days created by e2e tests start with this, so they can be cleaned up.
 export const E2E_PLACE_PREFIX = 'E2E '
 
-// Removes market days left behind by earlier e2e runs, so they never crowd the public front page.
+// Retire test markets without deleting the days referenced by retained ledger history.
 export async function deleteTestMarketDays(): Promise<void> {
-  const { error } = await adminClient().from('market_days').delete().like('place_name', `${E2E_PLACE_PREFIX}%`)
-  if (error) throw error
+  const admin = adminClient()
+  const ids: string[] = []
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await admin.from('market_days').select('id')
+      .like('place_name', `${E2E_PLACE_PREFIX}%`).order('id').range(from, from + 999)
+    if (error) throw error
+    ids.push(...data.map(day => day.id))
+    if (data.length < 1000) break
+  }
+  for (let i = 0; i < ids.length; i += 100) {
+    const batch = ids.slice(i, i + 100)
+    const { data, error } = await admin.from('market_takings').select('market_day_id').in('market_day_id', batch)
+    if (error) throw error
+    const retained = new Set(data.map(taking => taking.market_day_id))
+    const unused = batch.filter(id => !retained.has(id))
+    if (retained.size) {
+      const { error } = await admin.from('market_days').update({ cancelled: true }).in('id', [...retained])
+      if (error) throw error
+    }
+    if (unused.length) {
+      const { error } = await admin.from('market_days').delete().in('id', unused)
+      if (error) throw error
+    }
+  }
 }
 
 // YYYY-MM-DD `days` from now (UTC date; tests use offsets of several days, so the Oslo date agrees).
