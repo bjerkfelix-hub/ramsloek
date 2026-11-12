@@ -1,4 +1,7 @@
 import Link from 'next/link'
+import { chainPeriod } from '@/features/oversikt/chain'
+import { getChain } from '@/features/oversikt/queries'
+import { ValueChain } from '@/features/oversikt/ValueChain'
 import { ClockPanel } from '@/features/planlegging/ClockPanel'
 import { getMyOpenEntry } from '@/features/planlegging/queries'
 import { requireRole, type Role } from '@/lib/auth'
@@ -17,13 +20,15 @@ const SHORTCUTS: { href: string; label: string; roles: Role[] }[] = [
   { href: '/admin/settings', label: 'Innstillinger', roles: ['owner'] },
 ]
 
-export default async function HomePage() {
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ periode?: string | string[] }> }) {
   const user = await requireRole('owner', 'picker', 'seller')
-  const entry = await getMyOpenEntry()
+  const period = chainPeriod((await searchParams).periode, new Date())
+  const [entry, steps] = await Promise.all([getMyOpenEntry(), getChain(period)])
   const links = SHORTCUTS.filter((s) => s.roles.includes(user.role))
   return (
     <Page>
       <LargeTitle>Oversikt</LargeTitle>
+      <ValueChain period={period} steps={steps} />
       <ClockPanel entry={entry} profileId={user.id} />
       <ul className="a-list" aria-label="Snarveier">
         {links.map((s) => (

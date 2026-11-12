@@ -1023,3 +1023,36 @@ textarea.a-input {
     backdrop-filter: none;
   }
 }
+
+/* Value chain: server-rendered cards with a decorative flow line. */
+.a-chain-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.a-chain-period { min-width: 250px; }
+.a-chain-period a { display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 12px; border-radius: 8px; font-size: .9375rem; position: relative; }
+.a-chain-period a[aria-current] { background: var(--a-seg-thumb); font-weight: 600; }
+.a-chain { position: relative; padding-top: 22px; }
+.a-chain-steps { display: grid; grid-template-columns: repeat(var(--chain-count), minmax(0, 1fr)); gap: 10px; padding: 0; margin: 0; list-style: none; }
+.a-chain-steps li { min-width: 0; position: relative; }
+.a-chain-line { position: absolute; top: 10px; left: 14px; right: 14px; height: 2px; background: var(--a-separator); }
+.a-chain-dot { position: absolute; top: -2px; left: 0; width: 7px; height: 7px; border-radius: 50%; background: var(--a-accent); }
+.a-chain-card { display: flex; flex-direction: column; gap: 10px; padding: 14px 12px; height: 100%; min-height: 44px; transition: transform 150ms; }
+.a-chain-card:active { transform: scale(.98); }
+.a-chain-index { color: var(--a-accent-text); font-size: .8125rem; font-weight: 700; }
+.a-chain-card h3 { font-size: .9375rem; font-weight: 600; overflow-wrap: anywhere; }
+.a-chain-card dl { display: flex; flex-direction: column; gap: 10px; margin: 0; }
+.a-chain-card dt { font-size: .75rem; color: var(--a-label-2); }
+.a-chain-card dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+  .a-chain { padding: 0 0 0 24px; }
+  .a-chain-steps { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .a-chain-line { top: 14px; bottom: 14px; left: 7px; right: auto; width: 2px; height: auto; }
+  .a-chain-dot { top: 0; left: -2px; }
+  .a-chain-card dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .a-chain-card { transition: none; }
+  .a-chain-card:active { transform: none; }
+}
+.a-chain-steps li::before { content: ''; position: absolute; left: 14px; top: -15px; width: 8px; height: 8px; border-radius: 50%; background: var(--a-accent); }
+@media (max-width: 640px) {
+  .a-chain-steps li::before { left: -20px; top: 15px; }
+}
