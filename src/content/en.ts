@@ -10,6 +10,7 @@ export const en: Dictionary = {
     shop: "Shop",
     interest: "Register interest",
     wholesale: "For restaurants and wholesalers",
+    business: "For businesses",
 
     story: 'Our story',
     recipes: 'Recipes',

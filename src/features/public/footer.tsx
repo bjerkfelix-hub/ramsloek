@@ -10,6 +10,9 @@ export function Footer({ locale }: { locale: Locale }) {
   const { nav, footer, site } = getDictionary(locale)
   const routes = ROUTES[locale]
   const links = [
+    { href: routes.shop, label: nav.shop },
+    { href: routes.interest, label: nav.interest },
+    { href: routes.wholesale, label: nav.wholesale },
     { href: routes.story, label: nav.story },
     { href: routes.recipes, label: nav.recipes },
     { href: routes.markets, label: nav.markets },

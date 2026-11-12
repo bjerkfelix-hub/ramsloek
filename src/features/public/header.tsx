@@ -16,6 +16,7 @@ export function Header({ locale }: { locale: Locale }) {
           items={[
             { href: routes.shop, label: nav.shop },
             { href: routes.interest, label: nav.interest },
+            { href: routes.wholesale, label: nav.business },
             { href: routes.story, label: nav.story },
             { href: routes.recipes, label: nav.recipes },
             { href: routes.markets, label: nav.markets },

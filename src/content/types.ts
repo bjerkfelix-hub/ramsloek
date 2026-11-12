@@ -7,6 +7,7 @@ export type Dictionary = {
     shop: string
     interest: string
     wholesale: string
+    business: string
     story: string
     recipes: string
     markets: string
