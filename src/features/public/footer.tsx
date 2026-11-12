@@ -4,7 +4,7 @@ import { contactHref, ROUTES } from '@/lib/public/routes'
 import { CurrentYear } from './current-year'
 import { LanguageSwitch } from './language-switch'
 
-const linkClass = 'inline-block py-1 text-ink underline decoration-line hover:decoration-forest'
+const linkClass = 'inline-flex min-h-11 items-center py-1 text-ink underline decoration-line hover:decoration-forest'
 
 export function Footer({ locale }: { locale: Locale }) {
   const { nav, footer, site } = getDictionary(locale)
@@ -43,7 +43,7 @@ export function Footer({ locale }: { locale: Locale }) {
         <p className="text-sm text-muted sm:col-span-2" data-testid="footer-company">
           {COMPANY.legalName} · {format(footer.orgNumber, { orgNumber: COMPANY.orgNr })} · {COMPANY.address} ·{' '}
           {footer.contact}:{' '}
-          <a href={contactHref(CONTACT_EMAIL)} className="underline">
+          <a href={contactHref(CONTACT_EMAIL)} className="inline-flex min-h-11 items-center underline">
             {CONTACT_EMAIL}
           </a>
         </p>

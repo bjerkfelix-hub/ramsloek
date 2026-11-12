@@ -7,7 +7,7 @@ import { LanguageSwitch } from './language-switch'
 type Item = { href: string; label: string }
 
 const linkClass =
-  'inline-block py-2 text-ink underline decoration-transparent hover:decoration-forest aria-[current=page]:font-semibold aria-[current=page]:text-forest aria-[current=page]:decoration-forest'
+  'inline-flex min-h-11 items-center py-2 text-ink underline decoration-transparent hover:decoration-forest aria-[current=page]:font-semibold aria-[current=page]:text-forest aria-[current=page]:decoration-forest'
 
 export function HeaderNav({ items, label, switchLabel }: { items: Item[]; label: string; switchLabel: string }) {
   const pathname = usePathname() ?? '/'

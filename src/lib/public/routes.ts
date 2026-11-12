@@ -1,11 +1,11 @@
 import type { Locale } from '@/content'
 
-export type PageKey = 'home' | 'story' | 'recipes' | 'markets' | 'privacy'
+export type PageKey = 'shop' | 'interest' | 'wholesale' | 'home' | 'story' | 'recipes' | 'markets' | 'privacy'
 
 /** Public page paths per language. Both languages have the same pages. */
 export const ROUTES: Record<Locale, Record<PageKey, string>> = {
-  no: { home: '/', story: '/historien', recipes: '/oppskrifter', markets: '/marked', privacy: '/personvern' },
-  en: { home: '/en', story: '/en/story', recipes: '/en/recipes', markets: '/en/markets', privacy: '/en/privacy' },
+  no: { shop: '/butikken', interest: '/interesse', wholesale: '/grossist', home: '/', story: '/historien', recipes: '/oppskrifter', markets: '/marked', privacy: '/personvern' },
+  en: { shop: '/en/shop', interest: '/en/interest', wholesale: '/en/wholesale', home: '/en', story: '/en/story', recipes: '/en/recipes', markets: '/en/markets', privacy: '/en/privacy' },
 }
 
 export function localeOfPath(pathname: string): Locale {

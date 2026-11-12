@@ -4,8 +4,8 @@ import { alternatePath, contactHref, localeOfPath, ROUTES } from './routes'
 describe('public routes', () => {
   it('has the same pages in both languages', () => {
     expect(Object.keys(ROUTES.no)).toEqual(Object.keys(ROUTES.en))
-    expect(ROUTES.no).toEqual({ home: '/', story: '/historien', recipes: '/oppskrifter', markets: '/marked', privacy: '/personvern' })
-    expect(ROUTES.en).toEqual({ home: '/en', story: '/en/story', recipes: '/en/recipes', markets: '/en/markets', privacy: '/en/privacy' })
+    expect(ROUTES.no).toEqual({ shop: '/butikken', interest: '/interesse', wholesale: '/grossist', home: '/', story: '/historien', recipes: '/oppskrifter', markets: '/marked', privacy: '/personvern' })
+    expect(ROUTES.en).toEqual({ shop: '/en/shop', interest: '/en/interest', wholesale: '/en/wholesale', home: '/en', story: '/en/story', recipes: '/en/recipes', markets: '/en/markets', privacy: '/en/privacy' })
   })
 
   it('knows the locale of a path', () => {

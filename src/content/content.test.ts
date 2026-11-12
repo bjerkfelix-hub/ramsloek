@@ -4,6 +4,7 @@ import { no } from './no'
 import { recipes } from './recipes'
 import { getDictionary } from './index'
 import { CONTACT_EMAIL } from './site'
+import { ROUTES } from '@/lib/public/routes'
 
 function keyPaths(value: unknown, prefix = ''): string[] {
   if (Array.isArray(value)) return [prefix + '[]']
@@ -34,6 +35,16 @@ describe('dictionaries', () => {
     const a = new Map(strings(no).map((s) => [s.path, s.value]))
     const b = new Map(strings(en).map((s) => [s.path, s.value]))
     expect([...b.keys()]).toEqual([...a.keys()])
+  })
+  it('has metadata and navigation copy for every public route', () => {
+    for (const locale of ['no', 'en'] as const) {
+      const dictionary = getDictionary(locale)
+      for (const key of Object.keys(ROUTES[locale]) as (keyof typeof ROUTES.no)[]) {
+        expect(dictionary.pages[key].title).toBeTruthy()
+        expect(dictionary.pages[key].description).toBeTruthy()
+      }
+      for (const key of ['shop', 'interest', 'wholesale'] as const) expect(dictionary.nav[key]).toBeTruthy()
+    }
   })
   it('have no empty strings', () => {
     for (const d of [no, en]) for (const s of strings(d)) expect(s.value.trim(), s.path).not.toBe('')

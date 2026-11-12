@@ -318,11 +318,17 @@ test.describe("metadata, sitemap and robots", () => {
     const xml = await res.text();
     for (const p of [
       "/",
+      "/butikken",
+      "/interesse",
+      "/grossist",
       "/historien",
       "/oppskrifter",
       "/marked",
       "/personvern",
       "/en",
+      "/en/shop",
+      "/en/interest",
+      "/en/wholesale",
       "/en/story",
       "/en/recipes",
       "/en/markets",

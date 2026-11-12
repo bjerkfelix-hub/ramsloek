@@ -7,6 +7,10 @@ export const no: Dictionary = {
     skipToContent: 'Hopp til innhold',
   },
   nav: {
+    shop: "Butikken",
+    interest: "Meld interesse",
+    wholesale: "For restauranter og grossister",
+
     story: 'Historien',
     recipes: 'Oppskrifter',
     markets: 'Marked',
@@ -15,6 +19,19 @@ export const no: Dictionary = {
     switchToOther: 'English',
   },
   pages: {
+    shop: {
+      title: 'Butikken – Nesodden Ramsløk',
+      description: 'Fersk ramsløk fra Nesodden til vårens markeder i Oslo.',
+    },
+    interest: {
+      title: 'Meld interesse – Nesodden Ramsløk',
+      description: 'Fortell oss hvor mange poser du er interessert i. Vi tar kontakt når sesongen nærmer seg. Dette er ikke en bestilling.',
+    },
+    wholesale: {
+      title: 'For restauranter og grossister – Nesodden Ramsløk',
+      description: 'Vil dere kjøpe fersk ramsløk til kjøkkenet eller for videresalg? Fortell oss hva dere trenger, så tar vi kontakt.',
+    },
+
     home: {
       title: 'Nesodden Ramsløk – håndplukket ramsløk fra Nesodden',
       description:
@@ -48,6 +65,51 @@ export const no: Dictionary = {
       title: 'Siden finnes ikke – Nesodden Ramsløk',
       description: 'Vi finner ikke siden du leter etter.',
     },
+  },
+  shop: {
+    heading: 'Butikken',
+    lead: 'Fersk ramsløk fra Nesodden til vårens markeder i Oslo.',
+    paragraphs: [
+      'Vi plukker ramsløken for hånd på en privat eiendom på Nesodden. Hver sending sorteres og kontrolleres for liljekonvall før den pakkes fersk.',
+      'Du finner oss på markeder i Oslo om våren. Se markedskalenderen for tid og sted.',
+    ],
+    productsHeading: 'Dette selger vi',
+    prices: 'Prisene kommer når sesongen starter.',
+    empty: 'Utvalget for neste sesong kommer snart.',
+    loadFailed: 'Utvalget kunne ikke lastes. Prøv igjen om litt.',
+  },
+  interest: {
+    heading: 'Meld interesse',
+    lead: 'Fortell oss hvor mange poser du er interessert i. Vi tar kontakt når sesongen nærmer seg. Dette er ikke en bestilling.',
+    consentText: 'Jeg samtykker til at Nesodden Ramsløk lagrer opplysningene mine og kontakter meg om interessen min denne sesongen. Opplysningene slettes når sesongen er over. Jeg kan trekke samtykket tilbake når som helst.',
+    success: 'Takk! Vi har registrert interessen din.',
+  },
+  wholesale: {
+    heading: 'For restauranter og grossister',
+    lead: 'Vil dere kjøpe fersk ramsløk til kjøkkenet eller for videresalg? Fortell oss hva dere trenger, så tar vi kontakt.',
+    consentText: 'Jeg samtykker til at Nesodden Ramsløk lagrer opplysningene i henvendelsen og kontakter meg for å følge den opp. Opplysningene slettes etter 12 måneder. Jeg kan trekke samtykket tilbake når som helst.',
+    success: 'Takk for henvendelsen! Vi tar kontakt.',
+  },
+  contactForm: {
+    name: 'Navn',
+    email: 'E-postadresse',
+    phone: 'Telefon (valgfritt)',
+    bags: 'Antall poser',
+    comment: 'Kommentar (valgfritt)',
+    company: 'Bedrift',
+    contactName: 'Kontaktperson',
+    type: 'Type virksomhet',
+    weeklyQuantity: 'Omtrent ukentlig mengde (valgfritt)',
+    message: 'Melding',
+    restaurant: 'Restaurant',
+    grossist: 'Grossist',
+    butikk: 'Butikk',
+    annet: 'Annet',
+    button: 'Send inn',
+    errorRequired: 'Fyll ut alle obligatoriske felt.',
+    errorPhone: 'Skriv et gyldig telefonnummer.',
+    errorBags: 'Velg et helt antall poser fra 1 til 50.',
+    errorLength: 'Et felt er for langt. Kort ned teksten.',
   },
   season: {
     inSeason: 'I sesong – neste marked: {date}, {place}',
@@ -159,8 +221,20 @@ export const no: Dictionary = {
     heading: 'Personvern',
     updated: 'Sist oppdatert: november 2026',
     intro:
-      'Denne siden forklarer hva vi gjør med opplysningene dine hvis du melder deg på sesongvarsel. Vi bruker ikke informasjonskapsler for sporing eller analyseverktøy på nettsiden.',
+      'Denne siden forklarer hva vi gjør med opplysningene dine når du melder deg på sesongvarsel, melder interesse eller sender en henvendelse. Vi bruker ikke informasjonskapsler for sporing eller analyseverktøy på nettsiden.',
     sections: [
+      {
+        heading: 'Meld interesse',
+        paragraphs: [
+          'Vi lagrer navn, e-post, eventuell telefon, antall poser og eventuell kommentar, samt språk, samtykketekst og tidspunkt. Bare eierne har tilgang. Vi bruker opplysningene til å følge opp interessen din, med samtykket ditt som grunnlag. De slettes når sesongen slutter. Kontakt oss på kontaktadressen under for å trekke samtykket tilbake eller be om sletting.',
+        ],
+      },
+      {
+        heading: 'Henvendelser fra bedrifter',
+        paragraphs: [
+          'Vi lagrer bedrift, kontaktperson, e-post, eventuell telefon, type virksomhet, eventuell ukentlig mengde og melding, samt språk, samtykketekst og tidspunkt. Eierne ser henvendelsen og registrerer når og av hvem den er besvart. Vi bruker opplysningene til å svare deg, med samtykket ditt som grunnlag. Henvendelsen sendes også til eiernes e-post via Resend, som behandler opplysningene for oss. Opplysningene slettes etter 12 måneder, også fra e-post. Du kan be om sletting på kontaktadressen under.',
+        ],
+      },
       {
         heading: 'Hva vi lagrer',
         paragraphs: [

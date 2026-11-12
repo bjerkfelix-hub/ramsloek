@@ -7,6 +7,10 @@ export const en: Dictionary = {
     skipToContent: 'Skip to content',
   },
   nav: {
+    shop: "Shop",
+    interest: "Register interest",
+    wholesale: "For restaurants and wholesalers",
+
     story: 'Our story',
     recipes: 'Recipes',
     markets: 'Markets',
@@ -15,6 +19,19 @@ export const en: Dictionary = {
     switchToOther: 'Norsk',
   },
   pages: {
+    shop: {
+      title: 'Shop – Nesodden Ramsløk',
+      description: 'Fresh wild garlic from Nesodden at spring markets in Oslo.',
+    },
+    interest: {
+      title: 'Register interest – Nesodden Ramsløk',
+      description: 'Tell us how many bags you are interested in. We will contact you closer to the season. This is not an order.',
+    },
+    wholesale: {
+      title: 'For restaurants and wholesalers – Nesodden Ramsløk',
+      description: 'Would you like fresh wild garlic for your kitchen or to sell on? Tell us what you need and we will get in touch.',
+    },
+
     home: {
       title: 'Nesodden Ramsløk – hand-picked wild garlic from Nesodden',
       description:
@@ -48,6 +65,51 @@ export const en: Dictionary = {
       title: 'Page not found – Nesodden Ramsløk',
       description: 'We could not find the page you are looking for.',
     },
+  },
+  shop: {
+    heading: 'Shop',
+    lead: 'Fresh wild garlic from Nesodden at spring markets in Oslo.',
+    paragraphs: [
+      'We pick our wild garlic by hand on a private property on Nesodden. Every batch is sorted and checked for lily of the valley before it is packed fresh.',
+      'You can find us at markets in Oslo in spring. See the market calendar for times and places.',
+    ],
+    productsHeading: 'Our products',
+    prices: 'Prices will be available when the season starts.',
+    empty: 'The range for next season will be available soon.',
+    loadFailed: 'The product range could not be loaded. Please try again shortly.',
+  },
+  interest: {
+    heading: 'Register interest',
+    lead: 'Tell us how many bags you are interested in. We will contact you closer to the season. This is not an order.',
+    consentText: 'I consent to Nesodden Ramsløk storing my details and contacting me about my interest this season. My details will be deleted when the season ends. I can withdraw consent at any time.',
+    success: 'Thank you! Your interest has been registered.',
+  },
+  wholesale: {
+    heading: 'For restaurants and wholesalers',
+    lead: 'Would you like fresh wild garlic for your kitchen or to sell on? Tell us what you need and we will get in touch.',
+    consentText: 'I consent to Nesodden Ramsløk storing my inquiry and contacting me to follow it up. My details will be deleted after 12 months. I can withdraw consent at any time.',
+    success: 'Thank you for your inquiry! We will be in touch.',
+  },
+  contactForm: {
+    name: 'Name',
+    email: 'Email address',
+    phone: 'Phone (optional)',
+    bags: 'Number of bags',
+    comment: 'Comment (optional)',
+    company: 'Company',
+    contactName: 'Contact name',
+    type: 'Business type',
+    weeklyQuantity: 'Approximate weekly quantity (optional)',
+    message: 'Message',
+    restaurant: 'Restaurant',
+    grossist: 'Wholesaler',
+    butikk: 'Shop',
+    annet: 'Other',
+    button: 'Submit',
+    errorRequired: 'Please complete all required fields.',
+    errorPhone: 'Please enter a valid phone number.',
+    errorBags: 'Enter a whole number of bags from 1 to 50.',
+    errorLength: 'A field is too long. Please shorten the text.',
   },
   season: {
     inSeason: 'In season – next market: {date}, {place}',
@@ -159,8 +221,20 @@ export const en: Dictionary = {
     heading: 'Privacy',
     updated: 'Last updated: November 2026',
     intro:
-      'This page explains what we do with your information if you sign up for the season notice. We use no tracking cookies or analytics tools on this website.',
+      'This page explains what we do with your information when you sign up for the season notice, register interest or send an inquiry. We use no tracking cookies or analytics tools on this website.',
     sections: [
+      {
+        heading: 'Registering interest',
+        paragraphs: [
+          'We store your name, email, optional phone, number of bags and optional comment, along with language, consent wording and time. Only the owners have access. With your consent, we use these details to follow up your interest. They are deleted when the season ends. Use the contact email below to withdraw consent or ask for deletion.',
+        ],
+      },
+      {
+        heading: 'Business inquiries',
+        paragraphs: [
+          'We store the company, contact name, email, optional phone, business type, optional weekly quantity and message, along with language, consent wording and time. The owners see the inquiry and record when and by whom it was answered. With your consent, we use the details to reply. The inquiry is also emailed to the owners through Resend, which processes the details for us. The details are deleted after 12 months, including from email. You can ask for deletion at the contact email below.',
+        ],
+      },
       {
         heading: 'What we store',
         paragraphs: [

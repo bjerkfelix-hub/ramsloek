@@ -81,6 +81,11 @@ test.describe('phone', () => {
     await page.keyboard.press('Escape')
     await expect(sheet).toHaveCount(0)
     await expect(more).toBeFocused()
+    await page.goto('/admin/pameldinger')
+    const sections = page.getByRole('navigation', { name: 'Påmeldinger', exact: true })
+    for (const name of ['Sesongvarsel', 'Interesse', 'Henvendelser']) {
+      await expect(sections.getByRole('link', { name, exact: true })).toBeVisible()
+    }
   })
 
   test('picker sees no Marked tab', async ({ page }) => {

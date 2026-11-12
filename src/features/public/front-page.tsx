@@ -63,6 +63,7 @@ export async function FrontPage({ locale }: { locale: Locale }) {
           <p key={p}>{p}</p>
         ))}
         <p className="flex flex-wrap gap-x-6 gap-y-1 text-base">
+          <Link href={routes.shop} className="inline-flex min-h-11 items-center font-medium text-forest underline">{dict.nav.shop}</Link>
           <Link href={routes.story} className="inline-block py-1 font-medium text-forest underline">
             {dict.home.storyLink}
           </Link>

@@ -4,6 +4,9 @@ export type Section = { heading: string; paragraphs: string[] }
 export type Dictionary = {
   site: { name: string; tagline: string; skipToContent: string }
   nav: {
+    shop: string
+    interest: string
+    wholesale: string
     story: string
     recipes: string
     markets: string
@@ -12,6 +15,9 @@ export type Dictionary = {
     switchToOther: string
   }
   pages: {
+    shop: Page
+    interest: Page
+    wholesale: Page
     home: Page
     story: Page
     recipes: Page
@@ -19,6 +25,15 @@ export type Dictionary = {
     privacy: Page
     unsubscribe: Page
     notFound: Page
+  }
+  shop: { heading: string; lead: string; paragraphs: string[]; productsHeading: string; prices: string; empty: string; loadFailed: string }
+  interest: { heading: string; lead: string; consentText: string; success: string }
+  wholesale: { heading: string; lead: string; consentText: string; success: string }
+  contactForm: {
+    name: string; email: string; phone: string; bags: string; comment: string
+    company: string; contactName: string; type: string; weeklyQuantity: string; message: string
+    restaurant: string; grossist: string; butikk: string; annet: string
+    button: string; errorRequired: string; errorPhone: string; errorBags: string; errorLength: string
   }
   season: {
     inSeason: string // {date} {place}

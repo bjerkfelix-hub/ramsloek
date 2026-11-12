@@ -14,6 +14,8 @@ export function Header({ locale }: { locale: Locale }) {
           label={nav.mainNavigation}
           switchLabel={nav.switchToOther}
           items={[
+            { href: routes.shop, label: nav.shop },
+            { href: routes.interest, label: nav.interest },
             { href: routes.story, label: nav.story },
             { href: routes.recipes, label: nav.recipes },
             { href: routes.markets, label: nav.markets },
