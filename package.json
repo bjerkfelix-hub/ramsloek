@@ -12,7 +12,8 @@
     "test:e2e": "playwright test",
     "db:start": "supabase start",
     "db:reset": "supabase db reset",
-    "create-owner": "tsx scripts/create-owner.ts"
+    "create-owner": "tsx scripts/create-owner.ts",
+    "db:migrate": "sh scripts/db-migrate.sh"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -25,7 +26,8 @@
     "pdf-lib": "^1.17.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "server-only": "^0.0.1"
+    "server-only": "^0.0.1",
+    "supabase": "^3.0.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.0",
@@ -35,7 +37,6 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.5",
-    "supabase": "^3.0.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
     "typescript": "^5",
