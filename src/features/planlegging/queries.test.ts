@@ -6,10 +6,32 @@ vi.mock('@/lib/supabase/server', () => ({ createClient: async () => ({ rpc: mock
 import { getHours } from './queries'
 import { loadHoursExport } from './export-data'
 const row = { profile_id: 'me', work_date: '2026-03-31', source_kind: 'time', source_id: 'one', duration_ms: '1800000', hourly_rate_ore: 25000, amount_ore: '12500' }
-function query(rows: unknown[]) { const q = { order: () => q, select: () => q, eq: () => q, is: () => q, not: () => q, lt: () => q, gte: () => q, range: async (a: number,b: number) => { mock.pages.push([a,b]); return { data: rows.slice(a,b+1), error: null } } }; return q }
+function query(rows: unknown[]) { const q = { in: async () => ({ data: rows, error: null }), order: () => q, select: () => q, eq: () => q, is: () => q, not: () => q, lt: () => q, gte: () => q, range: async (a: number,b: number) => { mock.pages.push([a,b]); return { data: rows.slice(a,b+1), error: null } } }; return q }
 beforeEach(() => { vi.clearAllMocks(); mock.role = 'picker'; mock.pages = []; mock.rpc.mockReturnValue(query([row])); mock.from.mockImplementation((table: string) => query(table === 'work_rates' ? [{ profile_id: 'me', hourly_rate_ore: 30000 }] : table === 'time_entries' ? [{ id: 'old', profile_id: 'me', started_at: '2020-01-01T00:00:00Z', ended_at: null }] : [])) })
 it('maps bigint exactly, uses own identity, keeps all open entries and snapshot amount', async () => { const data = await getHours({from:'2026-03-01',to:'2026-03-31'}); expect(data.segments[0]).toMatchObject({durationMs:1800000,amountOre:12500,rateOre:25000}); expect(data.summary.workedAmountOre).toBe(12500); expect(data.openEntries[0].id).toBe('old'); expect(data.people[0].full_name).toBe('Me'); expect(mock.from).not.toHaveBeenCalledWith('profiles') })
 it.each(['9007199254740993', '1.5', '-1', 'x'])('refuses invalid bigint %s', async value => { mock.rpc.mockReturnValue(query([{...row, duration_ms:value}])); await expect(getHours({from:'2026-03-01',to:'2026-03-31'})).rejects.toThrow() })
 it('pages beyond PostgREST cap without dropping segments', async () => { mock.rpc.mockReturnValue(query(Array.from({length:1001},(_,i)=>({...row,source_id:String(i)})))); const data = await getHours({from:'2026-03-01',to:'2026-03-31'}); expect(data.segments).toHaveLength(1001); expect(mock.pages).toContainEqual([1000,1999]) })
 it('rejects export for workers before data access', async () => { await expect(loadHoursExport('2026-03')).rejects.toThrow('denied'); expect(mock.rpc).not.toHaveBeenCalled() })
 it('exports only time rows with inactive names and exact known subtotal', async () => { mock.role='owner'; mock.rpc.mockReturnValue(query([row,{...row,source_kind:'shift',amount_ore:999}])); mock.from.mockImplementation(table=>query(table==='profiles'?[{id:'me',full_name:'Inactive',active:false}]:[])); const data=await loadHoursExport('2026-03'); expect(data.rows).toHaveLength(1); expect(data.rows[0].personName).toBe('Inactive'); expect(data.knownAmountOre).toBe(12500) })
+
+
+it('loads all shared memberships, resolves names and filters own tasks by membership', async () => {
+  const { getMyTasks } = await import('./queries')
+  mock.from.mockImplementation(table => query(table === 'work_tasks' ? [
+    {id:'shared',title:'Shared',completed_by:'peer',status:'done'}, {id:'other',title:'Other'}
+  ] : table === 'work_task_assignees' ? [
+    {task_id:'shared',profile_id:'me'}, {task_id:'shared',profile_id:'peer'}, {task_id:'other',profile_id:'peer'}
+  ] : [{id:'me',full_name:'Anne'}, {id:'peer',full_name:'Berit'}]))
+  const tasks = await getMyTasks()
+  expect(tasks).toHaveLength(1)
+  expect(tasks[0]).toMatchObject({id:'shared',status:'done',completedByName:'Berit',assignees:[{id:'me',name:'Anne'},{id:'peer',name:'Berit'}]})
+})
+it('paginates assignees beyond the API cap and retains unassigned board tasks', async () => {
+  const { getTaskBoard } = await import('./queries')
+  mock.role = 'owner'
+  mock.from.mockImplementation(table => query(table === 'work_tasks' ? [{id:'shared'},{id:'unassigned'}] : table === 'work_task_assignees' ? Array.from({length:1001},(_,i)=>({task_id:'shared',profile_id:`person-${i}`})) : []))
+  const tasks = await getTaskBoard(true)
+  expect(tasks[0].assignees).toHaveLength(1001)
+  expect(tasks[1].assignees).toEqual([])
+  expect(mock.pages).toContainEqual([1000,1999])
+})

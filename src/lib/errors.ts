@@ -8,6 +8,7 @@ export function dbErrorToMessage(err: { code?: string; message?: string }): stri
   if (message.includes('PLANNING_NOT_FOUND')) return 'Fant ikke registreringen.'
   if (message.includes('PLANNING_STALE')) return 'Registreringen er endret. Last inn på nytt og kontroller tidspunktene.'
   if (message.includes('PLANNING_PERIOD')) return 'Velg en gyldig periode på høyst 366 dager.'
+  if (message.includes('TASK_INVALID_ASSIGNEES')) return 'Velg høyst 20 gyldige personer.'
   if (message.includes('PLANNING_INACTIVE_PERSON')) return 'Velg en aktiv person.'
   if (message.includes('PLANNING_LOCAL_TIME')) return 'Tidspunktet er ugyldig eller tvetydig ved overgang til sommer- eller vintertid. Velg et annet tidspunkt.'
   if (message.includes('PLANNING_WEEK')) return 'Velg en mandag som ukestart.'

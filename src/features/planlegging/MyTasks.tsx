@@ -10,7 +10,7 @@ export function TaskDescription({ task, today }: { task: WorkTask; today: string
     <h3 className="a-h2 break-words">{task.title}</h3>
     {task.important && <strong>Viktig</strong>}
     {task.description && <p className="whitespace-pre-wrap break-words">{task.description}</p>}
-    <p>{task.assigneeName ?? 'Ikke tildelt'}</p>
+    <p>{task.assignees.map(a => a.name).join(', ') || 'Ikke tildelt'}</p>
     {task.due_date && <p className={overdue ? 'a-msg-error' : ''}>{overdue ? 'Forfalt' : 'Frist'}: {task.due_date}</p>}
     <p>{TASK_STATUS_LABEL[task.status]}</p>
     {task.completed_at && <p>Fullført {formatDateTime(task.completed_at)} · {task.completedByName}</p>}

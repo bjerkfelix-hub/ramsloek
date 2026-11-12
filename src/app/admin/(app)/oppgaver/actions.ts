@@ -15,35 +15,43 @@ export async function saveTask(form: FormData): Promise<ActionResult & { id?: st
   const id = text(form, 'id'), title = text(form, 'title')
   if (!UUID.test(id)) return failure('PLANNING_NOT_FOUND')
   if (!title || title.length > 200) return { ok: false, error: 'Skriv en tittel på mellom 1 og 200 tegn.' }
-  const description = text(form, 'description') || null, assigned_to = text(form, 'assigned_to') || null, due_date = text(form, 'due_date') || null
+  const description = text(form, 'description') || null, due_date = text(form, 'due_date') || null
   if (description && description.length > 10000) return { ok: false, error: 'Beskrivelsen kan ha høyst 10 000 tegn.' }
-  if (assigned_to && !UUID.test(assigned_to)) return failure('PLANNING_INACTIVE_PERSON')
+  const people = form.getAll('assignees')
+  if (people.length > 20 || people.some(person => typeof person !== 'string' || !UUID.test(person))) return failure('TASK_INVALID_ASSIGNEES')
+  const assignees = [...new Set(people as string[])]
   if (due_date && !parsePeriod(due_date, due_date)) return { ok: false, error: 'Velg en gyldig dato.' }
-  const payload = { title, description, assigned_to, due_date, important: ['on','true'].includes(text(form, 'important')) }
+  const payload = { title, description, due_date, important: ['on','true'].includes(text(form, 'important')) }
   const client = await createClient()
-  const lookup = () => client.from('work_tasks').select('title, description, assigned_to, due_date, important, archived_at').eq('id', id).maybeSingle()
+  const lookup = () => client.from('work_tasks').select('title, description, due_date, important, archived_at').eq('id', id).maybeSingle()
   const existing = await lookup()
   if (existing.error) return { ok: false, error: dbErrorToMessage(existing.error) }
   const identical = (row: NonNullable<typeof existing.data>) => Object.entries(payload).every(([key,value]) => row[key as keyof typeof payload] === value)
   if (text(form, 'intent') === 'edit') {
     if (!existing.data) return failure('PLANNING_NOT_FOUND')
     if (existing.data.archived_at) return failure('TASK_ARCHIVED')
-    const { data, error } = await client.from('work_tasks').update(payload).eq('id', id).select('id')
-    if (error) return { ok: false, error: dbErrorToMessage(error) }
-    if (!data?.length) {
-      const current = await lookup()
-      if (current.error) return { ok: false, error: dbErrorToMessage(current.error) }
-      if (!current.data || current.data.archived_at || !identical(current.data)) return failure('PLANNING_NOT_FOUND')
+    if (!identical(existing.data)) {
+      const { data, error } = await client.from('work_tasks').update(payload).eq('id', id).select('id')
+      if (error) return { ok: false, error: dbErrorToMessage(error) }
+      if (!data?.length) {
+        const current = await lookup()
+        if (current.error) return { ok: false, error: dbErrorToMessage(current.error) }
+        if (!current.data || current.data.archived_at || !identical(current.data)) return failure('PLANNING_NOT_FOUND')
+      }
     }
   } else if (existing.data) {
+    if (existing.data.archived_at) return failure('TASK_ARCHIVED')
     if (!identical(existing.data)) return failure('PLANNING_STALE')
   } else {
     const { error } = await client.from('work_tasks').insert({ id, ...payload })
     if (error) {
-      if (error.code === '23505') { const retry = await lookup(); if (!retry.error && retry.data && identical(retry.data)) { refresh(); return { ok: true, id } } }
-      return { ok: false, error: dbErrorToMessage(error) }
+      if (error.code !== '23505') return { ok: false, error: dbErrorToMessage(error) }
+      const retry = await lookup()
+      if (retry.error || !retry.data || retry.data.archived_at || !identical(retry.data)) return failure('PLANNING_STALE')
     }
   }
+  const assigned = await client.rpc('set_work_task_assignees', { p_task_id: id, p_people: assignees })
+  if (assigned.error) return { ok: false, error: dbErrorToMessage(assigned.error) }
   refresh(); return { ok: true, id }
 }
 export async function setTaskStatus(id: string, status: TaskStatus): Promise<ActionResult> {
@@ -64,12 +72,15 @@ export async function completeTask(id: string): Promise<ActionResult> {
   const me = await requireRole('owner','picker','seller')
   if (!UUID.test(id)) return failure('PLANNING_NOT_FOUND')
   const client = await createClient()
-  const { data, error } = await client.from('work_tasks').update({ status: 'done' }).eq('id', id).eq('assigned_to', me.id).is('archived_at', null).select('id')
+  const membership = await client.from('work_task_assignees').select('task_id').eq('task_id', id).eq('profile_id', me.id).maybeSingle()
+  if (membership.error) return { ok: false, error: dbErrorToMessage(membership.error) }
+  if (!membership.data) return failure('PLANNING_NOT_FOUND')
+  const { data, error } = await client.from('work_tasks').update({ status: 'done' }).eq('id', id).is('archived_at', null).select('id')
   if (error) return { ok: false, error: dbErrorToMessage(error) }
   if (!data?.length) {
-    const current = await client.from('work_tasks').select('status, assigned_to, archived_at').eq('id', id).maybeSingle()
+    const current = await client.from('work_tasks').select('status, archived_at').eq('id', id).maybeSingle()
     if (current.error) return { ok: false, error: dbErrorToMessage(current.error) }
-    if (!current.data || current.data.archived_at || current.data.assigned_to !== me.id || current.data.status !== 'done') return failure('PLANNING_NOT_FOUND')
+    if (!current.data || current.data.archived_at || current.data.status !== 'done') return failure('PLANNING_NOT_FOUND')
   }
   refresh(); return { ok: true }
 }

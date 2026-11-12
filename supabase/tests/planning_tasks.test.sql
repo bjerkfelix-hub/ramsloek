@@ -4,16 +4,20 @@ create extension if not exists pgtap with schema extensions;
 select no_plan();
 select has_table('public', 'work_tasks', 'task board storage exists');
 create function tests.task(p_person uuid default null, p_status text default 'todo', p_extra jsonb default '{}')
-returns uuid language sql as $$
-  insert into public.work_tasks(id, title, description, assigned_to, due_date, important, status,
+returns uuid language plpgsql as $$
+declare v_id uuid;
+begin
+  insert into public.work_tasks(id, title, description, due_date, important, status,
     created_by, created_at, updated_at, completed_at, completed_by, archived_at, archived_by)
   select coalesce(t.id, gen_random_uuid()), coalesce(t.title, 'Fixture task'), t.description,
-    t.assigned_to, t.due_date, coalesce(t.important, false), t.status,
+    t.due_date, coalesce(t.important, false), t.status,
     coalesce(t.created_by, auth.uid()), t.created_at, t.updated_at,
     t.completed_at, t.completed_by, t.archived_at, t.archived_by
   from jsonb_populate_record(null::public.work_tasks,
-    jsonb_build_object('assigned_to', p_person, 'status', p_status) || p_extra) t returning id
-$$;
+    jsonb_build_object('status', p_status) || p_extra) t returning id into v_id;
+  if p_person is not null then perform public.set_work_task_assignees(v_id, array[p_person]); end if;
+  return v_id;
+end $$;
 grant execute on function tests.task(uuid,text,jsonb) to authenticated;
 select tests.login_as('picker') as picker_a \gset
 select tests.login_as('picker') as picker_b \gset
@@ -41,19 +45,20 @@ select tests.task(null, 'done', jsonb_build_object('completed_at','2000-01-01Z',
 select is((select completed_by from public.work_tasks where id = :'inserted_done'), :'owner_id'::uuid, 'insert done actor is owner');
 select is((select completed_at from public.work_tasks where id = :'inserted_done'), date_trunc('milliseconds',now()), 'insert done time is DB time');
 select is((select created_at = updated_at and created_at = completed_at from public.work_tasks where id = :'inserted_done'), true, 'insert timestamps cannot be spoofed');
-update public.work_tasks set assigned_to = :'picker_a' where id = :'managed';
-select is((select assigned_to from public.work_tasks where id = :'managed'), :'picker_a'::uuid, 'owner assigns picker_a');
-update public.work_tasks set assigned_to = :'picker_b' where id = :'managed';
-select is((select assigned_to from public.work_tasks where id = :'managed'), :'picker_b'::uuid, 'owner assigns picker_b');
-update public.work_tasks set assigned_to = :'seller_a' where id = :'managed';
-select is((select assigned_to from public.work_tasks where id = :'managed'), :'seller_a'::uuid, 'owner assigns seller_a');
-update public.work_tasks set assigned_to = :'seller_b' where id = :'managed';
-select is((select assigned_to from public.work_tasks where id = :'managed'), :'seller_b'::uuid, 'owner assigns seller_b');
-update public.work_tasks set assigned_to = :'owner_id' where id = :'managed';
-select is((select assigned_to from public.work_tasks where id = :'managed'), :'owner_id'::uuid, 'owner assigns owner_id');
-update public.work_tasks set title = ' Edited task ', description = 'Description', due_date = '2026-11-10', important = true, status = 'in_progress', assigned_to = null where id = :'managed';
+select public.set_work_task_assignees(:'managed', array[:'picker_a'::uuid]);
+select is((select profile_id from public.work_task_assignees where task_id = :'managed'), :'picker_a'::uuid, 'owner assigns picker_a');
+select public.set_work_task_assignees(:'managed', array[:'picker_b'::uuid]);
+select is((select profile_id from public.work_task_assignees where task_id = :'managed'), :'picker_b'::uuid, 'owner assigns picker_b');
+select public.set_work_task_assignees(:'managed', array[:'seller_a'::uuid]);
+select is((select profile_id from public.work_task_assignees where task_id = :'managed'), :'seller_a'::uuid, 'owner assigns seller_a');
+select public.set_work_task_assignees(:'managed', array[:'seller_b'::uuid]);
+select is((select profile_id from public.work_task_assignees where task_id = :'managed'), :'seller_b'::uuid, 'owner assigns seller_b');
+select public.set_work_task_assignees(:'managed', array[:'owner_id'::uuid]);
+select is((select profile_id from public.work_task_assignees where task_id = :'managed'), :'owner_id'::uuid, 'owner assigns owner_id');
+update public.work_tasks set title = ' Edited task ', description = 'Description', due_date = '2026-11-10', important = true, status = 'in_progress' where id = :'managed';
+select public.set_work_task_assignees(:'managed', '{}');
 select is((select title from public.work_tasks where id = :'managed'), 'Edited task', 'owner title trimmed');
-select ok((select description = 'Description' and due_date = '2026-11-10' and important and status = 'in_progress' and assigned_to is null from public.work_tasks where id = :'managed'), 'owner manages all business fields and clears assignee');
+select ok((select description = 'Description' and due_date = '2026-11-10' and important and status = 'in_progress' and not exists(select from public.work_task_assignees where task_id = :'managed') from public.work_tasks where id = :'managed'), 'owner manages all business fields and clears assignee');
 update public.work_tasks set status = 'done', completed_by = :'picker_a', completed_at = '2000-01-01Z' where id = :'managed';
 select is((select completed_by from public.work_tasks where id = :'managed'), :'owner_id'::uuid, 'owner completion stamps owner rather than assignee');
 update public.work_tasks set status = 'todo' where id = :'managed';
@@ -71,8 +76,8 @@ select tests.task(:'seller_b', 'in_progress') as seller_b_progress \gset
 
 select tests.login_as_user(:'picker_a');
 select is((select count(*) from public.work_tasks), 2::bigint, 'picker_a reads assigned only');
-select is((select count(*) from public.work_tasks where assigned_to is distinct from auth.uid()), 0::bigint, 'picker_a cannot see peers or unassigned');
-select is((select count(*) from public.profiles p join public.work_tasks t on t.assigned_to = p.id where p.id <> auth.uid()), 0::bigint, 'picker_a joins cannot leak peer tasks');
+select is((select count(*) from public.work_tasks where not public.is_work_task_assignee(id)), 0::bigint, 'picker_a cannot see peers or unassigned');
+select is((select count(*) from public.profiles p join public.work_task_assignees a on a.profile_id = p.id join public.work_tasks t on t.id = a.task_id where p.id <> auth.uid()), 0::bigint, 'picker_a joins cannot leak peer tasks');
 select is((select count(*) from public.audit_log), 0::bigint, 'picker_a cannot read audit');
 select throws_ok($$select tests.task(auth.uid())$$, '42501', null, 'picker_a insert denied');
 select throws_ok($$select public.archive_work_task(gen_random_uuid())$$, '42501', null, 'picker_a archive denied before lookup');
@@ -81,8 +86,6 @@ select throws_ok(format('update public.work_tasks set title = ''Forged'' where i
 select throws_ok(format('update public.work_tasks set title = ''Forged'', status = ''done'' where id = %L', :'picker_a_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'picker_a cannot edit title with done');
 select throws_ok(format('update public.work_tasks set description = ''Forged'' where id = %L', :'picker_a_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'picker_a cannot edit description');
 select throws_ok(format('update public.work_tasks set description = ''Forged'', status = ''done'' where id = %L', :'picker_a_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'picker_a cannot edit description with done');
-select throws_ok(format('update public.work_tasks set assigned_to = %L where id = %L', :'owner_id', :'picker_a_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'picker_a cannot edit assigned_to');
-select throws_ok(format('update public.work_tasks set assigned_to = %L, status = ''done'' where id = %L', :'owner_id', :'picker_a_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'picker_a cannot edit assigned_to with done');
 select throws_ok(format('update public.work_tasks set due_date = ''2026-01-01'' where id = %L', :'picker_a_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'picker_a cannot edit due_date');
 select throws_ok(format('update public.work_tasks set due_date = ''2026-01-01'', status = ''done'' where id = %L', :'picker_a_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'picker_a cannot edit due_date with done');
 select throws_ok(format('update public.work_tasks set important = true where id = %L', :'picker_a_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'picker_a cannot edit important');
@@ -113,8 +116,8 @@ with changed as (update public.work_tasks set status = 'done' where id = :'owner
 
 select tests.login_as_user(:'picker_b');
 select is((select count(*) from public.work_tasks), 2::bigint, 'picker_b reads assigned only');
-select is((select count(*) from public.work_tasks where assigned_to is distinct from auth.uid()), 0::bigint, 'picker_b cannot see peers or unassigned');
-select is((select count(*) from public.profiles p join public.work_tasks t on t.assigned_to = p.id where p.id <> auth.uid()), 0::bigint, 'picker_b joins cannot leak peer tasks');
+select is((select count(*) from public.work_tasks where not public.is_work_task_assignee(id)), 0::bigint, 'picker_b cannot see peers or unassigned');
+select is((select count(*) from public.profiles p join public.work_task_assignees a on a.profile_id = p.id join public.work_tasks t on t.id = a.task_id where p.id <> auth.uid()), 0::bigint, 'picker_b joins cannot leak peer tasks');
 select is((select count(*) from public.audit_log), 0::bigint, 'picker_b cannot read audit');
 select throws_ok($$select tests.task(auth.uid())$$, '42501', null, 'picker_b insert denied');
 select throws_ok($$select public.archive_work_task(gen_random_uuid())$$, '42501', null, 'picker_b archive denied before lookup');
@@ -123,8 +126,6 @@ select throws_ok(format('update public.work_tasks set title = ''Forged'' where i
 select throws_ok(format('update public.work_tasks set title = ''Forged'', status = ''done'' where id = %L', :'picker_b_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'picker_b cannot edit title with done');
 select throws_ok(format('update public.work_tasks set description = ''Forged'' where id = %L', :'picker_b_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'picker_b cannot edit description');
 select throws_ok(format('update public.work_tasks set description = ''Forged'', status = ''done'' where id = %L', :'picker_b_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'picker_b cannot edit description with done');
-select throws_ok(format('update public.work_tasks set assigned_to = %L where id = %L', :'owner_id', :'picker_b_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'picker_b cannot edit assigned_to');
-select throws_ok(format('update public.work_tasks set assigned_to = %L, status = ''done'' where id = %L', :'owner_id', :'picker_b_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'picker_b cannot edit assigned_to with done');
 select throws_ok(format('update public.work_tasks set due_date = ''2026-01-01'' where id = %L', :'picker_b_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'picker_b cannot edit due_date');
 select throws_ok(format('update public.work_tasks set due_date = ''2026-01-01'', status = ''done'' where id = %L', :'picker_b_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'picker_b cannot edit due_date with done');
 select throws_ok(format('update public.work_tasks set important = true where id = %L', :'picker_b_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'picker_b cannot edit important');
@@ -155,8 +156,8 @@ with changed as (update public.work_tasks set status = 'done' where id = :'owner
 
 select tests.login_as_user(:'seller_a');
 select is((select count(*) from public.work_tasks), 2::bigint, 'seller_a reads assigned only');
-select is((select count(*) from public.work_tasks where assigned_to is distinct from auth.uid()), 0::bigint, 'seller_a cannot see peers or unassigned');
-select is((select count(*) from public.profiles p join public.work_tasks t on t.assigned_to = p.id where p.id <> auth.uid()), 0::bigint, 'seller_a joins cannot leak peer tasks');
+select is((select count(*) from public.work_tasks where not public.is_work_task_assignee(id)), 0::bigint, 'seller_a cannot see peers or unassigned');
+select is((select count(*) from public.profiles p join public.work_task_assignees a on a.profile_id = p.id join public.work_tasks t on t.id = a.task_id where p.id <> auth.uid()), 0::bigint, 'seller_a joins cannot leak peer tasks');
 select is((select count(*) from public.audit_log), 0::bigint, 'seller_a cannot read audit');
 select throws_ok($$select tests.task(auth.uid())$$, '42501', null, 'seller_a insert denied');
 select throws_ok($$select public.archive_work_task(gen_random_uuid())$$, '42501', null, 'seller_a archive denied before lookup');
@@ -165,8 +166,6 @@ select throws_ok(format('update public.work_tasks set title = ''Forged'' where i
 select throws_ok(format('update public.work_tasks set title = ''Forged'', status = ''done'' where id = %L', :'seller_a_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'seller_a cannot edit title with done');
 select throws_ok(format('update public.work_tasks set description = ''Forged'' where id = %L', :'seller_a_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'seller_a cannot edit description');
 select throws_ok(format('update public.work_tasks set description = ''Forged'', status = ''done'' where id = %L', :'seller_a_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'seller_a cannot edit description with done');
-select throws_ok(format('update public.work_tasks set assigned_to = %L where id = %L', :'owner_id', :'seller_a_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'seller_a cannot edit assigned_to');
-select throws_ok(format('update public.work_tasks set assigned_to = %L, status = ''done'' where id = %L', :'owner_id', :'seller_a_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'seller_a cannot edit assigned_to with done');
 select throws_ok(format('update public.work_tasks set due_date = ''2026-01-01'' where id = %L', :'seller_a_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'seller_a cannot edit due_date');
 select throws_ok(format('update public.work_tasks set due_date = ''2026-01-01'', status = ''done'' where id = %L', :'seller_a_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'seller_a cannot edit due_date with done');
 select throws_ok(format('update public.work_tasks set important = true where id = %L', :'seller_a_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'seller_a cannot edit important');
@@ -197,8 +196,8 @@ with changed as (update public.work_tasks set status = 'done' where id = :'owner
 
 select tests.login_as_user(:'seller_b');
 select is((select count(*) from public.work_tasks), 2::bigint, 'seller_b reads assigned only');
-select is((select count(*) from public.work_tasks where assigned_to is distinct from auth.uid()), 0::bigint, 'seller_b cannot see peers or unassigned');
-select is((select count(*) from public.profiles p join public.work_tasks t on t.assigned_to = p.id where p.id <> auth.uid()), 0::bigint, 'seller_b joins cannot leak peer tasks');
+select is((select count(*) from public.work_tasks where not public.is_work_task_assignee(id)), 0::bigint, 'seller_b cannot see peers or unassigned');
+select is((select count(*) from public.profiles p join public.work_task_assignees a on a.profile_id = p.id join public.work_tasks t on t.id = a.task_id where p.id <> auth.uid()), 0::bigint, 'seller_b joins cannot leak peer tasks');
 select is((select count(*) from public.audit_log), 0::bigint, 'seller_b cannot read audit');
 select throws_ok($$select tests.task(auth.uid())$$, '42501', null, 'seller_b insert denied');
 select throws_ok($$select public.archive_work_task(gen_random_uuid())$$, '42501', null, 'seller_b archive denied before lookup');
@@ -207,8 +206,6 @@ select throws_ok(format('update public.work_tasks set title = ''Forged'' where i
 select throws_ok(format('update public.work_tasks set title = ''Forged'', status = ''done'' where id = %L', :'seller_b_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'seller_b cannot edit title with done');
 select throws_ok(format('update public.work_tasks set description = ''Forged'' where id = %L', :'seller_b_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'seller_b cannot edit description');
 select throws_ok(format('update public.work_tasks set description = ''Forged'', status = ''done'' where id = %L', :'seller_b_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'seller_b cannot edit description with done');
-select throws_ok(format('update public.work_tasks set assigned_to = %L where id = %L', :'owner_id', :'seller_b_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'seller_b cannot edit assigned_to');
-select throws_ok(format('update public.work_tasks set assigned_to = %L, status = ''done'' where id = %L', :'owner_id', :'seller_b_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'seller_b cannot edit assigned_to with done');
 select throws_ok(format('update public.work_tasks set due_date = ''2026-01-01'' where id = %L', :'seller_b_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'seller_b cannot edit due_date');
 select throws_ok(format('update public.work_tasks set due_date = ''2026-01-01'', status = ''done'' where id = %L', :'seller_b_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'seller_b cannot edit due_date with done');
 select throws_ok(format('update public.work_tasks set important = true where id = %L', :'seller_b_todo'), 'P0001', 'TASK_COMPLETION_ONLY', 'seller_b cannot edit important');
@@ -242,8 +239,8 @@ select is((select status from public.work_tasks where id = :'owner_task'), 'todo
 select tests.task(:'picker_a') as reassigned \gset
 select tests.task(:'picker_a') as cleared \gset
 select tests.task(:'picker_a', 'done') as archived \gset
-update public.work_tasks set assigned_to = :'seller_a' where id = :'reassigned';
-update public.work_tasks set assigned_to = null where id = :'cleared';
+select public.set_work_task_assignees(:'reassigned', array[:'seller_a'::uuid]);
+select public.set_work_task_assignees(:'cleared', '{}');
 select to_jsonb(t) - array['archived_at','archived_by','updated_at'] as before_archive from public.work_tasks t where id = :'archived' \gset
 select public.archive_work_task(:'archived');
 select is((select archived_by from public.work_tasks where id = :'archived'), :'owner_id'::uuid, 'archive actor is caller');
@@ -258,7 +255,7 @@ select throws_ok($$select public.archive_work_task('00000000-0000-0000-0000-0000
 select tests.task(:'seller_b') as forged_archive \gset
 update public.work_tasks set archived_at = '2000-01-01Z', archived_by = :'picker_a', updated_at = '2000-01-01Z' where id = :'forged_archive';
 select ok((select archived_by = auth.uid() and archived_at = date_trunc('milliseconds',now()) and updated_at = archived_at from public.work_tasks where id = :'forged_archive'), 'archive metadata cannot be spoofed');
-select throws_ok(format('update public.work_tasks set assigned_to = %L where id = %L', :'inactive', :'managed'), 'P0001', 'PLANNING_INACTIVE_PERSON', 'reassignment to inactive denied');
+select throws_ok(format('select public.set_work_task_assignees(%L, array[%L::uuid])', :'managed', :'inactive'), 'P0001', 'PLANNING_INACTIVE_PERSON', 'reassignment to inactive denied');
 select tests.login_as_user(:'picker_a');
 select is((select count(*) from public.work_tasks where id = :'archived'), 0::bigint, 'worker cannot read archive');
 with changed as (update public.work_tasks set status = 'done' where id = :'reassigned' returning *) select is((select count(*) from changed), 0::bigint, 'stale reassigned completion affects zero rows');
@@ -285,7 +282,7 @@ select throws_ok($$truncate public.work_tasks$$, '42501', null, 'anon denied tru
 select throws_ok($$select public.archive_work_task(gen_random_uuid())$$, '42501', null, 'anon denied select');
 reset role;
 select ok((select relrowsecurity from pg_class where oid = 'public.work_tasks'::regclass), 'RLS enabled');
-select has_index('public', 'work_tasks', 'work_tasks_assigned_status_due', 'active task index exists');
+select has_index('public', 'work_task_assignees', 'work_task_assignees_profile_task', 'active task index exists');
 select ok(not exists(select from pg_constraint where conrelid = 'public.work_tasks'::regclass and confrelid = 'public.profiles'::regclass and confdeltype <> 'r'), 'all profile FKs RESTRICT');
 select throws_ok(format('delete from public.profiles where id = %L', :'seller_b'), '23503', null, 'task history restricts parent deletion');
 select throws_ok($$delete from public.work_tasks$$, 'P0001', 'PLANNING_NO_DELETE', 'postgres delete blocked');
@@ -308,10 +305,10 @@ select throws_ok($$delete from public.work_tasks$$, '42501', null, 'owner delete
 select throws_ok(format('update public.work_tasks set id = gen_random_uuid() where id = %L', :'managed'), 'P0001', 'PLANNING_IMMUTABLE', 'owner cannot edit id');
 select throws_ok(format('update public.work_tasks set created_by = %L where id = %L', :'seller_a', :'managed'), 'P0001', 'PLANNING_IMMUTABLE', 'owner cannot edit created_by');
 select throws_ok(format('update public.work_tasks set created_at = ''2000-01-01Z'' where id = %L', :'managed'), 'P0001', 'PLANNING_IMMUTABLE', 'owner cannot edit created_at');
-select ok(exists(select from public.audit_log where row_id = :'reassigned' and data->'old'->>'assigned_to' = :'picker_a' and data->'new'->>'assigned_to' = :'seller_a' and actor = :'owner_id'), 'assignment audit old/new actor');
+select ok(exists(select from public.audit_log where row_id = :'reassigned' and table_name = 'work_task_assignees' and action = 'DELETE' and data->'old'->>'profile_id' = :'picker_a' and actor = :'owner_id'), 'assignment audit old/new actor');
 select ok(exists(select from public.audit_log where row_id = :'seller_a_todo' and data->'old'->>'status' = 'todo' and data->'new'->>'status' = 'done' and actor = :'seller_a'), 'completion audit old/new actor');
 select ok(exists(select from public.audit_log where row_id = :'archived' and data->'old'->>'archived_at' is null and data->'new'->>'archived_at' is not null and actor = :'owner_id'), 'archive audit old/new actor');
-select is((select count(*) from public.audit_log where row_id = :'seller_a_todo' and action = 'UPDATE'), 1::bigint, 'repeated completion produces no audit update');
+select is((select count(*) from public.audit_log where row_id = :'seller_a_todo' and table_name = 'work_tasks' and action = 'UPDATE' and data->'new'->>'status' = 'done'), 1::bigint, 'repeated completion produces no audit update');
 select ok(exists(select from public.audit_log where row_id = :'managed' and action = 'INSERT' and data->'new'->>'title' = 'Fixture task'), 'insert audit wraps new');
 select tests.logout();
 grant delete on public.work_tasks to authenticated;

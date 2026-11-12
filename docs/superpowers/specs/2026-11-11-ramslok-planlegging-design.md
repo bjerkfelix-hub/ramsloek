@@ -225,7 +225,6 @@ It updates on reads without a job. Owner closes/fixes the row; worker can still 
 | id | uuid PK | Form-generated once for creation retries |
 | title | text not null | Trimmed length 1–200 |
 | description | text nullable | Length ≤10000 |
-| assigned_to | uuid nullable FK profiles | Active person of any role on assignment |
 | due_date | date nullable | Oslo date; past dates allowed |
 | important | boolean not null default false | |
 | status | text not null default 'todo' | Check `todo`, `in_progress`, `done` |
@@ -234,7 +233,17 @@ It updates on reads without a job. Owner closes/fixes the row; worker can still 
 | created_by | uuid not null default auth.uid() FK profiles | Caller on insert; immutable |
 | created_at, updated_at | timestamptz(3) not null | Server-set |
 
-Index `(assigned_to, status, due_date) WHERE archived_at IS NULL`. Owner can insert/edit,
+Owner-approved amendment, 2026-11-12: `work_task_assignees` stores zero or more
+`(task_id, profile_id)` memberships with `added_by` and `added_at`; index `(profile_id,
+task_id)`. There is one shared status and completion actor/time: any assignee can
+complete the task for everyone. The owner-only `set_work_task_assignees` RPC replaces
+the set atomically under a task-row lock, deduplicates input, validates only new
+people as active, and changes the task timestamp only when memberships change.
+Memberships are SELECT-only for authenticated users. Workers see all memberships of
+their non-archived tasks through a security-definer membership helper. Existing
+profiles RLS already permits colleague names and remains unchanged.
+
+Owner can insert/edit,
 move status, assign/unassign, and archive. Owner may complete unassigned tasks; completing
 an already completed task preserves its original actor/time. Reopening clears completion
 metadata. Archiving preserves business fields, status and completion. Archived rows cannot
@@ -245,7 +254,7 @@ Owner inserts/updates also cannot spoof server actor/time fields.
 
 Worker UPDATE whitelist: own currently assigned non-archived task, status only to `done`.
 Compare **all other business/identity fields** to OLD, rejecting edits to title, description,
-assignee, due date, important, archive metadata or creation metadata. Guard stamps
+due date, important, archive metadata or creation metadata. Membership changes require the owner RPC. Guard stamps
 completed_by/time itself and ignores forged completion/update timestamps. Repeating done
 is a no-op preserving metadata. Workers cannot set `in_progress`, reopen or archive.
 An owner assigned a task retains full owner rights. An unassigned task is owner-only.
@@ -282,7 +291,7 @@ Cancellation/archival RPCs check role before row lookup and never accept actor/t
 ### 3.6 RLS and grants (each cell tested separately)
 
 `own` means `profile_id = auth.uid()` and active `app_role()`; `assigned` means
-`assigned_to = auth.uid() AND archived_at IS NULL`. Owner means active owner.
+`is_work_task_assignee(id) AND archived_at IS NULL`. Owner means active owner.
 S/I/U below describe table operations subject to guards, not unrestricted column writes.
 
 | Table | owner | picker | seller | inactive / anon |
@@ -428,7 +437,7 @@ entries and missing-rate count before download. **Last ned Excel** calls
 ### 4.6 `/admin/oppgaver`
 
 Owner: full board, **Å gjøre / Pågår / Ferdig**, with **Ny oppgave**, edit sheet, explicit
-status controls, importance marker, assignee and due date. Show completion actor/time on
+status controls, importance marker, all assignee names and due date. The form uses touch-sized checkboxes; no selection means unassigned. Show completion actor/time on
 done cards/detail and **Arkiver**. An archived filter shows read-only history. Sort each
 column: important first, due date ascending (null last), created_at then id.
 
@@ -564,3 +573,21 @@ employment contracts, posting wages into Regnskap, notifications/e-mail, GPS/geo
 offline clock queues, attendance approval/period locking, time-entry manual creation,
 rate effective-date history/repricing, recurring schedules beyond copy-next-week,
 worker scheduling changes, task comments/attachments and task hard deletion.
+
+
+## 2026-11-12 implementation deviations
+
+- `audit_row_with_old` previously required `new.id` and did not support DELETE.
+  It now also accepts a membership's `task_id` as `row_id`, records DELETE as
+  `data.old`, and otherwise preserves the existing INSERT/UPDATE payload format.
+  The profile part of the composite key remains in the payload. This lets one audit
+  trigger record additions and removals without a separate removal log.
+- The completed-task guard normally skips timestamp-only updates. The assignee RPC
+  uses a task-specific transaction-local context, restored after the update, so an
+  actual membership change also updates a completed task. Only the owner's no-op
+  timestamp branch observes this context; worker checks and restore rules remain.
+- The backfill pgTAP test replays the migration statements recorded by the local
+  reset in `supabase_migrations`, within a rolled-back transaction. Supabase's test
+  runner does not mount the migrations directory for psql includes.
+- Admin home currently contains shortcuts and the clock panel; the worker task list
+  is on `/admin/oppgaver`. No additional task view was introduced on home.

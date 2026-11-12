@@ -18,7 +18,7 @@ test('owner creates, assigns, moves, edits, reopens, archives and restores with 
   const card=page.getByRole('article').filter({hasText:title})
   await expect(card).toContainText('Forfalt'); await expect(card).toContainText('Ikke tildelt'); await expect(card).toContainText('Viktig')
   await card.getByRole('button',{name:'Rediger',exact:true}).click(); dialog=page.getByRole('dialog')
-  await dialog.getByLabel('Person').selectOption(picker.id)
+  await dialog.getByLabel(picker.label,{exact:true}).check()
   await submitPlanning(dialog.getByRole('button',{name:'Lagre',exact:true})); await expect(dialog).not.toBeVisible()
   await card.getByLabel('Status').selectOption('in_progress'); await submitPlanning(card.getByRole('button',{name:'Endre status'}))
   await expect(page.getByRole('region',{name:'Pågår',exact:true}).getByRole('article').filter({hasText:title})).toBeVisible()
@@ -71,7 +71,8 @@ test('owner creates, assigns, moves, edits, reopens, archives and restores with 
 for(const role of ['picker','seller'] as const) test(`${role} private tasks, forged updates and stale reassignment`,async({page})=>{
   const owner=await planningUser('owner'), person=await planningUser(role), other=await planningUser(role==='picker'?'seller':'picker')
   const ids=Array.from({length:4},()=>crypto.randomUUID()), label=`E2E private ${crypto.randomUUID()}`
-  checked(await owner.client.from('work_tasks').insert(ids.map((id,i)=>({id,title:`${label} ${i}`,assigned_to:i===3?other.id:person.id,due_date:i===0?yesterday():todayOslo(),important:i===0,description:'Beskrivelse',status:i===2?'done':'todo'}))))
+  checked(await owner.client.from('work_tasks').insert(ids.map((id,i)=>({id,title:`${label} ${i}`,due_date:i===0?yesterday():todayOslo(),important:i===0,description:'Beskrivelse',status:i===2?'done':'todo'}))))
+  for (const [i,id] of ids.entries()) checked(await owner.client.rpc('set_work_task_assignees',{p_task_id:id,p_people:[i===3?other.id:person.id]}))
   await loginPlanning(page,person.email); await page.goto('/admin/oppgaver?archived=1')
   const card=page.getByRole('article').filter({hasText:`${label} 0`})
   await expect(card).toContainText('Forfalt'); await expect(page.getByRole('article').filter({hasText:`${label} 1`}).getByText('Forfalt')).toHaveCount(0)
@@ -79,7 +80,7 @@ for(const role of ['picker','seller'] as const) test(`${role} private tasks, for
   await expect(page.getByText(`${label} 3`)).toHaveCount(0)
   expect(checked(await person.client.from('work_tasks').select('id').in('id',ids)).data).toHaveLength(3)
   const forged=await person.client.from('work_tasks').update({status:'done',title:'Forged',important:false,completed_by:owner.id}).eq('id',ids[0]); expect(forged.error).not.toBeNull()
-  checked(await owner.client.from('work_tasks').update({assigned_to:other.id}).eq('id',ids[0]))
+  checked(await owner.client.rpc('set_work_task_assignees',{p_task_id:ids[0],p_people:[other.id]}))
   await submitPlanning(card.getByRole('button',{name:'Marker som ferdig'}))
   await expect(card.getByRole('alert')).toContainText('Fant ikke registreringen.')
   expect(checked(await owner.client.from('work_tasks').select('status').eq('id',ids[0]).single()).data!.status).toBe('todo')
@@ -117,4 +118,49 @@ test('owner board sorts tasks, Mer exposes planning, and sheets support keyboard
       await page.screenshot({path:`shots/planning-tasks-owner-${width}-${theme}.png`})
     }
   }
+})
+
+
+test('two people share one completion and removal revokes worker access', async ({page}) => {
+  const owner = await planningUser('owner'), first = await planningUser('picker'), second = await planningUser('seller')
+  const title = `E2E shared ${crypto.randomUUID()}`
+  await loginPlanning(page,owner.email); await page.goto('/admin/oppgaver')
+  await page.getByRole('button',{name:'Ny oppgave',exact:true}).click()
+  let dialog = page.getByRole('dialog')
+  await dialog.getByLabel('Tittel').fill(title)
+  await dialog.getByLabel(first.label,{exact:true}).check(); await dialog.getByLabel(second.label,{exact:true}).check()
+  await submitPlanning(dialog.getByRole('button',{name:'Lagre',exact:true}))
+  await expect(dialog).not.toBeVisible()
+  const card = page.getByRole('article').filter({hasText:title})
+  await expect(card).toContainText(first.label); await expect(card).toContainText(second.label)
+  for (const person of [first,second]) {
+    await page.getByLabel('Filtrer etter person').selectOption(person.id)
+    await expect(card).toBeVisible()
+  }
+  await page.getByLabel('Filtrer etter person').selectOption(owner.id); await expect(card).toHaveCount(0)
+  await page.getByLabel('Filtrer etter person').selectOption('')
+  await loginPlanning(page,first.email); await page.goto('/admin/oppgaver')
+  await expect(card).toBeVisible()
+  await submitPlanning(card.getByRole('button',{name:'Marker som ferdig'}))
+  await expect(card).toContainText('Ferdig')
+  await loginPlanning(page,second.email); await page.goto('/admin/oppgaver')
+  await expect(card).toContainText('Ferdig'); await expect(card).toContainText(first.label)
+  await expect(card.getByRole('button',{name:'Marker som ferdig'})).toHaveCount(0)
+  const task = checked(await second.client.from('work_tasks').select('id,completed_by').eq('title',title).single()).data!
+  expect(task.completed_by).toBe(first.id)
+  await loginPlanning(page,owner.email); await page.goto('/admin/oppgaver')
+  await card.getByRole('button',{name:'Rediger',exact:true}).click(); dialog = page.getByRole('dialog')
+  for (const width of [390,1280]) {
+    await page.setViewportSize({width,height:844})
+    for (const theme of ['light','dark'] as const) {
+      await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'})
+      expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
+      await page.screenshot({path:`shots/planning-assignees-${width}-${theme}.png`})
+    }
+  }
+  await page.setViewportSize({width:390,height:844})
+  await dialog.getByLabel(first.label,{exact:true}).uncheck()
+  await submitPlanning(dialog.getByRole('button',{name:'Lagre',exact:true})); await expect(dialog).not.toBeVisible()
+  await loginPlanning(page,first.email); await page.goto('/admin/oppgaver'); await expect(card).toHaveCount(0)
+  expect(checked(await first.client.from('work_tasks').select('id').eq('id',task.id)).data).toHaveLength(0)
 })

@@ -163,29 +163,29 @@ function dayAfter(date: string): string {
 }
 
 export type WorkTask = {
-  id: string; title: string; description: string | null; assigned_to: string | null
+  id: string; title: string; description: string | null; assignees: { id: string; name: string }[]
   due_date: string | null; important: boolean; status: import('@/lib/domain/planning').TaskStatus
   completed_at: string | null; completed_by: string | null; archived_at: string | null
-  created_at: string; assigneeName: string | null; completedByName: string | null
+  created_at: string; completedByName: string | null
 }
-const TASK_FIELDS = 'id, title, description, assigned_to, due_date, important, status, completed_at, completed_by, archived_at, created_at'
+const TASK_FIELDS = 'id, title, description, due_date, important, status, completed_at, completed_by, archived_at, created_at'
 async function loadTasks(profileId: string | null, includeArchived: boolean): Promise<WorkTask[]> {
   const client = await createClient()
-  const tasks = await fetchAll<Omit<WorkTask, 'assigneeName' | 'completedByName'>>((from, to) => {
+  const tasks = await fetchAll<Omit<WorkTask, 'assignees' | 'completedByName'>>((from, to) => {
     let query = client.from('work_tasks').select(TASK_FIELDS).order('important', { ascending: false }).order('due_date', { ascending: true, nullsFirst: false }).order('created_at').order('id')
     if (!includeArchived) query = query.is('archived_at', null)
-    if (profileId) query = query.eq('assigned_to', profileId)
     return query.range(from, to)
   })
-  // Resolve names only for visible tasks; workers never download the owner's board or audit.
-  const ids = [...new Set(tasks.flatMap(t => [t.assigned_to, t.completed_by]).filter((id): id is string => !!id))]
+  const memberships = await fetchAll<{ task_id: string; profile_id: string }>((from, to) => client.from('work_task_assignees').select('task_id, profile_id').order('task_id').order('profile_id').range(from, to))
+  const visible = profileId ? tasks.filter(t => memberships.some(a => a.task_id === t.id && a.profile_id === profileId)) : tasks
+  const ids = [...new Set(visible.flatMap(t => [t.completed_by, ...memberships.filter(a => a.task_id === t.id).map(a => a.profile_id)]).filter((id): id is string => !!id))]
   const names = new Map<string, string>()
   for (let i = 0; i < ids.length; i += 100) {
     const { data, error } = await client.from('profiles').select('id, full_name').in('id', ids.slice(i, i + 100))
     if (error) throw Error('Kunne ikke hente personene. Prøv igjen.')
     for (const person of data ?? []) names.set(person.id, person.full_name)
   }
-  return tasks.map(t => ({ ...t, assigneeName: t.assigned_to ? names.get(t.assigned_to) ?? 'Ukjent' : null, completedByName: t.completed_by ? names.get(t.completed_by) ?? 'Ukjent' : null }))
+  return visible.map(t => ({ ...t, assignees: memberships.filter(a => a.task_id === t.id).map(a => ({ id: a.profile_id, name: names.get(a.profile_id) ?? 'Ukjent' })).sort((a,b) => a.name.localeCompare(b.name, 'nb') || a.id.localeCompare(b.id)), completedByName: t.completed_by ? names.get(t.completed_by) ?? 'Ukjent' : null }))
 }
 export async function getMyTasks(): Promise<WorkTask[]> {
   const me = await requireRole('owner','picker','seller')

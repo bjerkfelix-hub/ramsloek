@@ -9,7 +9,9 @@ export function TaskForm({ people, task }: { people: SchedulePerson[]; task?: Wo
     <input type="hidden" name="id" value={id} /><input type="hidden" name="intent" value={task ? 'edit' : 'create'} />
     <Field label="Tittel"><input name="title" required maxLength={200} defaultValue={task?.title ?? ''} className={inputClass} /></Field>
     <Field label="Beskrivelse"><textarea name="description" maxLength={10000} defaultValue={task?.description ?? ''} className={inputClass} /></Field>
-    <Field label="Person"><select name="assigned_to" defaultValue={task?.assigned_to ?? ''} className={inputClass}><option value="">Ikke tildelt</option>{people.filter(p => p.active || p.id === task?.assigned_to).map(p => <option key={p.id} value={p.id}>{p.full_name}{!p.active && ' (deaktivert)'}</option>)}</select></Field>
+    <fieldset className="space-y-1"><legend className="a-field">Personer</legend><p className="a-muted">Ingen valgt = ikke tildelt.</p>
+      {people.filter(p => p.active || task?.assignees.some(a => a.id === p.id)).map(p => <label key={p.id} className="flex min-h-11 min-w-0 items-center gap-3 py-2 [overflow-wrap:anywhere]"><input type="checkbox" name="assignees" value={p.id} defaultChecked={task?.assignees.some(a => a.id === p.id) ?? false} className="size-5 shrink-0" /><span className="min-w-0">{p.full_name}{!p.active && ' (deaktivert)'}</span></label>)}
+    </fieldset>
     <Field label="Frist"><input type="date" name="due_date" defaultValue={task?.due_date ?? ''} className={inputClass} /></Field>
     <label className="a-field"><span><input name="important" type="checkbox" defaultChecked={task?.important ?? false} /> Viktig</span></label>
   </ActionForm>

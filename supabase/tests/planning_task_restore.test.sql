@@ -5,8 +5,9 @@ select no_plan();
 select tests.login_as('picker') as picker_id \gset
 select tests.login_as('seller') as seller_id \gset
 select tests.login_as('owner') as owner_id \gset
-insert into public.work_tasks(id, title, description, assigned_to, due_date, important, status)
-values (gen_random_uuid(), 'Restore fixture', 'Keep description', :'picker_id', '2026-11-15', true, 'done') returning id as task_id \gset
+insert into public.work_tasks(id, title, description, due_date, important, status)
+values (gen_random_uuid(), 'Restore fixture', 'Keep description', '2026-11-15', true, 'done') returning id as task_id \gset
+select public.set_work_task_assignees(:'task_id', array[:'picker_id'::uuid]);
 select to_jsonb(t) - array['archived_at','archived_by','updated_at'] as original from public.work_tasks t where id = :'task_id' \gset
 select public.archive_work_task(:'task_id');
 select archived_at::text as archived_at from public.work_tasks where id = :'task_id' \gset
