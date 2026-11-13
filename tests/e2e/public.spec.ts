@@ -40,7 +40,7 @@ test('signed-out front page shows the wordmark, season banner and upcoming marke
   const res = await page.goto('/')
   expect(res?.status()).toBe(200)
   await expect(page.locator('html')).toHaveAttribute('lang', 'nb')
-  await expect(page.getByRole('link', { name: 'Nesodden Ramsløk' }).first()).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Ramsløk.no' }).first()).toBeVisible()
   await expect(page.getByTestId('season-banner')).toContainText('I sesong – neste marked:')
 
   const market = page.getByRole('listitem').filter({ hasText: place })

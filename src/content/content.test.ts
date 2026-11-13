@@ -68,9 +68,9 @@ describe('dictionaries', () => {
     expect(en.markets.loadFailed).toBe('Market days could not be loaded right now')
     expect(no.season.offSeason).toBe('Sesongen starter til våren')
     expect(CONTACT_EMAIL).toBe('felix@dontpanic.no')
-    expect(no.home.intro[0]).toBe('Nesodden Ramsløk selger ramsløk fra en privat eiendom på Nesodden. Hvert blad plukkes for hånd.')
+    expect(no.home.intro[0]).toBe('Ramsløk.no selger ramsløk fra en privat eiendom på Nesodden. Hvert blad plukkes for hånd.')
     expect(en.home.intro[0]).toBe(
-      'Nesodden Ramsløk sells wild garlic (ramsløk) from a private estate on Nesodden. Every leaf is picked by hand.',
+      'Ramsløk.no sells wild garlic (ramsløk) from a private estate on Nesodden. Every leaf is picked by hand.',
     )
     expect(no.signup.honeypotLabel).toBe('Ikke fyll ut dette feltet')
     expect(en.signup.honeypotLabel).toBe('Do not fill in this field')

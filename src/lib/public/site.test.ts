@@ -48,7 +48,7 @@ describe("pageSocialMetadata", () => {
       title: "T",
       description: "D",
       url: "https://xn--ramslk-fya.no/en/story",
-      siteName: "Nesodden Ramsløk",
+      siteName: "Ramsløk.no",
       locale: "en_GB",
     });
     expect(m.twitter).toMatchObject({

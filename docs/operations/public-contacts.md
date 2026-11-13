@@ -13,7 +13,7 @@ Interest registered before 1 July is deleted from 1 July that year; later
 registrations belong to the following spring. This uses Europe/Oslo dates.
 
 Set `RESEND_API_KEY` on the server to enable inquiry notification emails. The
-sender is `Nesodden Ramsløk <varsel@xn--ramslk-fya.no>`; the recipient is
+sender is `Ramsløk.no <varsel@xn--ramslk-fya.no>`; the recipient is
 `CONTACT_EMAIL` in `src/content/site.ts`. Configure the sender domain in Resend.
 Notifications have a five-second timeout. Missing configuration or delivery
 failure logs a generic warning and never rolls back a saved inquiry. There is no

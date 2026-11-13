@@ -2,7 +2,7 @@ import type { Dictionary } from './types'
 
 export const en: Dictionary = {
   site: {
-    name: 'Nesodden Ramsløk',
+    name: 'Ramsløk.no',
     tagline: 'Hand-picked wild garlic from Nesodden',
     skipToContent: 'Skip to content',
   },
@@ -21,49 +21,49 @@ export const en: Dictionary = {
   },
   pages: {
     shop: {
-      title: 'Shop – Nesodden Ramsløk',
+      title: 'Shop – Ramsløk.no',
       description: 'Fresh wild garlic from Nesodden at spring markets in Oslo.',
     },
     interest: {
-      title: 'Register interest – Nesodden Ramsløk',
+      title: 'Register interest – Ramsløk.no',
       description: 'Tell us how many bags you are interested in. We will contact you closer to the season. This is not an order.',
     },
     wholesale: {
-      title: 'For restaurants and wholesalers – Nesodden Ramsløk',
+      title: 'For restaurants and wholesalers – Ramsløk.no',
       description: 'Would you like fresh wild garlic for your kitchen or to sell on? Tell us what you need and we will get in touch.',
     },
 
     home: {
-      title: 'Nesodden Ramsløk – hand-picked wild garlic from Nesodden',
+      title: 'Ramsløk.no – hand-picked wild garlic from Nesodden',
       description:
         'Wild garlic (ramsløk) picked by hand on a private estate on Nesodden, sorted and checked for lily of the valley, and sold fresh at Bondens marked in Oslo.',
     },
     story: {
-      title: 'Our story – Nesodden Ramsløk',
+      title: 'Our story – Ramsløk.no',
       description:
         'From a private estate on Nesodden to the market stall in Oslo. How we pick and check our wild garlic, and how to tell it from lily of the valley.',
     },
     recipes: {
-      title: 'Wild garlic recipes – Nesodden Ramsløk',
+      title: 'Wild garlic recipes – Ramsløk.no',
       description:
         'Six simple wild garlic recipes: pesto, butter, oil, soup, scrambled eggs and lacto-fermented wild garlic.',
     },
     markets: {
-      title: 'Markets – where and when to find us | Nesodden Ramsløk',
+      title: 'Markets – where and when to find us | Ramsløk.no',
       description:
         'Upcoming market days in Oslo with date, time and place. Meet us at Bondens marked and buy fresh wild garlic.',
     },
     privacy: {
-      title: 'Privacy – Nesodden Ramsløk',
+      title: 'Privacy – Ramsløk.no',
       description:
         'What we store when you sign up for the season notice, why, for how long, and what rights you have.',
     },
     unsubscribe: {
-      title: 'Unsubscribe – Nesodden Ramsløk',
-      description: 'Unsubscribe from the season notice from Nesodden Ramsløk.',
+      title: 'Unsubscribe – Ramsløk.no',
+      description: 'Unsubscribe from the season notice from Ramsløk.no.',
     },
     notFound: {
-      title: 'Page not found – Nesodden Ramsløk',
+      title: 'Page not found – Ramsløk.no',
       description: 'We could not find the page you are looking for.',
     },
   },
@@ -82,13 +82,13 @@ export const en: Dictionary = {
   interest: {
     heading: 'Register interest',
     lead: 'Tell us how many bags you are interested in. We will contact you closer to the season. This is not an order.',
-    consentText: 'I consent to Nesodden Ramsløk storing my details and contacting me about my interest this season. My details will be deleted when the season ends. I can withdraw consent at any time.',
+    consentText: 'I consent to Ramsløk.no storing my details and contacting me about my interest this season. My details will be deleted when the season ends. I can withdraw consent at any time.',
     success: 'Thank you! Your interest has been registered.',
   },
   wholesale: {
     heading: 'For restaurants and wholesalers',
     lead: 'Would you like fresh wild garlic for your kitchen or to sell on? Tell us what you need and we will get in touch.',
-    consentText: 'I consent to Nesodden Ramsløk storing my inquiry and contacting me to follow it up. My details will be deleted after 12 months. I can withdraw consent at any time.',
+    consentText: 'I consent to Ramsløk.no storing my inquiry and contacting me to follow it up. My details will be deleted after 12 months. I can withdraw consent at any time.',
     success: 'Thank you for your inquiry! We will be in touch.',
   },
   contactForm: {
@@ -121,7 +121,7 @@ export const en: Dictionary = {
   home: {
     heading: 'Wild garlic from Nesodden',
     intro: [
-      'Nesodden Ramsløk sells wild garlic (ramsløk) from a private estate on Nesodden. Every leaf is picked by hand.',
+      'Ramsløk.no sells wild garlic (ramsløk) from a private estate on Nesodden. Every leaf is picked by hand.',
       'Every single batch is sorted and checked for lily of the valley, the poisonous look-alike, before it is packed. You can buy it fresh at Bondens marked in Oslo.',
     ],
     nextMarketsHeading: 'Next market days',
@@ -145,7 +145,7 @@ export const en: Dictionary = {
     emailLabel: 'Email address',
     emailPlaceholder: 'you@example.com',
     consentText:
-      'I consent to Nesodden Ramsløk storing my email address and sending me a notice when the season starts. I can unsubscribe at any time.',
+      'I consent to Ramsløk.no storing my email address and sending me a notice when the season starts. I can unsubscribe at any time.',
     privacyLink: 'Read the privacy policy.',
     button: 'Sign me up',
     honeypotLabel: 'Do not fill in this field',

@@ -1,4 +1,4 @@
-# Nesodden Ramsløk – offentlig nettsted og internt system
+# Ramsløk.no – offentlig nettsted og internt system
 
 Webapp for et lite ramsløk-firma: et offentlig, tospråklig nettsted og et internt system fra innhøsting til pakket vare på lager. Bygget med Next.js og Supabase (Postgres, Auth, Storage).
 

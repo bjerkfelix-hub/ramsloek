@@ -254,7 +254,7 @@ test.describe("metadata, sitemap and robots", () => {
       );
       await expect(
         page.locator('meta[property="og:site_name"]'),
-      ).toHaveAttribute("content", "Nesodden Ramsløk");
+      ).toHaveAttribute("content", "Ramsløk.no");
       await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(
         "content",
         url,
@@ -267,7 +267,7 @@ test.describe("metadata, sitemap and robots", () => {
         .locator('script[type="application/ld+json"]')
         .allTextContents();
       const biz = ld.map((t) => JSON.parse(t)).find((d) => d["@type"] === "LocalBusiness");
-      expect(biz).toMatchObject({ name: "Nesodden Ramsløk", areaServed: "Oslo", inLanguage: locale });
+      expect(biz).toMatchObject({ name: "Ramsløk.no", areaServed: "Oslo", inLanguage: locale });
     });
   }
 

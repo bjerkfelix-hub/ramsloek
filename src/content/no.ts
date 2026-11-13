@@ -2,7 +2,7 @@ import type { Dictionary } from './types'
 
 export const no: Dictionary = {
   site: {
-    name: 'Nesodden Ramsløk',
+    name: 'Ramsløk.no',
     tagline: 'Håndplukket ramsløk fra Nesodden',
     skipToContent: 'Hopp til innhold',
   },
@@ -21,49 +21,49 @@ export const no: Dictionary = {
   },
   pages: {
     shop: {
-      title: 'Butikken – Nesodden Ramsløk',
+      title: 'Butikken – Ramsløk.no',
       description: 'Fersk ramsløk fra Nesodden til vårens markeder i Oslo.',
     },
     interest: {
-      title: 'Meld interesse – Nesodden Ramsløk',
+      title: 'Meld interesse – Ramsløk.no',
       description: 'Fortell oss hvor mange poser du er interessert i. Vi tar kontakt når sesongen nærmer seg. Dette er ikke en bestilling.',
     },
     wholesale: {
-      title: 'For restauranter og grossister – Nesodden Ramsløk',
+      title: 'For restauranter og grossister – Ramsløk.no',
       description: 'Vil dere kjøpe fersk ramsløk til kjøkkenet eller for videresalg? Fortell oss hva dere trenger, så tar vi kontakt.',
     },
 
     home: {
-      title: 'Nesodden Ramsløk – håndplukket ramsløk fra Nesodden',
+      title: 'Ramsløk.no – håndplukket ramsløk fra Nesodden',
       description:
         'Ramsløk plukket for hånd på en privat eiendom på Nesodden, sortert og kontrollert for liljekonvall, og solgt ferskt på Bondens marked i Oslo.',
     },
     story: {
-      title: 'Historien – Nesodden Ramsløk',
+      title: 'Historien – Ramsløk.no',
       description:
         'Fra en privat eiendom på Nesodden til markedsbordet i Oslo. Slik plukker og kontrollerer vi ramsløken, og slik skiller du den fra liljekonvall.',
     },
     recipes: {
-      title: 'Oppskrifter med ramsløk – Nesodden Ramsløk',
+      title: 'Oppskrifter med ramsløk – Ramsløk.no',
       description:
         'Seks enkle oppskrifter med ramsløk: pesto, smør, olje, suppe, eggerøre og lakefermentert ramsløk.',
     },
     markets: {
-      title: 'Marked – hvor og når du finner oss | Nesodden Ramsløk',
+      title: 'Marked – hvor og når du finner oss | Ramsløk.no',
       description:
         'Kommende markedsdager i Oslo med dato, tid og sted. Møt oss på Bondens marked og kjøp fersk ramsløk.',
     },
     privacy: {
-      title: 'Personvern – Nesodden Ramsløk',
+      title: 'Personvern – Ramsløk.no',
       description:
         'Hva vi lagrer når du melder deg på sesongvarsel, hvorfor, hvor lenge, og hvilke rettigheter du har.',
     },
     unsubscribe: {
-      title: 'Avmelding – Nesodden Ramsløk',
-      description: 'Avmelding fra sesongvarsel fra Nesodden Ramsløk.',
+      title: 'Avmelding – Ramsløk.no',
+      description: 'Avmelding fra sesongvarsel fra Ramsløk.no.',
     },
     notFound: {
-      title: 'Siden finnes ikke – Nesodden Ramsløk',
+      title: 'Siden finnes ikke – Ramsløk.no',
       description: 'Vi finner ikke siden du leter etter.',
     },
   },
@@ -82,13 +82,13 @@ export const no: Dictionary = {
   interest: {
     heading: 'Meld interesse',
     lead: 'Fortell oss hvor mange poser du er interessert i. Vi tar kontakt når sesongen nærmer seg. Dette er ikke en bestilling.',
-    consentText: 'Jeg samtykker til at Nesodden Ramsløk lagrer opplysningene mine og kontakter meg om interessen min denne sesongen. Opplysningene slettes når sesongen er over. Jeg kan trekke samtykket tilbake når som helst.',
+    consentText: 'Jeg samtykker til at Ramsløk.no lagrer opplysningene mine og kontakter meg om interessen min denne sesongen. Opplysningene slettes når sesongen er over. Jeg kan trekke samtykket tilbake når som helst.',
     success: 'Takk! Vi har registrert interessen din.',
   },
   wholesale: {
     heading: 'For restauranter og grossister',
     lead: 'Vil dere kjøpe fersk ramsløk til kjøkkenet eller for videresalg? Fortell oss hva dere trenger, så tar vi kontakt.',
-    consentText: 'Jeg samtykker til at Nesodden Ramsløk lagrer opplysningene i henvendelsen og kontakter meg for å følge den opp. Opplysningene slettes etter 12 måneder. Jeg kan trekke samtykket tilbake når som helst.',
+    consentText: 'Jeg samtykker til at Ramsløk.no lagrer opplysningene i henvendelsen og kontakter meg for å følge den opp. Opplysningene slettes etter 12 måneder. Jeg kan trekke samtykket tilbake når som helst.',
     success: 'Takk for henvendelsen! Vi tar kontakt.',
   },
   contactForm: {
@@ -121,7 +121,7 @@ export const no: Dictionary = {
   home: {
     heading: 'Ramsløk fra Nesodden',
     intro: [
-      'Nesodden Ramsløk selger ramsløk fra en privat eiendom på Nesodden. Hvert blad plukkes for hånd.',
+      'Ramsløk.no selger ramsløk fra en privat eiendom på Nesodden. Hvert blad plukkes for hånd.',
       'Hver eneste sending sorteres og kontrolleres for liljekonvall, den giftige dobbeltgjengeren, før den pakkes. Du får den fersk på Bondens marked i Oslo.',
     ],
     nextMarketsHeading: 'Neste markedsdager',
@@ -145,7 +145,7 @@ export const no: Dictionary = {
     emailLabel: 'E-postadresse',
     emailPlaceholder: 'din@epost.no',
     consentText:
-      'Jeg samtykker til at Nesodden Ramsløk lagrer e-postadressen min og sender meg beskjed når sesongen starter. Jeg kan melde meg av når som helst.',
+      'Jeg samtykker til at Ramsløk.no lagrer e-postadressen min og sender meg beskjed når sesongen starter. Jeg kan melde meg av når som helst.',
     privacyLink: 'Les personvernerklæringen.',
     button: 'Meld meg på',
     honeypotLabel: 'Ikke fyll ut dette feltet',

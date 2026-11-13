@@ -102,7 +102,7 @@ describe("localBusinessJsonLd", () => {
     expect(d).toMatchObject({
       "@context": "https://schema.org",
       "@type": "LocalBusiness",
-      name: "Nesodden Ramsløk",
+      name: "Ramsløk.no",
       url: "https://xn--ramslk-fya.no/en",
       email: "felix@dontpanic.no",
       areaServed: "Oslo",

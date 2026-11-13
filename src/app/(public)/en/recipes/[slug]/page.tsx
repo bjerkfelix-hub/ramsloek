@@ -20,7 +20,7 @@ export async function generateMetadata(
   if (!recipe) return {};
   return withParentShareImage(
     pageSocialMetadata({
-    title: `${recipe.title.en} – Nesodden Ramsløk`,
+    title: `${recipe.title.en} – Ramsløk.no`,
     description: recipe.intro.en,
     path: `${ROUTES.en.recipes}/${recipe.slug}`,
   }),

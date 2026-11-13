@@ -28,7 +28,7 @@ export async function notifyInquiry(inquiry: InquiryNotification): Promise<void>
       headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
       signal: AbortSignal.timeout(5000),
       body: JSON.stringify({
-        from: 'Nesodden Ramsløk <varsel@xn--ramslk-fya.no>',
+        from: 'Ramsløk.no <varsel@xn--ramslk-fya.no>',
         to: [headerValue(CONTACT_EMAIL)],
         reply_to: headerValue(inquiry.email),
         subject: `Ny henvendelse: ${headerValue(inquiry.company)}`,

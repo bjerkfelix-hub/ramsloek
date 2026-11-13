@@ -12,7 +12,7 @@ describe('inquiry notification', () => {
     const [url, options] = vi.mocked(fetch).mock.calls[0]
     expect(url).toBe('https://api.resend.com/emails')
     const body = JSON.parse(options!.body as string)
-    expect(body).toMatchObject({ from: 'Nesodden Ramsløk <varsel@xn--ramslk-fya.no>', to: [CONTACT_EMAIL], reply_to: inquiry.email, subject: 'Ny henvendelse: Kjøkkenet' })
+    expect(body).toMatchObject({ from: 'Ramsløk.no <varsel@xn--ramslk-fya.no>', to: [CONTACT_EMAIL], reply_to: inquiry.email, subject: 'Ny henvendelse: Kjøkkenet' })
     expect(body.html).toBeUndefined()
     for (const value of Object.values(inquiry)) expect(body.text).toContain(value)
     expect(body.text).toContain('Bedrift: Kjøkkenet')
