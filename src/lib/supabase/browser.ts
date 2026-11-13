@@ -1,7 +1,8 @@
+import { cookieOptions } from './cookie-options'
 import { createBrowserClient } from '@supabase/ssr'
 import { supabaseEnv } from './env'
 
 export function createClient() {
   const { url, anonKey } = supabaseEnv()
-  return createBrowserClient(url, anonKey)
+  return createBrowserClient(url, anonKey, { cookieOptions })
 }
