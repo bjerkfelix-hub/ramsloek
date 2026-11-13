@@ -12,6 +12,16 @@ export default function LoginPage() {
   )
 }
 
+/** Supabase's answer for an address with no account while sign-ups are off. */
+function isUnknownAccount(error: { code?: string; message?: string }): boolean {
+  return (
+    error.code === 'otp_disabled' ||
+    error.code === 'signup_disabled' ||
+    error.code === 'user_not_found' ||
+    /signups not allowed/i.test(error.message ?? '')
+  )
+}
+
 /** Digits only; Supabase sends 6 (or up to 10, depending on the project's OTP length). */
 function normalizeCode(raw: string): string {
   return raw.replace(/\D/g, '')
@@ -35,6 +45,12 @@ function LoginForm() {
       email: email.trim(),
       options: { shouldCreateUser: false, emailRedirectTo: `${window.location.origin}/auth/callback` },
     })
+    // An e-mail without an account must look exactly like one with an account (no user enumeration):
+    // show the code step either way. Supabase refuses unknown addresses because sign-ups are off.
+    if (error && isUnknownAccount(error)) {
+      setStatus('sent')
+      return
+    }
     if (error) {
       setStatus('idle')
       const rateLimited = error.status === 429 || error.code === 'over_email_send_rate_limit'

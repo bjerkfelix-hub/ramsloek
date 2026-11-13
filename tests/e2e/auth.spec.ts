@@ -48,6 +48,14 @@ test('auth callback answers with relative Location headers', async ({ request })
   expect(ok.headersArray().some((h) => h.name.toLowerCase() === 'set-cookie' && h.value.startsWith('sb-'))).toBe(true)
 })
 
+test('login does not reveal whether an e-mail has an account', async ({ page }) => {
+  await page.goto('/admin/login')
+  await page.getByLabel(/e-post/i).fill(`ingen-konto-${Date.now()}@example.com`)
+  await page.getByRole('button', { name: /send/i }).click()
+  await expect(page.getByRole('form', { name: 'Innloggingskode' })).toBeVisible()
+  await expect(page.getByRole('main').getByRole('alert')).toHaveCount(0)
+})
+
 test('login page explains a failed callback and points to the code', async ({ page }) => {
   await page.goto('/admin/login?error=callback')
   await expect(page.getByRole('main').getByRole('alert')).toHaveText(
