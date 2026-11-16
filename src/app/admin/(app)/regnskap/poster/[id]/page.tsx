@@ -187,12 +187,12 @@ export default async function EntryPage({
           <ul className="r-receipts">
             {receipts.map((r) => (
               <li key={r.id}>
-                <a href={`/api/receipts/${r.id}`} target="_blank" rel="noopener" className="a-link">
+                <a href={`/api/receipts/${r.id}`} target={r.mime_type === 'application/pdf' ? undefined : '_blank'} rel="noopener" className="a-link">
                   {r.mime_type.startsWith('image/') && r.mime_type !== 'image/heic' ? (
                     // eslint-disable-next-line @next/next/no-img-element -- private, authenticated route; no optimizer
                     <img src={`/api/receipts/${r.id}`} alt={`Kvittering ${r.file_name}`} />
                   ) : (
-                    r.file_name
+                    r.mime_type === 'application/pdf' ? `Last ned ${r.file_name}` : r.file_name
                   )}
                 </a>
               </li>

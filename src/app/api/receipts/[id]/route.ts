@@ -25,16 +25,15 @@ export async function GET(_request: Request, ctx: { params: Promise<{ id: string
   const filename = receipt.file_name.replace(/[\x00-\x1f\x7f"\\/]/g, '').trim() || 'kvittering'
   const fallback = filename.replace(/[^\x20-\x7e]/g, '_')
   const encoded = encodeURIComponent(filename).replace(/['()*]/g, (c) => `%${c.charCodeAt(0).toString(16)}`)
+  const disposition = receipt.mime_type === 'application/pdf' ? 'attachment' : 'inline'
   return new Response(stored.body, {
     headers: {
       // Type comes from the sniffed value recorded at upload, never from the storage backend.
       'Content-Type': receipt.mime_type,
-      'Content-Disposition': `inline; filename="${fallback}"; filename*=UTF-8''${encoded}`,
+      'Content-Disposition': `${disposition}; filename="${fallback}"; filename*=UTF-8''${encoded}`,
       'Cache-Control': 'private, no-store',
       'X-Content-Type-Options': 'nosniff',
-      // Defence in depth for images: never run script or load anything as a page. Not for PDFs:
-      // browsers' built-in PDF viewers refuse to render sandboxed documents, and the bytes were
-      // verified to be a real PDF (magic bytes) at upload.
+      // PDFs download as attachments. Inline images cannot run script or load a page.
       ...(receipt.mime_type === 'application/pdf'
         ? {}
         : { 'Content-Security-Policy': "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox" }),
