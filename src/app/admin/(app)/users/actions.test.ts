@@ -1,5 +1,5 @@
 import { beforeEach, expect, it, vi } from 'vitest'
-import { setHourlyRate, setUserActive } from './actions'
+import { inviteUser, setHourlyRate, setUserActive } from './actions'
 import { requireRole } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -63,4 +63,30 @@ it.each(['response', 'throw'])('reports Auth ban failure (%s) after saving the p
   if (mode === 'throw') updateUserById.mockRejectedValue(Error('network'))
   else updateUserById.mockResolvedValue({ error: { message: 'auth failed' } })
   expect(await setUserActive(id, false)).toEqual({ ok: false, error: expect.stringContaining('Profilen er lagret') })
+})
+
+const createUser = vi.fn()
+it.each(['owner', 'picker', 'seller'])('provisions an active %s only after Auth creates the user', async role => {
+  vi.mocked(requireRole).mockResolvedValue({ id: 'owner', role: 'owner', fullName: 'Owner' })
+  vi.mocked(createAdminClient).mockReturnValue({ auth: { admin: { createUser } } } as never)
+  createUser.mockResolvedValue({ data: { user: { id } }, error: null })
+  vi.mocked(createClient).mockResolvedValue({ from: () => ({ update: updateProfile }) } as never)
+  selectUpdated.mockResolvedValue({ data: [{ id }], error: null })
+  const form = new FormData()
+  for (const [key, value] of Object.entries({ email: 'new@example.test', full_name: 'New', role })) form.set(key, value)
+  expect(await inviteUser(form)).toEqual({ ok: true })
+  expect(createUser).toHaveBeenCalledWith(expect.objectContaining({ app_metadata: { role } }))
+  expect(updateProfile).toHaveBeenCalledWith({ role, active: true })
+  expect(createUser.mock.invocationCallOrder[0]).toBeLessThan(updateProfile.mock.invocationCallOrder[0])
+})
+it.each(['auth', 'profile'])('reports provisioning failure at %s', async stage => {
+  vi.mocked(requireRole).mockResolvedValue({ id: 'owner', role: 'owner', fullName: 'Owner' })
+  vi.mocked(createAdminClient).mockReturnValue({ auth: { admin: { createUser } } } as never)
+  createUser.mockResolvedValue(stage === 'auth' ? { data: { user: null }, error: { code: 'failed' } } : { data: { user: { id } }, error: null })
+  vi.mocked(createClient).mockResolvedValue({ from: () => ({ update: updateProfile }) } as never)
+  selectUpdated.mockResolvedValue({ data: null, error: { code: '42501' } })
+  const form = new FormData()
+  for (const [key, value] of Object.entries({ email: 'new@example.test', full_name: 'New', role: 'seller' })) form.set(key, value)
+  expect((await inviteUser(form)).ok).toBe(false)
+  if (stage === 'auth') expect(updateProfile).not.toHaveBeenCalled()
 })

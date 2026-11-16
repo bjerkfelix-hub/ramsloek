@@ -19,18 +19,26 @@ export async function inviteUser(form: FormData): Promise<ActionResult> {
   if (!ROLES.includes(role)) return { ok: false, error: 'Velg en rolle.' }
 
   // Create the user directly (no invite e-mail): they sign in from the login page with a magic link.
-  const { error } = await createAdminClient().auth.admin.createUser({
+  const { data, error } = await createAdminClient().auth.admin.createUser({
     email,
     email_confirm: true,
     // Role lives in app_metadata (only the service role can set it); handle_new_user reads it from there.
     app_metadata: { role },
     user_metadata: { full_name: fullName },
   })
-  if (error) {
-    const duplicate = error.code === 'email_exists' || /already|registered/i.test(error.message)
+  if (error || !data.user) {
+    const duplicate = error?.code === 'email_exists' || /already|registered/i.test(error?.message ?? '')
     return { ok: false, error: duplicate ? 'Dette finnes allerede.' : 'Kunne ikke legge til brukeren. Prøv igjen.' }
   }
+  // Auth can write app_metadata after the INSERT trigger. Only this owner-authorized
+  // provisioning flow activates the fallback profile and applies the requested role.
+  const client = await createClient()
+  const { data: profiles, error: profileError } = await client.from('profiles')
+    .update({ role, active: true }).eq('id', data.user.id).select('id')
   revalidatePath('/admin/users')
+  if (profileError || !profiles?.length) {
+    return { ok: false, error: 'Brukeren er opprettet, men profilen kunne ikke aktiveres. Kontroller brukeren før innlogging.' }
+  }
   return { ok: true }
 }
 

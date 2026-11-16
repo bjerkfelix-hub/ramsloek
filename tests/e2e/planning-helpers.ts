@@ -47,7 +47,7 @@ export async function planningUser(role: Role): Promise<PlanningUser> {
   const client = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: localFetch } })
   const fixtureOwner = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: localFetch } })
   checked(await fixtureOwner.auth.verifyOtp({ token_hash: await magicLinkToken('owner'), type: 'magiclink' }))
-  checked(await fixtureOwner.from('profiles').update({ role }).eq('id', data.user.id))
+  checked(await fixtureOwner.from('profiles').update({ role, active: true }).eq('id', data.user.id))
   const link = await admin.auth.admin.generateLink({ type: 'magiclink', email })
   if (link.error) throw link.error
   const session = await client.auth.verifyOtp({ token_hash: link.data.properties.hashed_token, type: 'magiclink' })

@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 \ir helpers.psql
-select plan(11);
+select plan(19);
 
 -- fixtures (as service_role)
 set local role service_role;
@@ -56,6 +56,34 @@ insert into auth.users (id, aud, role, email)
 values ('00000000-0000-0000-0000-0000000000b3', 'authenticated', 'authenticated', 'tom@example.test');
 select is((select full_name || '/' || role from public.profiles where id = '00000000-0000-0000-0000-0000000000b3'),
   'tom@example.test/picker', 'no metadata: full_name falls back to e-mail, role to picker');
+
+-- Missing or untrusted role claims never activate a profile.
+select is((select active from public.profiles where id = '00000000-0000-0000-0000-0000000000b1'),
+  false, 'user_metadata owner claim stays inactive');
+select is((select active from public.profiles where id = '00000000-0000-0000-0000-0000000000b3'),
+  false, 'missing app_metadata role stays inactive');
+select is((select active from public.profiles where id = '00000000-0000-0000-0000-0000000000b2'),
+  true, 'owner-created seller is active');
+
+insert into auth.users (id, aud, role, email, raw_app_meta_data)
+values ('00000000-0000-0000-0000-0000000000b4', 'authenticated', 'authenticated',
+        'invalid@example.test', '{"role":"administrator"}');
+select is((select role::text from public.profiles where id = '00000000-0000-0000-0000-0000000000b4'),
+  'picker', 'invalid app_metadata role uses a constrained fallback');
+select is((select active from public.profiles where id = '00000000-0000-0000-0000-0000000000b4'),
+  false, 'invalid app_metadata role stays inactive');
+
+insert into auth.users (id, aud, role, email, raw_app_meta_data)
+values ('00000000-0000-0000-0000-0000000000b5', 'authenticated', 'authenticated',
+        'owner@example.test', '{"role":"owner"}'),
+       ('00000000-0000-0000-0000-0000000000b6', 'authenticated', 'authenticated',
+        'picker@example.test', '{"role":"picker"}');
+select is((select role::text || '/' || active::text from public.profiles where id = '00000000-0000-0000-0000-0000000000b5'),
+  'owner/true', 'trusted owner role creates an active owner');
+select is((select role::text || '/' || active::text from public.profiles where id = '00000000-0000-0000-0000-0000000000b6'),
+  'picker/true', 'trusted picker role creates an active picker');
+select tests.login_as_user('00000000-0000-0000-0000-0000000000b4');
+select is(public.app_role()::text, null, 'new account with invalid role has no application access');
 
 select * from finish();
 rollback;
