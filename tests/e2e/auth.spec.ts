@@ -30,22 +30,31 @@ test('picker opening /settings gets 404', async ({ page }) => {
   expect(res?.status()).toBe(404)
 })
 
-test('auth callback answers with relative Location headers', async ({ request }) => {
+test('auth callback answers with relative Location headers and requires a click', async ({ request, page }) => {
   // Behind a proxy request.nextUrl.origin is not the public host, so the redirect must not contain one.
   const bad = await request.get('/auth/callback?token_hash=not-a-real-token&type=magiclink', { maxRedirects: 0 })
   expect(bad.status()).toBe(303)
-  expect(bad.headers()['location']).toBe('/admin/login?error=callback')
+  expect(bad.headers()['location']).toBe('/admin/login/lenke?token_hash=not-a-real-token&type=magiclink')
 
   const missing = await request.get('/auth/callback', { maxRedirects: 0 })
   expect(missing.headers()['location']).toBe('/admin/login?error=callback')
 
   const invite = await request.get('/auth/callback?token_hash=x&type=invite', { maxRedirects: 0 })
-  expect(invite.headers()['location']).toBe('/admin/login?error=callback')
+  expect(invite.headers()['location']).toBe('/admin/login/lenke?token_hash=x&type=invite')
 
-  const ok = await request.get(`/auth/callback?token_hash=${await magicLinkToken('picker')}&type=magiclink`, { maxRedirects: 0 })
+  const token = await magicLinkToken('picker')
+  const ok = await request.get(`/auth/callback?token_hash=${token}&type=magiclink`, { maxRedirects: 0 })
   expect(ok.status()).toBe(303)
-  expect(ok.headers()['location']).toBe('/admin')
-  expect(ok.headersArray().some((h) => h.name.toLowerCase() === 'set-cookie' && h.value.startsWith('sb-'))).toBe(true)
+  expect(ok.headers()['location']).toBe(`/admin/login/lenke?token_hash=${token}&type=magiclink`)
+  expect(ok.headersArray().some((h) => h.name.toLowerCase() === 'set-cookie' && h.value.startsWith('sb-'))).toBe(false)
+  await page.goto(ok.headers()['location'])
+  await expect(page.getByRole('button', { name: 'Logg inn', exact: true })).toBeVisible()
+  // Opening the legacy link did not create a session or consume the token.
+  await page.goto('/admin')
+  await expect(page).toHaveURL(/\/admin\/login$/)
+  await page.goto(ok.headers()['location'])
+  await page.getByRole('button', { name: 'Logg inn', exact: true }).click()
+  await expect(page).toHaveURL(/\/admin$/)
 })
 
 test('login does not reveal whether an e-mail has an account', async ({ page }) => {

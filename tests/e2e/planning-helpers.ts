@@ -59,7 +59,8 @@ export async function planningUser(role: Role): Promise<PlanningUser> {
 export async function loginPlanning(page: Page, email: string) {
   const link = await adminClient().auth.admin.generateLink({ type: 'magiclink', email })
   if (link.error) throw link.error
-  await page.goto(`/auth/callback?token_hash=${link.data.properties.hashed_token}&type=magiclink`)
+  await page.goto(`/admin/login/lenke?token_hash=${link.data.properties.hashed_token}&type=magiclink`)
+  await page.getByRole('button', { name: 'Logg inn', exact: true }).click()
   await page.waitForURL(u => u.pathname === '/admin')
 }
 export function checked<T extends { error: unknown }>(result: T): T { if (result.error) throw result.error; return result }
