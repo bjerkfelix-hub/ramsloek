@@ -57,7 +57,7 @@ for (const en of [false, true]) {
     await page.goto(en ? '/en' : '/')
     await expect(page.locator('main').getByRole('link', { name: en ? 'Shop' : 'Butikken', exact: true })).toHaveAttribute('href', path)
   })
-  test(`interest success and duplicate email updates ${en ? 'en' : 'no'}`, async ({ page }) => {
+  test(`interest success and duplicate email preserves original ${en ? 'en' : 'no'}`, async ({ page }) => {
     const address = email()
     const path = en ? '/en/interest' : '/interesse'
     await page.goto(path)
@@ -73,7 +73,7 @@ for (const en of [false, true]) {
     await submitPlanning(page.getByRole('button', { name: en ? 'Submit' : 'Send inn', exact: true }))
     await expect(page.getByTestId('contact-success')).toBeVisible()
     expect((await row('consumer_interests', address))?.id).toBe(first.id)
-    expect((await row('consumer_interests', address))?.bags).toBe(7)
+    expect(await row('consumer_interests', address)).toEqual(first)
   })
   test(`wholesale saves successfully with email service unconfigured ${en ? 'en' : 'no'}`, async ({ page }) => {
     const address = email()

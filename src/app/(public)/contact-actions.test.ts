@@ -20,11 +20,26 @@ beforeEach(() => {
   mocks.notify.mockResolvedValue(undefined)
 })
 describe('public contact server actions', () => {
-  it('upserts normalized email with exact translated consent and timestamp', async () => {
+  it('inserts normalized email with exact translated consent and timestamp', async () => {
     expect(await interestAction(null, form('interest', { email: ' Ola@Example.test ' }))).toEqual({ ok: true })
     expect(mocks.from).toHaveBeenCalledWith('consumer_interests')
-    expect(mocks.upsert).toHaveBeenCalledWith(expect.objectContaining({ email: 'ola@example.test', language: 'en', bags: 3, consent_text: expect.stringContaining('I consent'), consented_at: expect.any(String) }), { onConflict: 'email' })
+    expect(mocks.insert).toHaveBeenCalledWith(expect.objectContaining({ email: 'ola@example.test', language: 'en', bags: 3, consent_text: expect.stringContaining('I consent'), consented_at: expect.any(String) }))
     expect(mocks.notify).not.toHaveBeenCalled()
+  })
+  it('returns the same success for duplicates and preserves the original row', async () => {
+    let stored: unknown
+    mocks.insert.mockImplementation(async row => {
+      if (stored) return { error: { code: '23505' } }
+      stored = structuredClone(row)
+      return { error: null }
+    })
+    const first = await interestAction(null, form('interest', { phone: '12345678', comment: 'Original' }))
+    const original = structuredClone(stored)
+    expect(await interestAction(null, form('interest', { name: 'Replacement', bags: '7', phone: '87654321', comment: 'Changed', language: 'no' }))).toEqual(first)
+    expect(first).toEqual({ ok: true })
+    expect(stored).toEqual(original)
+    expect(mocks.insert).toHaveBeenCalledTimes(2)
+    expect(mocks.upsert).not.toHaveBeenCalled()
   })
   it('notifies only after inquiry persistence', async () => {
     expect(await inquiryAction(null, form('wholesale'))).toEqual({ ok: true })

@@ -8,9 +8,11 @@ insert into public.products(name, net_weight_g, unit_kind, shelf_life_days, acti
 set local role service_role;
 select lives_ok($$insert into public.consumer_interests(name,email,bags,language,consent_text) values ('Ola','shop-test@example.test',2,'no','Samtykke')$$, 'server insert path works');
 select lives_ok($$insert into public.business_inquiries(company,contact_name,email,type,message,language,consent_text) values ('Kjøkkenet','Ola','shop-test@example.test','restaurant','Hei','en','Consent')$$, 'server inquiry insert works');
-select lives_ok($$insert into public.consumer_interests(name,email,bags,language,consent_text) values ('Ola oppdatert','shop-test@example.test',5,'en','Consent') on conflict(email) do update set name=excluded.name, bags=excluded.bags, language=excluded.language, consent_text=excluded.consent_text$$, 'duplicate email uses atomic upsert');
+create temporary table original_interest as select to_jsonb(i) as row from public.consumer_interests i where email='shop-test@example.test';
+select lives_ok($$insert into public.consumer_interests(name,email,bags,language,consent_text) values ('Ola oppdatert','shop-test@example.test',5,'en','Consent') on conflict(email) do nothing$$, 'duplicate email is ignored');
 select is((select count(*) from public.consumer_interests where email='shop-test@example.test'),1::bigint,'one row per email');
-select is((select bags from public.consumer_interests where email='shop-test@example.test'),5,'duplicate email updates bags');
+select is((select bags from public.consumer_interests where email='shop-test@example.test'),2,'duplicate email preserves bags');
+select is((select to_jsonb(i) from public.consumer_interests i where email='shop-test@example.test'), (select row from original_interest), 'duplicate leaves entire original row unchanged');
 select throws_ok($$update public.consumer_interests set bags=0$$,'23514',null,'bags lower bound');
 select throws_ok($$update public.consumer_interests set bags=51$$,'23514',null,'bags upper bound');
 select throws_ok($$update public.consumer_interests set name=repeat('a',101)$$,'23514',null,'name length');

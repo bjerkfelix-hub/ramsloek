@@ -37,11 +37,9 @@ async function submitContact(kind: ContactKind, form: FormData): Promise<SignupR
     if (kind === 'interest') {
       const { error } = await db
         .from('consumer_interests')
-        .upsert(
-          { ...common, name: f('name'), bags: Number(f('bags')), comment: f('comment') },
-          { onConflict: 'email' },
-        )
-      if (error) throw error
+        .insert({ ...common, name: f('name'), bags: Number(f('bags')), comment: f('comment') })
+      // Duplicate registrations have the same response and never replace existing personal data.
+      if (error && error.code !== '23505') throw error
     } else {
       const inquiry = {
         ...common,
