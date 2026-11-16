@@ -19,7 +19,7 @@ language sql security invoker set search_path = '' as $$
   insert into public.ledger_receipts (id, entry_id, takings_id, storage_key, file_name, mime_type, size_bytes, sha256,
     uploaded_by, uploaded_at)
   values (coalesce((p->>'id')::uuid, gen_random_uuid()), (p->>'entry_id')::uuid, (p->>'takings_id')::uuid,
-    coalesce(p->>'storage_key', 'receipts/2004/' || gen_random_uuid() || '.jpg'), 'receipt.jpg',
+    tests.receipt_object(coalesce(p->>'storage_key', 'receipts/2004/' || gen_random_uuid() || '.jpg'), coalesce(p->>'mime_type', 'image/jpeg'), coalesce((p->>'size_bytes')::int, 100)), 'receipt.jpg',
     coalesce(p->>'mime_type', 'image/jpeg'), coalesce((p->>'size_bytes')::int, 100), repeat('a', 64),
     coalesce((p->>'uploaded_by')::uuid, auth.uid()), coalesce((p->>'uploaded_at')::timestamptz, now())) returning id
 $$;

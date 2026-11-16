@@ -8,10 +8,10 @@ export const runtime = 'nodejs'
 /**
  * Yields zip bytes for the given receipts, one stored object at a time. Receipts are already
  * compressed images/PDFs, so entries are stored (ZipPassThrough), not deflated. A receipt that cannot
- * be fetched aborts the export: a zip silently missing a receipt the Excel sheet lists is worse than
- * a failed download the owner can retry.
+ * be fetched is skipped and listed in MANGLER.txt so gaps remain visible to the owner.
  */
 async function* zipChunks(files: ExportFile[]): AsyncGenerator<Uint8Array> {
+  const missing: string[] = []
   const out: Uint8Array[] = []
   let failure: Error | null = null
   const zip = new Zip((err, chunk) => {
@@ -24,8 +24,11 @@ async function* zipChunks(files: ExportFile[]): AsyncGenerator<Uint8Array> {
   }
 
   for (const f of files) {
-    const stored = await getReceipt(f.key)
-    if (!stored) throw new Error(`Kunne ikke hente kvitteringen ${f.name}`)
+    const stored = await getReceipt(f.key).catch(() => null)
+    if (!stored) {
+      missing.push(f.name)
+      continue
+    }
     const entry = new ZipPassThrough(f.name)
     zip.add(entry)
     yield* drain()
@@ -43,6 +46,12 @@ async function* zipChunks(files: ExportFile[]): AsyncGenerator<Uint8Array> {
         current = next
       }
     }
+    yield* drain()
+  }
+  if (missing.length) {
+    const entry = new ZipPassThrough('MANGLER.txt')
+    zip.add(entry)
+    entry.push(new TextEncoder().encode(`Kunne ikke hente følgende kvitteringer:\n${missing.join('\n')}\n`), true)
     yield* drain()
   }
   zip.end()

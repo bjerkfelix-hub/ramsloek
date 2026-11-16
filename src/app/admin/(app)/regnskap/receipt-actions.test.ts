@@ -135,6 +135,7 @@ describe('uploadReceipt', () => {
       const key = vi.mocked(putReceipt).mock.calls[0][0]
       expect(key).toMatch(/^receipts\/2027\/[0-9a-f-]{36}\.jpg$/)
       expect(putReceipt).toHaveBeenCalledWith(key, JPEG, 'image/jpeg')
+      expect(vi.mocked(putReceipt).mock.invocationCallOrder[0]).toBeLessThan(insert.mock.invocationCallOrder[0])
       expect(from).toHaveBeenCalledWith(parent === 'entry' ? 'ledger_entries' : 'market_takings')
       expect(insert).toHaveBeenCalledWith(expect.objectContaining({
         entry_id: parent === 'entry' ? PARENT : null,

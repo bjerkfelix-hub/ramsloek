@@ -36,3 +36,13 @@ begin
   reset role;
 end $$;
 grant execute on all functions in schema tests to authenticated;
+
+create function tests.receipt_object(p_key text, p_mime text, p_size int) returns text
+language plpgsql security definer set search_path = '' as $$
+begin
+  insert into storage.objects(bucket_id, name, metadata)
+  values ('receipts', p_key, jsonb_build_object('mimetype', p_mime, 'size', p_size))
+  on conflict do nothing;
+  return p_key;
+end $$;
+grant execute on function tests.receipt_object(text, text, int) to authenticated;
