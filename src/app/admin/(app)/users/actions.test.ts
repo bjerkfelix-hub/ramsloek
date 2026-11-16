@@ -1,7 +1,8 @@
 import { beforeEach, expect, it, vi } from 'vitest'
-import { setHourlyRate } from './actions'
+import { setHourlyRate, setUserActive } from './actions'
 import { requireRole } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 vi.mock('@/lib/auth', () => ({ requireRole: vi.fn() }))
 vi.mock('@/lib/supabase/server', () => ({ createClient: vi.fn() }))
@@ -26,3 +27,40 @@ it.each(['picker', 'seller'])('rejects %s before accessing data', async () => {
   await expect(setHourlyRate(form())).rejects.toThrow('404'); expect(from).not.toHaveBeenCalled()
 })
 it('does not report success on database failure', async () => { upsert.mockResolvedValueOnce({ error: { code: '42501' } }); expect((await setHourlyRate(form())).ok).toBe(false) })
+
+const updateUserById = vi.fn()
+const selectUpdated = vi.fn()
+const updateProfile = vi.fn(() => ({ eq: vi.fn(() => ({ select: selectUpdated })) }))
+it.each([false, true])('sets active=%s before changing Auth ban', async active => {
+  vi.mocked(requireRole).mockResolvedValue({ id: 'owner', role: 'owner', fullName: 'Owner' })
+  vi.mocked(createClient).mockResolvedValue({ from: () => ({ update: updateProfile }) } as never)
+  selectUpdated.mockResolvedValue({ data: [{ id }], error: null })
+  vi.mocked(createAdminClient).mockReturnValue({ auth: { admin: { updateUserById } } } as never)
+  updateUserById.mockResolvedValue({ error: null })
+  expect(await setUserActive(id, active)).toEqual({ ok: true })
+  expect(updateProfile).toHaveBeenCalledWith({ active })
+  expect(updateUserById).toHaveBeenCalledWith(id, { ban_duration: active ? 'none' : '876000h' })
+  expect(selectUpdated.mock.invocationCallOrder[0]).toBeLessThan(updateUserById.mock.invocationCallOrder[0])
+})
+it.each([{ error: { code: '42501' } }, { data: [] }])('never bans after rejected or missing profile update', async result => {
+  vi.mocked(requireRole).mockResolvedValue({ id: 'owner', role: 'owner', fullName: 'Owner' })
+  vi.mocked(createClient).mockResolvedValue({ from: () => ({ update: updateProfile }) } as never)
+  selectUpdated.mockResolvedValue(result)
+  expect((await setUserActive(id, false)).ok).toBe(false)
+  expect(createAdminClient).not.toHaveBeenCalled()
+})
+it('never changes the owner’s own account', async () => {
+  vi.mocked(requireRole).mockResolvedValue({ id, role: 'owner', fullName: 'Owner' })
+  expect((await setUserActive(id, false)).ok).toBe(false)
+  expect(createClient).not.toHaveBeenCalled()
+  expect(createAdminClient).not.toHaveBeenCalled()
+})
+it.each(['response', 'throw'])('reports Auth ban failure (%s) after saving the profile', async mode => {
+  vi.mocked(requireRole).mockResolvedValue({ id: 'owner', role: 'owner', fullName: 'Owner' })
+  vi.mocked(createClient).mockResolvedValue({ from: () => ({ update: updateProfile }) } as never)
+  selectUpdated.mockResolvedValue({ data: [{ id }], error: null })
+  vi.mocked(createAdminClient).mockReturnValue({ auth: { admin: { updateUserById } } } as never)
+  if (mode === 'throw') updateUserById.mockRejectedValue(Error('network'))
+  else updateUserById.mockResolvedValue({ error: { message: 'auth failed' } })
+  expect(await setUserActive(id, false)).toEqual({ ok: false, error: expect.stringContaining('Profilen er lagret') })
+})

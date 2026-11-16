@@ -43,3 +43,10 @@ begin
 end $$;
 revoke all on function public.ledger_receipts_guard() from public, anon, authenticated;
 
+-- Inactive sessions have no application role and must not read shared profiles/settings.
+drop policy profiles_select on public.profiles;
+create policy profiles_select on public.profiles
+  for select to authenticated using (public.app_role() is not null);
+drop policy settings_select on public.settings;
+create policy settings_select on public.settings
+  for select to authenticated using (public.app_role() is not null);

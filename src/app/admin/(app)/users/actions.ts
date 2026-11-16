@@ -42,6 +42,14 @@ export async function setUserActive(userId: string, active: boolean): Promise<Ac
   if (error) return { ok: false, error: dbErrorToMessage(error) }
   if (!data?.length) return { ok: false, error: 'Fant ikke brukeren.' }
   revalidatePath('/admin/users')
+  try {
+    const { error: banError } = await createAdminClient().auth.admin.updateUserById(userId, {
+      ban_duration: active ? 'none' : '876000h',
+    })
+    if (banError) throw banError
+  } catch {
+    return { ok: false, error: 'Profilen er lagret, men innloggingstilgangen kunne ikke oppdateres. Prøv igjen.' }
+  }
   return { ok: true }
 }
 
