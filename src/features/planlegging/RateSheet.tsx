@@ -6,7 +6,7 @@ import { setHourlyRate } from '@/app/admin/(app)/users/actions'
 export function RateSheet({ profileId, rate }: { profileId: string; rate: number | null }) {
   const [open, setOpen] = useState(false)
   return <>
-    <button className="a-btn a-btn-tinted" type="button" aria-haspopup="dialog" onClick={() => setOpen(true)}>Endre timesats</button>
+    <button className="a-btn a-btn-gray a-btn-sm" type="button" aria-haspopup="dialog" onClick={() => setOpen(true)}>Endre timesats</button>
     <Sheet open={open} onClose={() => setOpen(false)} title="Endre timesats">
       <ActionForm action={setHourlyRate}>
         <input type="hidden" name="profile_id" value={profileId} />
